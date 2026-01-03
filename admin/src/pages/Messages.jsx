@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminMessageAPI } from '../services/api';
 import { HiMail, HiUsers, HiLightningBolt, HiMailOpen } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 
 export default function Messages() {
     const [messages, setMessages] = useState([]);
@@ -17,6 +18,7 @@ export default function Messages() {
             const res = await adminMessageAPI.getAll();
             setMessages(res.data.messages);
         } catch (error) {
+            toast.error('Failed to load communication history');
             console.error(error);
         } finally {
             setLoading(false);
@@ -28,11 +30,11 @@ export default function Messages() {
         setSubmitting(true);
         try {
             await adminMessageAPI.send(formData);
-            alert('Satellite broadcast successful!');
+            toast.success('Satellite broadcast successful!');
             setFormData({ title: '', content: '', isBroadcast: true });
             fetchMessages();
         } catch (error) {
-            alert('Transmission failed');
+            toast.error('Transmission failed');
         } finally {
             setSubmitting(false);
         }

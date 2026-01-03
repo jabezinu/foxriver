@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminWithdrawalAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiBriefcase, HiCheck, HiX, HiCreditCard } from 'react-icons/hi';
 
 export default function WithdrawalRequests() {
@@ -27,10 +28,10 @@ export default function WithdrawalRequests() {
         if (!window.confirm('Confirm funds have been MANUALLY transferred to user bank? This will mark request as SUCCEEDED and deduct balance.')) return;
         try {
             await adminWithdrawalAPI.approve(id, { notes: 'Transferred by Finance Dept' });
-            alert('Withdrawal marked as successfully transferred!');
+            toast.success('Withdrawal marked as successfully transferred!');
             fetchWithdrawals();
         } catch (error) {
-            alert(error.response?.data?.message || 'Approval failed');
+            toast.error(error.response?.data?.message || 'Approval failed');
         }
     };
 
@@ -39,10 +40,10 @@ export default function WithdrawalRequests() {
         if (reason === null) return;
         try {
             await adminWithdrawalAPI.reject(id, { notes: reason || 'Account issue / Verification failed' });
-            alert('Withdrawal request invalidated');
+            toast.success('Withdrawal request invalidated');
             fetchWithdrawals();
         } catch (error) {
-            alert(error.response?.data?.message || 'Rejection failed');
+            toast.error(error.response?.data?.message || 'Rejection failed');
         }
     };
 

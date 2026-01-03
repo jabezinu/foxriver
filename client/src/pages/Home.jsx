@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { membershipAPI, userAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import {
     HiDownload, HiUpload, HiViewGrid, HiLightningBolt,
     HiBriefcase, HiInformationCircle, HiNewspaper,
@@ -24,6 +25,7 @@ export default function Home() {
                 const walletRes = await userAPI.getWallet();
                 setWallet(walletRes.data);
             } catch (error) {
+                toast.error('Failed to update wallet balance');
                 console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
@@ -34,16 +36,16 @@ export default function Home() {
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
-        alert('Referral link copied to clipboard!');
+        toast.success('Referral link copied to clipboard!');
     };
 
     const menuItems = [
         { icon: HiDownload, label: 'Deposit', color: 'bg-green-100 text-green-600', path: '/deposit' },
         { icon: HiUpload, label: 'Withdraw', color: 'bg-blue-100 text-blue-600', path: '/withdraw' },
-        { icon: HiViewGrid, label: 'Tier List', color: 'bg-purple-100 text-purple-600', action: () => alert('Tier List feature coming soon!') },
+        { icon: HiViewGrid, label: 'Tier List', color: 'bg-purple-100 text-purple-600', action: () => toast('Tier List feature coming soon!') },
         { icon: HiLightningBolt, label: 'Wealth Fund', color: 'bg-yellow-100 text-yellow-600', path: '/wealth' },
-        { icon: HiLightningBolt, label: 'Lucky Wheel', color: 'bg-pink-100 text-pink-600', action: () => alert('Lucky Wheel coming soon!') },
-        { icon: HiInformationCircle, label: 'About Us', color: 'bg-indigo-100 text-indigo-600', action: () => alert('Foxriver: Ethiopia\'s leading digital earning platform.') },
+        { icon: HiLightningBolt, label: 'Lucky Wheel', color: 'bg-pink-100 text-pink-600', action: () => toast('Lucky Wheel coming soon!') },
+        { icon: HiInformationCircle, label: 'About Us', color: 'bg-indigo-100 text-indigo-600', action: () => toast.success('Foxriver: Ethiopia\'s leading digital earning platform.') },
         { icon: HiNewspaper, label: 'Company News', color: 'bg-orange-100 text-orange-600', path: '/news' },
         { icon: HiQuestionMarkCircle, label: 'Q&A', color: 'bg-teal-100 text-teal-600', path: '/qna' },
         {
@@ -56,7 +58,7 @@ export default function Home() {
                     setReferralLink(res.data.referralLink);
                     setShowInvitation(true);
                 } catch (error) {
-                    alert('Referral link only available for V1+ users');
+                    toast.error('Referral link only available for V1+ users');
                 }
             }
         },
@@ -70,7 +72,7 @@ export default function Home() {
             <div className="bg-white px-4 py-3 flex justify-between items-center sticky top-0 z-10 shadow-sm">
                 <h1 className="text-xl font-bold text-green-600">Foxriver</h1>
                 <div className="flex gap-4">
-                    <button className="text-gray-600 text-2xl" onClick={() => alert('Language: English')}>
+                    <button className="text-gray-600 text-2xl" onClick={() => toast('Language: English')}>
                         <HiGlobeAlt />
                     </button>
                     <button className="text-gray-600 text-2xl" onClick={() => navigate('/settings')}>

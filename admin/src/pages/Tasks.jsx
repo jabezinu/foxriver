@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminTaskAPI } from '../services/api';
 import { HiVideoCamera, HiPlus, HiTrash, HiPlay } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 
 export default function TaskManagement() {
     const [tasks, setTasks] = useState([]);
@@ -17,6 +18,7 @@ export default function TaskManagement() {
             const res = await adminTaskAPI.getTasks();
             setTasks(res.data.tasks);
         } catch (error) {
+            toast.error('Failed to load tasks');
             console.error(error);
         } finally {
             setLoading(false);
@@ -33,11 +35,11 @@ export default function TaskManagement() {
         setUploading(true);
         try {
             await adminTaskAPI.upload(formData);
-            alert('Video task uploaded successfully!');
+            toast.success('Video task uploaded successfully!');
             setVideoFile(null);
             fetchTasks();
         } catch (error) {
-            alert(error.response?.data?.message || 'Upload failed');
+            toast.error(error.response?.data?.message || 'Upload failed');
         } finally {
             setUploading(false);
         }
@@ -47,9 +49,10 @@ export default function TaskManagement() {
         if (!window.confirm('Are you sure you want to delete this video task?')) return;
         try {
             await adminTaskAPI.delete(id);
+            toast.success('Task deleted');
             fetchTasks();
         } catch (error) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 

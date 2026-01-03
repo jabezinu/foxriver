@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { taskAPI, userAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiPlay, HiCheckCircle, HiVideoCamera } from 'react-icons/hi';
 import ReactPlayer from 'react-player';
 import Loading from '../components/Loading';
@@ -33,11 +34,11 @@ export default function Task() {
         try {
             const response = await taskAPI.completeTask(taskId);
             if (response.data.success) {
-                alert(`Task completed! Earned ${response.data.earningsAmount} ETB`);
+                toast.success(`Task completed! Earned ${response.data.earningsAmount} ETB`);
                 fetchTasks();
             }
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to complete task');
+            toast.error(error.response?.data?.message || 'Failed to complete task');
         }
     };
 

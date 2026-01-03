@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { toast } from 'react-hot-toast';
 import { HiPhone, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
 
 export default function Login() {
@@ -25,16 +26,15 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setFormError('');
 
         // Validation
         if (!formData.phone.startsWith('+251') || formData.phone.length !== 13) {
-            setFormError('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
+            toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
             return;
         }
 
         if (formData.captcha !== captchaValue.toString()) {
-            setFormError('Incorrect CAPTCHA');
+            toast.error('Incorrect CAPTCHA');
             return;
         }
 
@@ -44,9 +44,10 @@ export default function Login() {
         });
 
         if (result.success) {
+            toast.success('Welcome back!');
             navigate('/', { replace: true });
         } else {
-            setFormError(result.message);
+            toast.error(result.message || 'Login failed');
         }
     };
 
@@ -122,12 +123,7 @@ export default function Login() {
                         />
                     </div>
 
-                    {/* Error Message */}
-                    {(formError || error) && (
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm">
-                            {formError || error}
-                        </div>
-                    )}
+
 
                     {/* Submit Button */}
                     <button

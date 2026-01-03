@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminDepositAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiCurrencyDollar, HiCheck, HiX, HiExternalLink } from 'react-icons/hi';
 
 export default function DepositRequests() {
@@ -17,6 +18,7 @@ export default function DepositRequests() {
             const res = await adminDepositAPI.getDeposits({ status: filterStatus });
             setDeposits(res.data.deposits);
         } catch (error) {
+            toast.error('Failed to load ledger records');
             console.error(error);
         } finally {
             setLoading(false);
@@ -27,10 +29,10 @@ export default function DepositRequests() {
         if (!window.confirm('Are you sure you want to APPROVE this deposit? The user wallet will be credited immediately.')) return;
         try {
             await adminDepositAPI.approve(id, { notes: 'Approved by admin' });
-            alert('Deposit approved and user credited!');
+            toast.success('Deposit approved and user credited!');
             fetchDeposits();
         } catch (error) {
-            alert(error.response?.data?.message || 'Approval failed');
+            toast.error(error.response?.data?.message || 'Approval failed');
         }
     };
 
@@ -39,10 +41,10 @@ export default function DepositRequests() {
         if (reason === null) return;
         try {
             await adminDepositAPI.reject(id, { notes: reason || 'Rejected by admin' });
-            alert('Deposit rejected');
+            toast.success('Deposit rejected');
             fetchDeposits();
         } catch (error) {
-            alert(error.response?.data?.message || 'Rejection failed');
+            toast.error(error.response?.data?.message || 'Rejection failed');
         }
     };
 

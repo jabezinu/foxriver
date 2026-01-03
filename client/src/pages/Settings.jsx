@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiLibrary, HiLockClosed, HiShieldCheck, HiLogout, HiIdentification } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
@@ -54,17 +55,17 @@ export default function Settings() {
                 accountName: formData.accountName,
                 phone: formData.bankPhone
             });
-            alert('Bank account linked successfully!');
+            toast.success('Bank account linked successfully!');
             setModalType(null);
             fetchProfile();
         } catch (error) {
-            alert(error.response?.data?.message || 'Update failed. Bank details can only be set once.');
+            toast.error(error.response?.data?.message || 'Update failed. Bank details can only be set once.');
         }
     };
 
     const handleChangeLoginPass = async () => {
         if (formData.newPassword !== formData.confirmPassword) {
-            alert('Passwords do not match');
+            toast.error('Passwords do not match');
             return;
         }
         try {
@@ -72,10 +73,10 @@ export default function Settings() {
                 currentPassword: formData.oldPassword,
                 newPassword: formData.newPassword
             });
-            alert('Login password updated!');
+            toast.success('Login password updated!');
             setModalType(null);
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to update password');
+            toast.error(error.response?.data?.message || 'Failed to update password');
         }
     };
 
@@ -85,11 +86,11 @@ export default function Settings() {
                 currentPassword: formData.oldPassword,
                 newPassword: formData.transactionPassword
             });
-            alert('Transaction password updated!');
+            toast.success('Transaction password updated!');
             setModalType(null);
             fetchProfile(); // Refresh profile to get updated hasTransactionPassword
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to update transaction password');
+            toast.error(error.response?.data?.message || 'Failed to update transaction password');
         }
     };
 
@@ -102,7 +103,7 @@ export default function Settings() {
             desc: profile.bankAccount?.isSet ? `${profile.bankAccount.bankName} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked',
             action: () => {
                 if (profile.bankAccount?.isSet) {
-                    alert("Warning: Bank details can only be set ONCE. For changes, contact manager.");
+                    toast.error("Bank details can only be set ONCE. For changes, contact manager.");
                 }
                 setModalType('bank');
             }

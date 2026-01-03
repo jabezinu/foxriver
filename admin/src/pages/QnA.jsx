@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminQnaAPI } from '../services/api';
 import { HiPhotograph, HiPlus, HiTrash } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 
 export default function QnaManagement() {
     const [images, setImages] = useState([]);
@@ -17,6 +18,7 @@ export default function QnaManagement() {
             const res = await adminQnaAPI.getQna();
             setImages(res.data.qna);
         } catch (error) {
+            toast.error('Failed to load help visuals');
             console.error(error);
         } finally {
             setLoading(false);
@@ -33,11 +35,11 @@ export default function QnaManagement() {
         setUploading(true);
         try {
             await adminQnaAPI.upload(data);
-            alert('Help image uploaded!');
+            toast.success('Help image uploaded!');
             setImageFile(null);
             fetchImages();
         } catch (error) {
-            alert('Upload failed');
+            toast.error('Upload failed');
         } finally {
             setUploading(false);
         }
@@ -47,9 +49,10 @@ export default function QnaManagement() {
         if (!window.confirm('Remove this help image?')) return;
         try {
             await adminQnaAPI.delete(id);
+            toast.success('Help image removed');
             fetchImages();
         } catch (error) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 

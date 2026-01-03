@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI, withdrawalAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCash, HiEye, HiEyeOff } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -30,6 +31,7 @@ export default function Withdraw() {
             setWallets(walletRes.data);
             setProfile(profileRes.data.user);
         } catch (error) {
+            toast.error('Failed to load withdrawal data');
             console.error(error);
         } finally {
             setLoading(false);
@@ -38,12 +40,12 @@ export default function Withdraw() {
 
     const handleWithdraw = async () => {
         if (!selectedAmount || !transactionPassword) {
-            alert('Please select amount and enter transaction password');
+            toast.error('Please select amount and enter transaction password');
             return;
         }
 
         if (wallets[`${walletType}Wallet`] < selectedAmount) {
-            alert('Insufficient balance in selected wallet');
+            toast.error('Insufficient balance in selected wallet');
             return;
         }
 
@@ -54,10 +56,10 @@ export default function Withdraw() {
                 walletType,
                 transactionPassword
             });
-            alert('Withdrawal request submitted! 10% tax applied. Awaiting admin approval.');
+            toast.success('Withdrawal request submitted! 10% tax applied. Awaiting admin approval.');
             navigate('/');
         } catch (error) {
-            alert(error.response?.data?.message || 'Withdrawal failed');
+            toast.error(error.response?.data?.message || 'Withdrawal failed');
         } finally {
             setSubmitting(false);
         }

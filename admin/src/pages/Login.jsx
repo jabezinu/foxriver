@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
+import { toast } from 'react-hot-toast';
 import { HiPhone, HiLockClosed, HiShieldCheck } from 'react-icons/hi';
 
 export default function AdminLogin() {
@@ -16,7 +17,10 @@ export default function AdminLogin() {
         e.preventDefault();
         const result = await login(formData);
         if (result.success) {
+            toast.success('Login successful!');
             navigate('/');
+        } else {
+            toast.error(result.error);
         }
     };
 
@@ -62,11 +66,6 @@ export default function AdminLogin() {
                         </div>
                     </div>
 
-                    {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs py-3 px-4 rounded-xl text-center font-medium">
-                            {error}
-                        </div>
-                    )}
 
                     <button
                         type="submit"

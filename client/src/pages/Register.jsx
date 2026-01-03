@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { toast } from 'react-hot-toast';
 import { HiPhone, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
 
 export default function Register() {
@@ -28,26 +29,25 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setFormError('');
 
         // Validation
         if (!formData.phone.startsWith('+251') || formData.phone.length !== 13) {
-            setFormError('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
+            toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
             return;
         }
 
         if (formData.password.length < 6) {
-            setFormError('Password must be at least 6 characters');
+            toast.error('Password must be at least 6 characters');
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setFormError('Passwords do not match');
+            toast.error('Passwords do not match');
             return;
         }
 
         if (formData.captcha !== captchaValue.toString()) {
-            setFormError('Incorrect CAPTCHA');
+            toast.error('Incorrect CAPTCHA');
             return;
         }
 
@@ -58,9 +58,10 @@ export default function Register() {
         });
 
         if (result.success) {
+            toast.success('Account created successfully!');
             navigate('/', { replace: true });
         } else {
-            setFormError(result.message);
+            toast.error(result.message || 'Registration failed');
         }
     };
 

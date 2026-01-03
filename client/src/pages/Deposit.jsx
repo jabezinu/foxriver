@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI, depositAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCreditCard, HiCheck } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -31,6 +32,7 @@ export default function Deposit() {
             const res = await userAPI.getWallet();
             setBalance(res.data.incomeWallet + res.data.personalWallet);
         } catch (error) {
+            toast.error('Failed to update balance');
             console.error(error);
         } finally {
             setLoading(false);
@@ -39,7 +41,7 @@ export default function Deposit() {
 
     const handleCreateDeposit = async () => {
         if (!selectedAmount || !paymentMethod) {
-            alert('Please select amount and payment method');
+            toast.error('Please select amount and payment method');
             return;
         }
 
@@ -52,7 +54,7 @@ export default function Deposit() {
             setCurrentDeposit(res.data.deposit);
             setStep(2);
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to create deposit');
+            toast.error(error.response?.data?.message || 'Failed to create deposit');
         } finally {
             setSubmitting(false);
         }
@@ -60,7 +62,7 @@ export default function Deposit() {
 
     const handleSubmitFT = async () => {
         if (!ftNumber) {
-            alert('Please enter FT number');
+            toast.error('Please enter FT number');
             return;
         }
 
@@ -70,10 +72,10 @@ export default function Deposit() {
                 depositId: currentDeposit._id,
                 transactionFT: ftNumber
             });
-            alert('Transaction FT submitted! Awaiting admin approval.');
+            toast.success('Transaction FT submitted! Awaiting admin approval.');
             navigate('/');
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to submit FT');
+            toast.error(error.response?.data?.message || 'Failed to submit FT');
         } finally {
             setSubmitting(false);
         }

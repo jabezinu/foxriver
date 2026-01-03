@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI, membershipAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCurrencyDollar, HiBriefcase, HiLightningBolt } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -23,6 +24,7 @@ export default function Mine() {
             setProfile(profileRes.data.user);
             setWallet(walletRes.data);
         } catch (error) {
+            toast.error('Failed to load profile data');
             console.error(error);
         } finally {
             setLoading(false);

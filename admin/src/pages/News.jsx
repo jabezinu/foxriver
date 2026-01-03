@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminNewsAPI } from '../services/api';
 import { HiPlus, HiTrash, HiPhotograph, HiCheck } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 
 export default function NewsManagement() {
     const [news, setNews] = useState([]);
@@ -18,6 +19,7 @@ export default function NewsManagement() {
             const res = await adminNewsAPI.getNews();
             setNews(res.data.news);
         } catch (error) {
+            toast.error('Failed to load news');
             console.error(error);
         } finally {
             setLoading(false);
@@ -36,12 +38,12 @@ export default function NewsManagement() {
         setSubmitting(true);
         try {
             await adminNewsAPI.create(data);
-            alert('News broadcasted successfully!');
+            toast.success('News broadcasted successfully!');
             setFormData({ title: '', content: '' });
             setImageFile(null);
             fetchNews();
         } catch (error) {
-            alert('Failed to post news');
+            toast.error('Failed to post news');
         } finally {
             setSubmitting(false);
         }
@@ -51,9 +53,10 @@ export default function NewsManagement() {
         if (!window.confirm('Delete this news post?')) return;
         try {
             await adminNewsAPI.delete(id);
+            toast.success('News post deleted');
             fetchNews();
         } catch (error) {
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 

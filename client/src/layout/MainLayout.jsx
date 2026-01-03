@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 import { messageAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import FirstEntryPopup from '../components/FirstEntryPopup';
 
 export default function MainLayout() {
@@ -25,6 +26,7 @@ export default function MainLayout() {
                     sessionStorage.setItem('foxriver_popup_shown', 'true');
                 }
             } catch (error) {
+                toast.error('Failed to sync messages');
                 console.error('Error fetching messages:', error);
             }
         };

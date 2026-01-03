@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { qnaAPI } from '../services/api';
+import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiPhotograph } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -18,6 +19,7 @@ export default function QnA() {
             const res = await qnaAPI.getQnA();
             setImages(res.data.qna);
         } catch (error) {
+            toast.error('Failed to load Q&A guides');
             console.error(error);
         } finally {
             setLoading(false);

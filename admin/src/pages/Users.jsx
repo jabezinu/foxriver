@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminUserAPI } from '../services/api';
 import { HiSearch, HiIdentification, HiExternalLink } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading'; // Need to create/link shared loading
 
 export default function UserManagement() {
@@ -22,6 +23,7 @@ export default function UserManagement() {
             });
             setUsers(res.data.users);
         } catch (error) {
+            toast.error('Failed to load operative data');
             console.error(error);
         } finally {
             setLoading(false);

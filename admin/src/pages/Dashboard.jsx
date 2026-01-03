@@ -4,6 +4,7 @@ import {
     HiUsers, HiCurrencyDollar, HiCheckCircle, HiBriefcase,
     HiVideoCamera, HiTrendingUp, HiTrendingDown
 } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -43,6 +44,7 @@ export default function Dashboard() {
             const res = await adminStatsAPI.getStats();
             setStats(res.data.stats);
         } catch (error) {
+            toast.error('Failed to load dashboard statistics');
             console.error(error);
         } finally {
             setLoading(false);
