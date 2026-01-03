@@ -30,7 +30,8 @@ export default function Deposit() {
     const fetchBalance = async () => {
         try {
             const res = await userAPI.getWallet();
-            setBalance(res.data.incomeWallet + res.data.personalWallet);
+            const walletData = res.data.wallet;
+            setBalance(walletData.incomeWallet + walletData.personalWallet);
         } catch (error) {
             toast.error('Failed to update balance');
             console.error(error);
@@ -96,55 +97,68 @@ export default function Deposit() {
             <div className="px-4 py-6">
                 {step === 1 ? (
                     <>
+                        {/* Section 1: Account Balance */}
                         <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
-                            <p className="text-xs text-gray-500 uppercase font-bold mb-1">Current Balance</p>
-                            <h2 className="text-2xl font-bold text-gray-900">{balance} ETB</h2>
+                            <p className="text-xs text-gray-500 uppercase font-bold mb-1">Account Balance</p>
+                            <h2 className="text-2xl font-bold text-gray-900">{balance.toLocaleString()} ETB</h2>
                         </div>
 
-                        <h3 className="font-bold text-gray-800 mb-4">Select Deposit Amount</h3>
-                        <div className="grid grid-cols-2 gap-3 mb-8">
-                            {amounts.map((amount) => (
-                                <button
-                                    key={amount}
-                                    onClick={() => setSelectedAmount(amount)}
-                                    className={`py-4 rounded-2xl font-bold transition-all border-2 ${selectedAmount === amount
-                                        ? 'border-green-500 bg-green-50 text-green-600'
-                                        : 'border-gray-100 bg-white text-gray-600'
-                                        }`}
-                                >
-                                    {amount} ETB
-                                </button>
-                            ))}
-                        </div>
-
-                        <h3 className="font-bold text-gray-800 mb-4">Select Payment Method</h3>
-                        <div className="space-y-3 mb-8">
-                            {methods.map((method) => (
-                                <div
-                                    key={method.id}
-                                    onClick={() => setPaymentMethod(method.id)}
-                                    className={`card flex items-center gap-4 cursor-pointer border-2 transition-all ${paymentMethod === method.id ? 'border-green-500 bg-green-50' : 'border-transparent'
-                                        }`}
-                                >
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === method.id ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                                        }`}>
-                                        <HiCreditCard className="text-2xl" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-bold text-gray-800">{method.name}</p>
-                                        <p className="text-[10px] text-gray-500">Fast & Secure Approval</p>
-                                    </div>
-                                    {paymentMethod === method.id && <HiCheck className="text-green-600 text-xl" />}
+                        {/* Section 2: Deposit Amount & Grid */}
+                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="font-bold text-gray-800 uppercase text-xs tracking-wider">Deposit Amount</h3>
+                                <div className="text-right">
+                                    <span className="text-2xl font-bold text-green-600">
+                                        {selectedAmount ? selectedAmount.toLocaleString() : '0'}
+                                    </span>
+                                    <span className="text-xs font-bold text-gray-400 ml-1">ETB</span>
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                {amounts.map((amount) => (
+                                    <button
+                                        key={amount}
+                                        onClick={() => setSelectedAmount(amount)}
+                                        className={`py-4 rounded-2xl font-bold transition-all border-2 ${selectedAmount === amount
+                                            ? 'border-green-500 bg-green-50 text-green-600'
+                                            : 'border-gray-100 bg-white text-gray-600'
+                                            }`}
+                                    >
+                                        {amount.toLocaleString()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Section 3: Payment Method Dropdown */}
+                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-8 border border-gray-50">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Select Payment Method</label>
+                            <div className="relative">
+                                <select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-5 py-4 font-bold text-gray-800 appearance-none focus:border-green-500 outline-none transition-all cursor-pointer"
+                                >
+                                    <option value="" disabled>Choose a bank / service</option>
+                                    {methods.map((method) => (
+                                        <option key={method.id} value={method.id}>
+                                            {method.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <HiCreditCard className="text-xl" />
+                                </div>
+                            </div>
                         </div>
 
                         <button
                             onClick={handleCreateDeposit}
                             disabled={submitting}
-                            className="btn-primary w-full py-4 uppercase tracking-widest text-sm"
+                            className="btn-primary w-full py-5 rounded-2xl uppercase tracking-[0.2em] text-xs font-black shadow-lg shadow-green-100"
                         >
-                            {submitting ? <span className="spinner"></span> : 'Next Step'}
+                            {submitting ? <span className="spinner"></span> : 'Initialize Transfer'}
                         </button>
                     </>
                 ) : (

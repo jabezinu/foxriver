@@ -23,7 +23,7 @@ export default function Home() {
         const fetchData = async () => {
             try {
                 const walletRes = await userAPI.getWallet();
-                setWallet(walletRes.data);
+                setWallet(walletRes.data.wallet);
             } catch (error) {
                 toast.error('Failed to update wallet balance');
                 console.error('Error fetching data:', error);

@@ -22,7 +22,7 @@ export default function Mine() {
                 userAPI.getWallet()
             ]);
             setProfile(profileRes.data.user);
-            setWallet(walletRes.data);
+            setWallet(walletRes.data.wallet);
         } catch (error) {
             toast.error('Failed to load profile data');
             console.error(error);
