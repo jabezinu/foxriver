@@ -7,11 +7,18 @@ const { isValidTransactionPassword } = require('../utils/validators');
 // @access  Private
 exports.getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).select('+transactionPassword');
+
+        const userObj = user.toObject();
+        const hasTransactionPassword = !!userObj.transactionPassword;
+        delete userObj.transactionPassword;
 
         res.status(200).json({
             success: true,
-            user
+            user: {
+                ...userObj,
+                hasTransactionPassword
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -101,7 +108,13 @@ exports.setTransactionPassword = async (req, res) => {
         const user = await User.findById(req.user.id).select('+transactionPassword');
 
         // If user has existing transaction password, verify current password
-        if (user.transactionPassword && currentPassword) {
+        if (user.transactionPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Please provide current transaction password to change it'
+                });
+            }
             const isMatch = await user.matchTransactionPassword(currentPassword);
             if (!isMatch) {
                 return res.status(401).json({

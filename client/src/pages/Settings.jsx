@@ -49,7 +49,7 @@ export default function Settings() {
     const handleUpdateBank = async () => {
         try {
             await userAPI.setBankAccount({
-                bankName: formData.bankName,
+                bank: formData.bankName,
                 accountNumber: formData.accountNumber,
                 accountName: formData.accountName,
                 phone: formData.bankPhone
@@ -69,7 +69,7 @@ export default function Settings() {
         }
         try {
             await userAPI.changeLoginPassword({
-                oldPassword: formData.oldPassword,
+                currentPassword: formData.oldPassword,
                 newPassword: formData.newPassword
             });
             alert('Login password updated!');
@@ -82,12 +82,14 @@ export default function Settings() {
     const handleSetTransactionPass = async () => {
         try {
             await userAPI.setTransactionPassword({
-                transactionPassword: formData.transactionPassword
+                currentPassword: formData.oldPassword,
+                newPassword: formData.transactionPassword
             });
-            alert('Transaction password set!');
+            alert('Transaction password updated!');
             setModalType(null);
+            fetchProfile(); // Refresh profile to get updated hasTransactionPassword
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to set transaction password');
+            alert(error.response?.data?.message || 'Failed to update transaction password');
         }
     };
 
@@ -209,22 +211,37 @@ export default function Settings() {
             <Modal isOpen={modalType === 'loginPass'} onClose={() => setModalType(null)} title="Change Login Password">
                 <div className="space-y-4">
                     <input type="password" placeholder="Old Password" className="input-field"
+                        value={formData.oldPassword}
                         onChange={e => setFormData({ ...formData, oldPassword: e.target.value })} />
                     <input type="password" placeholder="New Password" className="input-field"
+                        value={formData.newPassword}
                         onChange={e => setFormData({ ...formData, newPassword: e.target.value })} />
                     <input type="password" placeholder="Confirm New Password" className="input-field"
+                        value={formData.confirmPassword}
                         onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} />
                     <button onClick={handleChangeLoginPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">Update Password</button>
                 </div>
             </Modal>
 
             {/* Transaction Password Modal */}
-            <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title="Set Transaction Password">
+            <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title={profile.hasTransactionPassword ? "Change Transaction Password" : "Set Transaction Password"}>
                 <div className="space-y-4">
-                    <p className="text-xs text-gray-500 mb-4">Set a 6-digit numeric password for withdrawal authorization.</p>
-                    <input type="password" placeholder="6-digit Password" maxLength={6} className="input-field text-center tracking-widest"
+                    <p className="text-xs text-gray-500 mb-4">
+                        {profile.hasTransactionPassword
+                            ? "Enter your current 6-digit password and the new one to change it."
+                            : "Set a 6-digit numeric password for withdrawal authorization."}
+                    </p>
+                    {profile.hasTransactionPassword && (
+                        <input type="password" placeholder="Current 6-digit Password" maxLength={6} className="input-field text-center tracking-widest"
+                            value={formData.oldPassword}
+                            onChange={e => setFormData({ ...formData, oldPassword: e.target.value })} />
+                    )}
+                    <input type="password" placeholder={profile.hasTransactionPassword ? "New 6-digit Password" : "6-digit Password"} maxLength={6} className="input-field text-center tracking-widest"
+                        value={formData.transactionPassword}
                         onChange={e => setFormData({ ...formData, transactionPassword: e.target.value })} />
-                    <button onClick={handleSetTransactionPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">Update Secure Password</button>
+                    <button onClick={handleSetTransactionPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">
+                        {profile.hasTransactionPassword ? "Update Secure Password" : "Confirm Secure Password"}
+                    </button>
                 </div>
             </Modal>
         </div >
