@@ -17,6 +17,7 @@ export default function Settings() {
         bankName: '',
         accountNumber: '',
         accountName: '',
+        bankPhone: '',
         oldPassword: '',
         newPassword: '',
         confirmPassword: '',
@@ -35,7 +36,8 @@ export default function Settings() {
                 ...prev,
                 bankName: res.data.user.bankAccount?.bankName || '',
                 accountNumber: res.data.user.bankAccount?.accountNumber || '',
-                accountName: res.data.user.bankAccount?.accountName || ''
+                accountName: res.data.user.bankAccount?.accountName || '',
+                bankPhone: res.data.user.bankAccount?.phone || ''
             }));
         } catch (error) {
             console.error(error);
@@ -49,7 +51,8 @@ export default function Settings() {
             await userAPI.setBankAccount({
                 bankName: formData.bankName,
                 accountNumber: formData.accountNumber,
-                accountName: formData.accountName
+                accountName: formData.accountName,
+                phone: formData.bankPhone
             });
             alert('Bank account linked successfully!');
             setModalType(null);
@@ -95,7 +98,12 @@ export default function Settings() {
             label: 'Bank Account',
             icon: HiLibrary,
             desc: profile.bankAccount?.isSet ? `${profile.bankAccount.bankName} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked',
-            action: () => setModalType('bank')
+            action: () => {
+                if (profile.bankAccount?.isSet) {
+                    alert("Warning: Bank details can only be set ONCE. For changes, contact manager.");
+                }
+                setModalType('bank');
+            }
         },
         {
             label: 'Transaction Password',
@@ -166,7 +174,11 @@ export default function Settings() {
             {/* Bank Modal */}
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
-                    <p className="text-[10px] text-red-400 bg-red-50 p-3 rounded-xl font-bold uppercase mb-2">Warning: Bank details can only be set ONCE. For changes, contact manager.</p>
+                    {profile.bankAccount?.isSet && (
+                        <p className="text-[10px] text-red-400 bg-red-50 p-3 rounded-xl font-bold uppercase mb-2">
+                            Warning: Bank details can only be set ONCE. For changes, contact manager.
+                        </p>
+                    )}
                     <input
                         type="text" placeholder="Bank Name (e.g. CBE)" className="input-field"
                         value={formData.bankName} onChange={e => setFormData({ ...formData, bankName: e.target.value })}
@@ -180,6 +192,11 @@ export default function Settings() {
                     <input
                         type="text" placeholder="Account Holder Name" className="input-field"
                         value={formData.accountName} onChange={e => setFormData({ ...formData, accountName: e.target.value })}
+                        disabled={profile.bankAccount?.isSet}
+                    />
+                    <input
+                        type="tel" placeholder="Phone Number" className="input-field"
+                        value={formData.bankPhone} onChange={e => setFormData({ ...formData, bankPhone: e.target.value })}
                         disabled={profile.bankAccount?.isSet}
                     />
                     {!profile.bankAccount?.isSet && (
@@ -210,6 +227,6 @@ export default function Settings() {
                     <button onClick={handleSetTransactionPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">Update Secure Password</button>
                 </div>
             </Modal>
-        </div>
+        </div >
     );
 }

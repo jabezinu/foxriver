@@ -8,6 +8,7 @@ export default function Withdraw() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [wallets, setWallets] = useState({ incomeWallet: 0, personalWallet: 0 });
+    const [profile, setProfile] = useState(null);
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [walletType, setWalletType] = useState('income');
     const [transactionPassword, setTransactionPassword] = useState('');
@@ -17,13 +18,17 @@ export default function Withdraw() {
     const amounts = [1000, 3000, 5000, 10000, 20000, 50000];
 
     useEffect(() => {
-        fetchWallets();
+        fetchData();
     }, []);
 
-    const fetchWallets = async () => {
+    const fetchData = async () => {
         try {
-            const res = await userAPI.getWallet();
-            setWallets(res.data);
+            const [walletRes, profileRes] = await Promise.all([
+                userAPI.getWallet(),
+                userAPI.getProfile()
+            ]);
+            setWallets(walletRes.data);
+            setProfile(profileRes.data.user);
         } catch (error) {
             console.error(error);
         } finally {
@@ -95,19 +100,42 @@ export default function Withdraw() {
                 </div>
 
                 <h3 className="font-bold text-gray-800 mb-4">Select Withdrawal Amount</h3>
-                <div className="grid grid-cols-3 gap-3 mb-8">
+                <div className="grid grid-cols-3 gap-3 mb-6">
                     {amounts.map((amount) => (
                         <button
                             key={amount}
                             onClick={() => setSelectedAmount(amount)}
                             className={`py-3 rounded-2xl font-bold text-sm transition-all border-2 ${selectedAmount === amount
-                                    ? 'border-green-500 bg-green-50 text-green-600'
-                                    : 'border-gray-100 bg-white text-gray-600'
+                                ? 'border-green-500 bg-green-50 text-green-600'
+                                : 'border-gray-100 bg-white text-gray-600'
                                 }`}
                         >
                             {amount}
                         </button>
                     ))}
+                </div>
+
+                {/* Bank Preview */}
+                <div className="bg-gray-50 rounded-3xl p-5 mb-8 border border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Destination Bank</span>
+                        <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Verified</span>
+                    </div>
+                    {profile?.bankAccount?.isSet ? (
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 text-lg">
+                                <HiLibrary />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-800">{profile.bankAccount.bankName}</p>
+                                <p className="text-[10px] text-gray-400 font-medium">
+                                    {profile.bankAccount.accountNumber} • {profile.bankAccount.phone}
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-xs text-red-400 font-bold text-center py-2">NO BANK LINKED. CHECK SETTINGS.</p>
+                    )}
                 </div>
 
                 {/* Tax Info Card */}

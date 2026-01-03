@@ -105,7 +105,8 @@ export default function WithdrawalRequests() {
                                                 <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                                                     <p className="text-xs font-bold text-gray-700">{wit.user?.bankAccount?.bankName || 'N/A'}</p>
                                                     <p className="text-[10px] font-mono font-bold text-indigo-600">{wit.user?.bankAccount?.accountNumber || 'NOT SET'}</p>
-                                                    <p className="text-[8px] text-gray-400 font-bold uppercase truncate">{wit.user?.bankAccount?.accountName || 'NO NAME'}</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase">{wit.user?.bankAccount?.accountName || 'NO NAME'}</p>
+                                                    <p className="text-[8px] text-indigo-400 font-bold mt-1">PH: {wit.user?.bankAccount?.phone || 'N/A'}</p>
                                                 </div>
                                             </div>
                                             <div className="flex flex-col justify-center">
