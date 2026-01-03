@@ -1,0 +1,90 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('foxriver_admin_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('foxriver_admin_token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
+export const adminAuthAPI = {
+    login: (data) => api.post('/auth/login', data),
+    verify: () => api.get('/auth/verify'),
+};
+
+export const adminStatsAPI = {
+    getStats: () => api.get('/admin/stats'),
+};
+
+export const adminUserAPI = {
+    getAllUsers: (params) => api.get('/admin/users', { params }),
+    getUserDetails: (id) => api.get(`/admin/users/${id}`),
+};
+
+export const adminDepositAPI = {
+    getDeposits: (params) => api.get('/deposits/all', { params }),
+    approve: (id, data) => api.put(`/deposits/${id}/approve`, data),
+    reject: (id, data) => api.put(`/deposits/${id}/reject`, data),
+};
+
+export const adminWithdrawalAPI = {
+    getWithdrawals: (params) => api.get('/withdrawals/all', { params }),
+    approve: (id, data) => api.put(`/withdrawals/${id}/approve`, data),
+    reject: (id, data) => api.put(`/withdrawals/${id}/reject`, data),
+};
+
+export const adminTaskAPI = {
+    getTasks: () => api.get('/tasks/all'),
+    upload: (data) => api.post('/tasks/upload', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    delete: (id) => api.delete(`/tasks/${id}`),
+};
+
+export const adminMessageAPI = {
+    getAll: () => api.get('/messages/all'),
+    send: (data) => api.post('/messages/send', data),
+};
+
+export const adminNewsAPI = {
+    getNews: () => api.get('/news'),
+    create: (data) => api.post('/news', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    update: (id, data) => api.put(`/news/${id}`, data),
+    delete: (id) => api.delete(`/news/${id}`),
+};
+
+export const adminQnaAPI = {
+    getQna: () => api.get('/qna'),
+    upload: (data) => api.post('/qna/upload', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    delete: (id) => api.delete(`/qna/${id}`),
+};
+
+export default api;

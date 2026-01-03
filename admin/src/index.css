@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --admin-primary: #4f46e5;
+    --admin-secondary: #0ea5e9;
+    --admin-bg: #f8fafc;
+    --admin-sidebar: #1e293b;
+    --admin-sidebar-hover: #334155;
+    --admin-text: #334155;
+}
+
+body {
+    background-color: var(--admin-bg);
+    color: var(--admin-text);
+    font-family: 'Inter', sans-serif;
+}
+
+.sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-400 hover:text-white hover:bg-admin-sidebar-hover cursor-pointer;
+}
+
+.sidebar-item.active {
+    @apply bg-admin-primary text-white shadow-lg;
+}
+
+.admin-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+}
+
+.admin-btn-primary {
+    @apply bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50;
+}
+
+.admin-btn-secondary {
+    @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors;
+}
+
+.admin-input {
+    @apply w-full border border-gray-200 rounded-lg px-4 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none;
+}
+
+.status-badge {
+    @apply px-2 py-1 rounded-full text-[10px] font-bold uppercase;
+}
+
+.status-pending {
+    @apply bg-yellow-100 text-yellow-700;
+}
+
+.status-approved {
+    @apply bg-green-100 text-green-700;
+}
+
+.status-rejected {
+    @apply bg-red-100 text-red-700;
+}
+
+.spinner {
+    @apply inline-block w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin;
+}
+
+.spinner-white {
+    @apply border-white;
+}
+
+.table-row {
+    @apply border-b border-gray-50 hover:bg-gray-50/50 transition-colors;
+}
+
+.table-header {
+    @apply bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3;
+}

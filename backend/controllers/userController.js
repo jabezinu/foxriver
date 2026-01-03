@@ -1,0 +1,196 @@
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const { isValidTransactionPassword } = require('../utils/validators');
+
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Get wallet balances
+// @route   GET /api/users/wallet
+// @access  Private
+exports.getWalletBalance = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        res.status(200).json({
+            success: true,
+            wallet: {
+                incomeWallet: user.incomeWallet,
+                personalWallet: user.personalWallet,
+                total: user.incomeWallet + user.personalWallet
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Set/update bank account
+// @route   PUT /api/users/bank-account
+// @access  Private
+exports.setBankAccount = async (req, res) => {
+    try {
+        const { accountName, bank, accountNumber, phone } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        // If bank account is already set, don't allow changes
+        if (user.bankAccount.isSet) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bank account already set. Please contact your manager to make changes.'
+            });
+        }
+
+        user.bankAccount = {
+            accountName,
+            bank,
+            accountNumber,
+            phone,
+            isSet: true
+        };
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Bank account saved successfully',
+            bankAccount: user.bankAccount
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Set/change transaction password
+// @route   PUT /api/users/transaction-password
+// @access  Private (V1+)
+exports.setTransactionPassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!isValidTransactionPassword(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Transaction password must be 6 digits'
+            });
+        }
+
+        const user = await User.findById(req.user.id).select('+transactionPassword');
+
+        // If user has existing transaction password, verify current password
+        if (user.transactionPassword && currentPassword) {
+            const isMatch = await user.matchTransactionPassword(currentPassword);
+            if (!isMatch) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Current transaction password is incorrect'
+                });
+            }
+        }
+
+        user.transactionPassword = newPassword;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: user.transactionPassword ? 'Transaction password updated successfully' : 'Transaction password created successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Change login password
+// @route   PUT /api/users/login-password
+// @access  Private
+exports.changeLoginPassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide current and new password'
+            });
+        }
+
+        const user = await User.findById(req.user.id).select('+password');
+
+        // Verify current password
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Get referral link
+// @route   GET /api/users/referral-link
+// @access  Private (V1+)
+exports.getReferralLink = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        const referralLink = user.getReferralLink();
+
+        if (!referralLink) {
+            return res.status(403).json({
+                success: false,
+                message: 'Please upgrade your level to access referral link'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            referralLink,
+            invitationCode: user.invitationCode
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};

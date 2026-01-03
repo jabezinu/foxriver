@@ -1,0 +1,151 @@
+import { useState, useEffect } from 'react';
+import { adminDepositAPI } from '../services/api';
+import { HiCurrencyDollar, HiCheck, HiX, HiExternalLink } from 'react-icons/hi';
+
+export default function DepositRequests() {
+    const [deposits, setDeposits] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filterStatus, setFilterStatus] = useState('ft_submitted');
+
+    useEffect(() => {
+        fetchDeposits();
+    }, [filterStatus]);
+
+    const fetchDeposits = async () => {
+        setLoading(true);
+        try {
+            const res = await adminDepositAPI.getDeposits({ status: filterStatus });
+            setDeposits(res.data.deposits);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleApprove = async (id) => {
+        if (!window.confirm('Are you sure you want to APPROVE this deposit? The user wallet will be credited immediately.')) return;
+        try {
+            await adminDepositAPI.approve(id, { notes: 'Approved by admin' });
+            alert('Deposit approved and user credited!');
+            fetchDeposits();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Approval failed');
+        }
+    };
+
+    const handleReject = async (id) => {
+        const reason = window.prompt('Reason for rejection:');
+        if (reason === null) return;
+        try {
+            await adminDepositAPI.reject(id, { notes: reason || 'Rejected by admin' });
+            alert('Deposit rejected');
+            fetchDeposits();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Rejection failed');
+        }
+    };
+
+    return (
+        <div className="animate-fadeIn">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Capital Ledger</h1>
+                    <p className="text-sm text-gray-500">Authenticate incoming fund transfers and verify FT credentials.</p>
+                </div>
+                <div className="flex gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+                    <button
+                        onClick={() => setFilterStatus('ft_submitted')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${filterStatus === 'ft_submitted' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-400 hover:bg-gray-50'}`}
+                    >
+                        Pending FT
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('approved')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${filterStatus === 'approved' ? 'bg-green-100 text-green-700' : 'text-gray-400 hover:bg-gray-50'}`}
+                    >
+                        Succeeded
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('rejected')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${filterStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'text-gray-400 hover:bg-gray-50'}`}
+                    >
+                        Failed
+                    </button>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="p-20 text-center text-gray-400 font-bold uppercase tracking-widest bg-white rounded-3xl">Verifying Transactions...</div>
+            ) : (
+                <div className="grid grid-cols-1 gap-6">
+                    {deposits.length === 0 ? (
+                        <div className="bg-white rounded-3xl p-20 text-center border-2 border-dashed border-gray-100">
+                            <p className="text-gray-300 font-bold uppercase tracking-widest">No matching records found in ledger</p>
+                        </div>
+                    ) : (
+                        deposits.map((dep) => (
+                            <div key={dep._id} className="admin-card flex flex-col md:flex-row gap-6 items-center">
+                                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-2xl min-w-[120px]">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Incoming</p>
+                                    <p className="text-xl font-bold text-indigo-600">{dep.amount}</p>
+                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">ETB Capital</p>
+                                </div>
+
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-bold text-gray-800">{dep.user?.phone}</span>
+                                        <span className="bg-gray-100 text-gray-500 text-[8px] font-bold px-2 py-0.5 rounded uppercase">{dep.user?.membershipLevel}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Transaction FT</span>
+                                            <span className="text-sm font-mono font-bold text-green-600">{dep.transactionFT || 'WAITING'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Method</span>
+                                            <span className="text-sm font-bold text-gray-700">{dep.paymentMethod}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Request Date</span>
+                                            <span className="text-xs text-gray-500">{new Date(dep.createdAt).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    {dep.status === 'ft_submitted' && (
+                                        <>
+                                            <button
+                                                onClick={() => handleApprove(dep._id)}
+                                                className="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <HiCheck className="text-2xl" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleReject(dep._id)}
+                                                className="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <HiX className="text-2xl" />
+                                            </button>
+                                        </>
+                                    )}
+                                    {dep.status === 'approved' && (
+                                        <div className="px-4 py-2 bg-green-50 text-green-600 text-[10px] font-bold rounded-lg uppercase border border-green-100">
+                                            Authenticated
+                                        </div>
+                                    )}
+                                    {dep.status === 'rejected' && (
+                                        <div className="px-4 py-2 bg-red-50 text-red-600 text-[10px] font-bold rounded-lg uppercase border border-red-100">
+                                            Invalidated
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
