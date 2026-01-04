@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI, withdrawalAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiCash, HiEye, HiEyeOff } from 'react-icons/hi';
+import { HiArrowLeft, HiCash, HiEye, HiEyeOff, HiLibrary } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 
@@ -16,7 +16,7 @@ export default function Withdraw() {
     const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    const amounts = [1000, 3000, 5000, 10000, 20000, 50000];
+    const amounts = [100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000];
 
     useEffect(() => {
         fetchData();
@@ -28,7 +28,7 @@ export default function Withdraw() {
                 userAPI.getWallet(),
                 userAPI.getProfile()
             ]);
-            setWallets(walletRes.data);
+            setWallets(walletRes.data.wallet);
             setProfile(profileRes.data.user);
         } catch (error) {
             toast.error('Failed to load withdrawal data');
@@ -81,63 +81,69 @@ export default function Withdraw() {
             </div>
 
             <div className="px-4 py-6">
-                {/* Wallet Selector */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div
-                        onClick={() => setWalletType('income')}
-                        className={`p-4 rounded-3xl border-2 transition-all cursor-pointer ${walletType === 'income' ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'
-                            }`}
-                    >
-                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Income Wallet</p>
-                        <p className="font-bold text-gray-800">{wallets.incomeWallet} ETB</p>
+                {/* Wallet Balances Summary */}
+                <div className="bg-white rounded-3xl p-5 shadow-sm mb-6 border border-gray-50 flex justify-between items-center">
+                    <div>
+                        <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Income Balance</p>
+                        <p className="text-lg font-bold text-gray-900">{wallets.incomeWallet.toLocaleString()} <span className="text-[10px] text-gray-400">ETB</span></p>
                     </div>
-                    <div
-                        onClick={() => setWalletType('personal')}
-                        className={`p-4 rounded-3xl border-2 transition-all cursor-pointer ${walletType === 'personal' ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'
-                            }`}
-                    >
-                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Personal Wallet</p>
-                        <p className="font-bold text-gray-800">{wallets.personalWallet} ETB</p>
+                    <div className="h-8 w-px bg-gray-100"></div>
+                    <div className="text-right">
+                        <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Personal Balance</p>
+                        <p className="text-lg font-bold text-gray-900">{wallets.personalWallet.toLocaleString()} <span className="text-[10px] text-gray-400">ETB</span></p>
                     </div>
                 </div>
 
-                <h3 className="font-bold text-gray-800 mb-4">Select Withdrawal Amount</h3>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                    {amounts.map((amount) => (
+                <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-wider">Withdrawal Amount</h3>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-black text-green-600">
+                                {selectedAmount ? selectedAmount.toLocaleString() : '0'}
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">ETB</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2">
+                        {amounts.map((amount) => (
+                            <button
+                                key={amount}
+                                onClick={() => setSelectedAmount(amount)}
+                                className={`py-3 rounded-xl font-bold text-xs transition-all border-2 ${selectedAmount === amount
+                                    ? 'border-green-500 bg-green-50 text-green-600'
+                                    : 'border-gray-100 bg-white text-gray-600'
+                                    }`}
+                            >
+                                {amount.toLocaleString()}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Wallet Selector Section */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
+                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Withdraw From</label>
+                    <div className="grid grid-cols-2 gap-3">
                         <button
-                            key={amount}
-                            onClick={() => setSelectedAmount(amount)}
-                            className={`py-3 rounded-2xl font-bold text-sm transition-all border-2 ${selectedAmount === amount
+                            onClick={() => setWalletType('income')}
+                            className={`py-4 rounded-2xl font-bold text-xs transition-all border-2 flex flex-col items-center gap-2 ${walletType === 'income'
                                 ? 'border-green-500 bg-green-50 text-green-600'
-                                : 'border-gray-100 bg-white text-gray-600'
+                                : 'border-gray-100 bg-white text-gray-400 opacity-60'
                                 }`}
                         >
-                            {amount}
+                            <span className="uppercase tracking-tighter">Income Wallet</span>
                         </button>
-                    ))}
-                </div>
-
-                {/* Bank Preview */}
-                <div className="bg-gray-50 rounded-3xl p-5 mb-8 border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase">Destination Bank</span>
-                        <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Verified</span>
+                        <button
+                            onClick={() => setWalletType('personal')}
+                            className={`py-4 rounded-2xl font-bold text-xs transition-all border-2 flex flex-col items-center gap-2 ${walletType === 'personal'
+                                ? 'border-green-500 bg-green-50 text-green-600'
+                                : 'border-gray-100 bg-white text-gray-400 opacity-60'
+                                }`}
+                        >
+                            <span className="uppercase tracking-tighter">Personal Wallet</span>
+                        </button>
                     </div>
-                    {profile?.bankAccount?.isSet ? (
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 text-lg">
-                                <HiLibrary />
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold text-gray-800">{profile.bankAccount.bankName}</p>
-                                <p className="text-[10px] text-gray-400 font-medium">
-                                    {profile.bankAccount.accountNumber} • {profile.bankAccount.phone}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <p className="text-xs text-red-400 font-bold text-center py-2">NO BANK LINKED. CHECK SETTINGS.</p>
-                    )}
                 </div>
 
                 {/* Tax Info Card */}
