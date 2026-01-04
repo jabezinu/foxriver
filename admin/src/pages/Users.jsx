@@ -211,6 +211,7 @@ export default function UserManagement() {
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Income Wallet (ETB)</label>
                                 <input
                                     type="number"
+                                    step="0.01"
                                     className="admin-input"
                                     value={editForm.incomeWallet}
                                     onChange={e => setEditForm({ ...editForm, incomeWallet: e.target.value })}
@@ -220,6 +221,7 @@ export default function UserManagement() {
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Personal Wallet (ETB)</label>
                                 <input
                                     type="number"
+                                    step="0.01"
                                     className="admin-input"
                                     value={editForm.personalWallet}
                                     onChange={e => setEditForm({ ...editForm, personalWallet: e.target.value })}
