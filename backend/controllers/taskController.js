@@ -192,21 +192,14 @@ exports.completeTask = async (req, res) => {
     }
 };
 
-// @desc    Upload task video (admin)
+// @desc    Upload task video or YouTube URL (admin)
 // @route   POST /api/tasks/upload
 // @access  Private/Admin
 exports.uploadTask = [
     upload.single('video'),
     async (req, res) => {
         try {
-            if (!req.file) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please upload a video file'
-                });
-            }
-
-            const { dailySet } = req.body;
+            const { dailySet, youtubeUrl } = req.body;
 
             if (!dailySet) {
                 return res.status(400).json({
@@ -215,7 +208,18 @@ exports.uploadTask = [
                 });
             }
 
-            const videoUrl = `/uploads/videos/${req.file.filename}`;
+            let videoUrl = '';
+
+            if (req.file) {
+                videoUrl = `/uploads/videos/${req.file.filename}`;
+            } else if (youtubeUrl) {
+                videoUrl = youtubeUrl;
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Please upload a video file or provide a YouTube URL'
+                });
+            }
 
             const task = await Task.create({
                 videoUrl,
@@ -225,7 +229,7 @@ exports.uploadTask = [
 
             res.status(201).json({
                 success: true,
-                message: 'Task video uploaded successfully',
+                message: 'Task created successfully',
                 task
             });
         } catch (error) {
