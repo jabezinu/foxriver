@@ -43,6 +43,8 @@ export const adminStatsAPI = {
 export const adminUserAPI = {
     getAllUsers: (params) => api.get('/admin/users', { params }),
     getUserDetails: (id) => api.get(`/admin/users/${id}`),
+    updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+    deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };
 
 export const adminDepositAPI = {

@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
 import { adminUserAPI } from '../services/api';
-import { HiSearch, HiIdentification, HiExternalLink } from 'react-icons/hi';
+import { HiSearch, HiIdentification, HiExternalLink, HiPencil, HiTrash, HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
-import Loading from '../components/Loading'; // Need to create/link shared loading
+import Loading from '../components/Loading';
 
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterLevel, setFilterLevel] = useState('');
+
+    // Edit Modal State
+    const [editingUser, setEditingUser] = useState(null);
+    const [editForm, setEditForm] = useState({
+        membershipLevel: '',
+        incomeWallet: '',
+        personalWallet: ''
+    });
 
     useEffect(() => {
         fetchUsers();
@@ -35,8 +43,40 @@ export default function UserManagement() {
         fetchUsers();
     };
 
+    const handleEdit = (user) => {
+        setEditingUser(user);
+        setEditForm({
+            membershipLevel: user.membershipLevel,
+            incomeWallet: user.incomeWallet,
+            personalWallet: user.personalWallet
+        });
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('CRITICAL: Are you sure you want to delete this user? This cannot be undone.')) return;
+        try {
+            await adminUserAPI.deleteUser(id);
+            toast.success('User deleted successfully');
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Delete failed');
+        }
+    };
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        try {
+            await adminUserAPI.updateUser(editingUser._id, editForm);
+            toast.success('User updated successfully');
+            setEditingUser(null);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Update failed');
+        }
+    };
+
     return (
-        <div className="animate-fadeIn">
+        <div className="animate-fadeIn relative">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Personnel Database</h1>
@@ -74,7 +114,9 @@ export default function UserManagement() {
             {/* Users Table */}
             <div className="admin-card p-0 overflow-hidden">
                 {loading ? (
-                    <div className="p-20 text-center text-gray-400 font-bold uppercase tracking-widest">Scanning Database...</div>
+                    <div className="h-64">
+                        <Loading />
+                    </div>
                 ) : (
                     <table className="w-full">
                         <thead>
@@ -84,7 +126,7 @@ export default function UserManagement() {
                                 <th className="table-header">Income Wallet</th>
                                 <th className="table-header">Personal Wallet</th>
                                 <th className="table-header">Joined Date</th>
-                                <th className="table-header text-center">Security Clear</th>
+                                <th className="table-header text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -118,19 +160,21 @@ export default function UserManagement() {
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <div className="group relative">
-                                            <button className="text-indigo-600 hover:text-indigo-800 transition-colors p-2 rounded-lg hover:bg-indigo-50">
-                                                <HiExternalLink className="text-xl" />
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => handleEdit(user)}
+                                                className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all pointer-events-auto"
+                                                title="Edit User"
+                                            >
+                                                <HiPencil />
                                             </button>
-                                            {user.bankAccount?.isSet && (
-                                                <div className="absolute right-full bottom-0 mb-2 mr-2 hidden group-hover:block bg-gray-900 text-white p-3 rounded-xl shadow-xl z-20 min-w-[200px] text-left border border-gray-800">
-                                                    <p className="text-[10px] text-indigo-400 font-bold uppercase mb-2 border-b border-gray-800 pb-1">Primary Settlement Bank</p>
-                                                    <p className="text-xs font-bold">{user.bankAccount.bankName}</p>
-                                                    <p className="text-sm font-mono text-gray-300 my-1">{user.bankAccount.accountNumber}</p>
-                                                    <p className="text-[10px] text-gray-400">{user.bankAccount.accountName}</p>
-                                                    <p className="text-[10px] text-indigo-300 mt-2">PH: {user.bankAccount.phone || 'N/A'}</p>
-                                                </div>
-                                            )}
+                                            <button
+                                                onClick={() => handleDelete(user._id)}
+                                                className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all pointer-events-auto"
+                                                title="Delete User"
+                                            >
+                                                <HiTrash />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -139,6 +183,56 @@ export default function UserManagement() {
                     </table>
                 )}
             </div>
+
+            {/* Edit Modal */}
+            {editingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-800">Edit Operative: {editingUser.phone}</h3>
+                            <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-red-500">
+                                <HiX className="text-xl" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Membership Level</label>
+                                <select
+                                    className="admin-input"
+                                    value={editForm.membershipLevel}
+                                    onChange={e => setEditForm({ ...editForm, membershipLevel: e.target.value })}
+                                >
+                                    {['Intern', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'].map(v => (
+                                        <option key={v} value={v}>{v}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Income Wallet (ETB)</label>
+                                <input
+                                    type="number"
+                                    className="admin-input"
+                                    value={editForm.incomeWallet}
+                                    onChange={e => setEditForm({ ...editForm, incomeWallet: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Personal Wallet (ETB)</label>
+                                <input
+                                    type="number"
+                                    className="admin-input"
+                                    value={editForm.personalWallet}
+                                    onChange={e => setEditForm({ ...editForm, personalWallet: e.target.value })}
+                                />
+                            </div>
+                            <div className="pt-4 flex gap-3">
+                                <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs uppercase hover:bg-gray-50">Cancel</button>
+                                <button type="submit" className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs uppercase hover:bg-indigo-700 shadow-lg shadow-indigo-200">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

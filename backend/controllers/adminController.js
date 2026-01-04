@@ -155,3 +155,65 @@ exports.getUserDetails = async (req, res) => {
         });
     }
 };
+
+// @desc    Update user details
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
+exports.updateUser = async (req, res) => {
+    try {
+        const { membershipLevel, incomeWallet, personalWallet } = req.body;
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (membershipLevel) user.membershipLevel = membershipLevel;
+        if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
+        if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            data: user,
+            message: 'User updated successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Update failed'
+        });
+    }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        await user.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Delete failed'
+        });
+    }
+};
