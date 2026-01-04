@@ -32,7 +32,7 @@ export default function Deposit() {
         try {
             const res = await userAPI.getWallet();
             const walletData = res.data.wallet;
-            setBalance(walletData.incomeWallet + walletData.personalWallet);
+            setBalance(walletData.personalWallet);
         } catch (error) {
             toast.error('Failed to update balance');
             console.error(error);
@@ -100,7 +100,7 @@ export default function Deposit() {
                     <>
                         {/* Section 1: Account Balance */}
                         <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-6 border border-gray-50">
-                            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Account Balance</p>
+                            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Personal Wallet Balance</p>
                             <h2 className="text-2xl font-bold text-gray-900">{formatNumber(balance)} ETB</h2>
                         </div>
 

@@ -154,9 +154,9 @@ exports.approveDeposit = async (req, res) => {
             });
         }
 
-        // Credit user's income wallet
+        // Credit user's personal wallet
         const user = await User.findById(deposit.user);
-        user.incomeWallet += deposit.amount;
+        user.personalWallet += deposit.amount;
         await user.save();
 
         // Update deposit status
