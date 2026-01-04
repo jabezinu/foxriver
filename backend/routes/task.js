@@ -5,7 +5,11 @@ const {
     completeTask,
     uploadTask,
     getAllTasks,
-    deleteTask
+    deleteTask,
+    addPlaylist,
+    getPlaylists,
+    deletePlaylist,
+    syncVideos
 } = require('../controllers/taskController');
 const { protect, adminOnly } = require('../middlewares/auth');
 
@@ -14,5 +18,11 @@ router.post('/:id/complete', protect, completeTask);
 router.post('/upload', protect, adminOnly, uploadTask);
 router.get('/all', protect, adminOnly, getAllTasks);
 router.delete('/:id', protect, adminOnly, deleteTask);
+
+// Playlist management
+router.post('/playlists', protect, adminOnly, addPlaylist);
+router.get('/playlists', protect, adminOnly, getPlaylists);
+router.delete('/playlists/:id', protect, adminOnly, deletePlaylist);
+router.post('/playlists/sync', protect, adminOnly, syncVideos);
 
 module.exports = router;

@@ -5,6 +5,10 @@ const taskSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please provide video URL or path']
     },
+    title: {
+        type: String,
+        default: 'Video Task'
+    },
     dailySet: {
         type: Date,
         required: true

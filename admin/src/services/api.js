@@ -65,6 +65,11 @@ export const adminTaskAPI = {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     delete: (id) => api.delete(`/tasks/${id}`),
+    // Playlist management
+    getPlaylists: () => api.get('/tasks/playlists'),
+    addPlaylist: (data) => api.post('/tasks/playlists', data),
+    deletePlaylist: (id) => api.delete(`/tasks/playlists/${id}`),
+    syncVideos: () => api.post('/tasks/playlists/sync'),
 };
 
 export const adminMessageAPI = {

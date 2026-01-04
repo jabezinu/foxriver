@@ -2,9 +2,12 @@ const Task = require('../models/Task');
 const TaskCompletion = require('../models/TaskCompletion');
 const User = require('../models/User');
 const Membership = require('../models/Membership');
+const Playlist = require('../models/Playlist');
+const VideoPool = require('../models/VideoPool');
 const { calculateAndCreateCommissions } = require('../utils/commission');
 const multer = require('multer');
 const path = require('path');
+const ytpl = require('ytpl');
 
 // Configure multer for video uploads
 const storage = multer.diskStorage({
@@ -43,11 +46,61 @@ exports.getDailyTasks = async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Get 5 active tasks for today
-        const tasks = await Task.find({
+        // Get tasks for today
+        let tasks = await Task.find({
             dailySet: { $gte: today, $lt: tomorrow },
             status: 'active'
-        }).limit(5);
+        });
+
+        // If no tasks for today, try to generate from VideoPool
+        if (tasks.length === 0) {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            // Fetch 5 videos from pool that weren't used yesterday (if possible)
+            // Strategy: Randomize and pick 5. If we have enough videos, filter out yesterday's.
+            let availableVideos = await VideoPool.find({
+                $or: [
+                    { lastUsed: { $lt: today, $ne: yesterday } },
+                    { lastUsed: null }
+                ]
+            });
+
+            // If we don't have enough that weren't used yesterday, just get anything but today (which should be none anyway)
+            if (availableVideos.length < 5) {
+                availableVideos = await VideoPool.find({
+                    $or: [
+                        { lastUsed: { $lt: today } },
+                        { lastUsed: null }
+                    ]
+                });
+            }
+
+            // Shuffle available videos
+            availableVideos = availableVideos.sort(() => 0.5 - Math.random());
+            const selectedVideos = availableVideos.slice(0, 5);
+
+            if (selectedVideos.length > 0) {
+                // Create tasks for selected videos
+                const newTasks = selectedVideos.map(v => ({
+                    videoUrl: v.videoUrl,
+                    title: v.title,
+                    dailySet: today,
+                    status: 'active'
+                }));
+
+                tasks = await Task.insertMany(newTasks);
+
+                // Update lastUsed for these videos
+                await VideoPool.updateMany(
+                    { _id: { $in: selectedVideos.map(v => v._id) } },
+                    { $set: { lastUsed: today } }
+                );
+            }
+        }
+
+        // Limit to 5 (should already be 5 or less)
+        tasks = tasks.slice(0, 5);
 
         // Get user's membership to calculate earnings
         const user = await User.findById(req.user.id);
@@ -199,7 +252,7 @@ exports.uploadTask = [
     upload.single('video'),
     async (req, res) => {
         try {
-            const { dailySet, youtubeUrl } = req.body;
+            const { dailySet, youtubeUrl, title } = req.body;
 
             if (!dailySet) {
                 return res.status(400).json({
@@ -223,6 +276,7 @@ exports.uploadTask = [
 
             const task = await Task.create({
                 videoUrl,
+                title: title || (youtubeUrl ? 'YouTube Video Task' : 'Uploaded Video Task'),
                 dailySet: new Date(dailySet),
                 uploadedBy: req.user.id
             });
@@ -288,5 +342,119 @@ exports.deleteTask = async (req, res) => {
             success: false,
             message: error.message || 'Server error'
         });
+    }
+};
+
+// --- YouTube Playlist & Pool Management ---
+
+// @desc    Add a YouTube playlist
+// @route   POST /api/tasks/playlists
+// @access  Private/Admin
+exports.addPlaylist = async (req, res) => {
+    try {
+        const { url } = req.body;
+
+        if (!url) {
+            return res.status(400).json({ success: false, message: 'Please provide a playlist URL' });
+        }
+
+        // Validate playlist ID
+        const playlistID = await ytpl.getPlaylistID(url);
+        const details = await ytpl(playlistID, { limit: 1 });
+
+        const playlist = await Playlist.create({
+            url,
+            title: details.title,
+            addedBy: req.user.id
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Playlist added successfully',
+            playlist
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get all playlists
+// @route   GET /api/tasks/playlists
+// @access  Private/Admin
+exports.getPlaylists = async (req, res) => {
+    try {
+        const playlists = await Playlist.find().populate('addedBy', 'phone');
+        const videoCount = await VideoPool.countDocuments();
+
+        res.status(200).json({
+            success: true,
+            playlists,
+            videoCount
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Delete a playlist and its videos
+// @route   DELETE /api/tasks/playlists/:id
+// @access  Private/Admin
+exports.deletePlaylist = async (req, res) => {
+    try {
+        const playlist = await Playlist.findById(req.params.id);
+        if (!playlist) {
+            return res.status(404).json({ success: false, message: 'Playlist not found' });
+        }
+
+        // Delete videos associated with this playlist
+        await VideoPool.deleteMany({ playlist: playlist._id });
+        await playlist.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: 'Playlist and associated videos removed'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Sync videos from all active playlists
+// @route   POST /api/tasks/playlists/sync
+// @access  Private/Admin
+exports.syncVideos = async (req, res) => {
+    try {
+        const playlists = await Playlist.find({ status: 'active' });
+        let newVideosCount = 0;
+
+        for (const playlist of playlists) {
+            const playlistID = await ytpl.getPlaylistID(playlist.url);
+            const data = await ytpl(playlistID);
+
+            const videos = data.items.map(item => ({
+                videoId: item.id,
+                title: item.title,
+                videoUrl: item.shortUrl,
+                playlist: playlist._id
+            }));
+
+            // Bulk upsert to avoid duplicates
+            for (const video of videos) {
+                const result = await VideoPool.updateOne(
+                    { videoId: video.videoId },
+                    { $set: video },
+                    { upsert: true }
+                );
+                if (result.upsertedCount > 0) newVideosCount++;
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Sync complete. Added ${newVideosCount} new videos to the pool.`,
+            newVideosCount
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

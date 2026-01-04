@@ -81,7 +81,7 @@ export default function Task() {
                                 </div>
 
                                 <div className="flex-1">
-                                    <p className="font-bold text-gray-800 mb-1">Video Task #{task._id.slice(-4)}</p>
+                                    <p className="font-bold text-gray-800 mb-1">{task.title}</p>
                                     <p className="text-xs font-semibold text-green-600">Earnings: {formatNumber(task.earnings)} ETB</p>
                                 </div>
 
