@@ -9,10 +9,6 @@ const taskSchema = new mongoose.Schema({
         type: String,
         default: 'Video Task'
     },
-    dailySet: {
-        type: Date,
-        required: true
-    },
     status: {
         type: String,
         enum: ['active', 'inactive'],
@@ -26,7 +22,7 @@ const taskSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for querying tasks by date and status
-taskSchema.index({ dailySet: 1, status: 1 });
+// Index for querying tasks by status
+taskSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Task', taskSchema);

@@ -5,35 +5,8 @@ const Membership = require('../models/Membership');
 const Playlist = require('../models/Playlist');
 const VideoPool = require('../models/VideoPool');
 const { calculateAndCreateCommissions } = require('../utils/commission');
-const multer = require('multer');
-const path = require('path');
 const ytpl = require('ytpl');
 
-// Configure multer for video uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/videos');
-    },
-    filename: function (req, file, cb) {
-        cb(null, `video-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 50000000 }, // 50MB
-    fileFilter: function (req, file, cb) {
-        const filetypes = /mp4|mov|avi|mkv/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = /video/.test(file.mimetype);
-
-        if (mimetype && extname) {
-            return cb(null, true);
-        } else {
-            cb(new Error('Only video files are allowed'));
-        }
-    }
-});
 
 // @desc    Get daily tasks for user
 // @route   GET /api/tasks/daily
@@ -46,9 +19,9 @@ exports.getDailyTasks = async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Get tasks for today
+        // Get tasks for today (created today)
         let tasks = await Task.find({
-            dailySet: { $gte: today, $lt: tomorrow },
+            createdAt: { $gte: today, $lt: tomorrow },
             status: 'active'
         });
 
@@ -85,7 +58,6 @@ exports.getDailyTasks = async (req, res) => {
                 const newTasks = selectedVideos.map(v => ({
                     videoUrl: v.videoUrl,
                     title: v.title,
-                    dailySet: today,
                     status: 'active'
                 }));
 
@@ -245,55 +217,38 @@ exports.completeTask = async (req, res) => {
     }
 };
 
-// @desc    Upload task video or YouTube URL (admin)
+// @desc    Upload task YouTube URL (admin)
 // @route   POST /api/tasks/upload
 // @access  Private/Admin
-exports.uploadTask = [
-    upload.single('video'),
-    async (req, res) => {
-        try {
-            const { dailySet, youtubeUrl, title } = req.body;
+exports.uploadTask = async (req, res) => {
+    try {
+        const { youtubeUrl, title } = req.body;
 
-            if (!dailySet) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please specify the daily set date'
-                });
-            }
-
-            let videoUrl = '';
-
-            if (req.file) {
-                videoUrl = `/uploads/videos/${req.file.filename}`;
-            } else if (youtubeUrl) {
-                videoUrl = youtubeUrl;
-            } else {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please upload a video file or provide a YouTube URL'
-                });
-            }
-
-            const task = await Task.create({
-                videoUrl,
-                title: title || (youtubeUrl ? 'YouTube Video Task' : 'Uploaded Video Task'),
-                dailySet: new Date(dailySet),
-                uploadedBy: req.user.id
-            });
-
-            res.status(201).json({
-                success: true,
-                message: 'Task created successfully',
-                task
-            });
-        } catch (error) {
-            res.status(500).json({
+        if (!youtubeUrl) {
+            return res.status(400).json({
                 success: false,
-                message: error.message || 'Server error'
+                message: 'Please provide a YouTube URL'
             });
         }
+
+        const task = await Task.create({
+            videoUrl: youtubeUrl,
+            title: title || 'YouTube Video Task',
+            uploadedBy: req.user.id
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Task created successfully',
+            task
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
     }
-];
+};
 
 // @desc    Get all tasks (admin)
 // @route   GET /api/tasks/all
@@ -302,7 +257,7 @@ exports.getAllTasks = async (req, res) => {
     try {
         const tasks = await Task.find()
             .populate('uploadedBy', 'phone')
-            .sort({ dailySet: -1 });
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,

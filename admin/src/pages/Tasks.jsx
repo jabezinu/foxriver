@@ -13,10 +13,8 @@ export default function TaskManagement() {
     const [syncing, setSyncing] = useState(false);
 
     // Manual Task Form
-    const [videoFile, setVideoFile] = useState(null);
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [taskTitle, setTaskTitle] = useState('');
-    const [dailySet, setDailySet] = useState('');
 
     // Playlist Form
     const [playlistUrl, setPlaylistUrl] = useState('');
@@ -45,29 +43,18 @@ export default function TaskManagement() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!videoFile && !youtubeUrl) {
-            toast.error('Please provide a video file or YouTube URL');
-            return;
-        }
-        if (!dailySet) {
-            toast.error('Please select a mission date');
+        if (!youtubeUrl) {
+            toast.error('Please provide a YouTube URL');
             return;
         }
 
-        const formData = new FormData();
-        if (videoFile) formData.append('video', videoFile);
-        if (youtubeUrl) formData.append('youtubeUrl', youtubeUrl);
-        if (taskTitle) formData.append('title', taskTitle);
-        formData.append('dailySet', dailySet);
 
         setUploading(true);
         try {
-            await adminTaskAPI.upload(formData);
+            await adminTaskAPI.upload({ youtubeUrl, title: taskTitle });
             toast.success('Task deployed successfully!');
-            setVideoFile(null);
             setYoutubeUrl('');
             setTaskTitle('');
-            setDailySet('');
             const res = await adminTaskAPI.getTasks();
             setTasks(res.data.tasks);
         } catch (error) {
@@ -171,17 +158,6 @@ export default function TaskManagement() {
                         <div className="admin-card sticky top-8">
                             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6">Deploy New Task</h3>
                             <form onSubmit={handleUpload} className="space-y-6">
-                                {/* Mission Date */}
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Mission Date</label>
-                                    <input
-                                        type="date"
-                                        value={dailySet}
-                                        onChange={(e) => setDailySet(e.target.value)}
-                                        className="admin-input w-full"
-                                        required
-                                    />
-                                </div>
 
                                 {/* Task Title */}
                                 <div>
@@ -197,54 +173,20 @@ export default function TaskManagement() {
 
                                 {/* YouTube URL */}
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-2 block">YouTube URL (Preferred)</label>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-2 block">YouTube URL</label>
                                     <input
                                         type="text"
                                         placeholder="https://youtube.com/watch?v=..."
                                         value={youtubeUrl}
-                                        onChange={(e) => {
-                                            setYoutubeUrl(e.target.value);
-                                            if (e.target.value) setVideoFile(null);
-                                        }}
+                                        onChange={(e) => setYoutubeUrl(e.target.value)}
                                         className="admin-input w-full"
+                                        required
                                     />
-                                </div>
-
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div className="w-full border-t border-gray-100"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-white px-2 text-gray-400 font-bold">OR UPLOAD</span>
-                                    </div>
-                                </div>
-
-                                {/* Video Upload */}
-                                <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${videoFile ? 'border-indigo-500 bg-indigo-50/30' : 'border-gray-100 hover:border-indigo-300'}`}>
-                                    <input
-                                        type="file"
-                                        accept="video/*"
-                                        id="video-upload"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            setVideoFile(e.target.files[0]);
-                                            if (e.target.files[0]) setYoutubeUrl('');
-                                        }}
-                                    />
-                                    <label htmlFor="video-upload" className="cursor-pointer">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${videoFile ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-500'}`}>
-                                            <HiPlus className="text-2xl" />
-                                        </div>
-                                        <p className="text-[10px] font-bold text-gray-700 uppercase mb-1 truncate px-2">
-                                            {videoFile ? videoFile.name : 'Select MP4 Video'}
-                                        </p>
-                                        {!videoFile && <p className="text-[10px] text-gray-400">Max size: 50MB</p>}
-                                    </label>
                                 </div>
 
                                 <button
                                     type="submit"
-                                    disabled={uploading || (!videoFile && !youtubeUrl)}
+                                    disabled={uploading || !youtubeUrl}
                                     className="admin-btn-primary w-full py-4 uppercase tracking-[0.2em] text-xs font-bold"
                                 >
                                     {uploading ? 'Processing...' : 'Deploy to Task Center'}
@@ -275,25 +217,18 @@ export default function TaskManagement() {
                                                         allowFullScreen
                                                     ></iframe>
                                                 ) : (
-                                                    <>
-                                                        {task.videoUrl ? (
-                                                            <video
-                                                                className="w-full h-full object-cover opacity-50"
-                                                                src={task.videoUrl.startsWith('http') ? task.videoUrl : `${import.meta.env.VITE_API_URL.replace('/api', '')}${task.videoUrl}`}
-                                                            />
-                                                        ) : (
-                                                            <div className="text-gray-500 text-[10px] font-bold uppercase">No Video Source</div>
-                                                        )}
-                                                        <HiPlay className="absolute text-4xl text-white/80 group-hover:scale-110 transition-transform" />
-                                                    </>
+                                                    <div className="flex flex-col items-center justify-center gap-2">
+                                                        <HiVideoCamera className="text-3xl text-gray-700" />
+                                                        <div className="text-gray-500 text-[10px] font-bold uppercase text-center px-4">Internal Video Resource</div>
+                                                    </div>
                                                 )}
                                             </div>
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Mission Date</p>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Created On</p>
                                                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-bold rounded-full uppercase">
-                                                            {new Date(task.dailySet).toLocaleDateString()}
+                                                            {new Date(task.createdAt).toLocaleDateString()}
                                                         </span>
                                                     </div>
                                                     <p className="text-xs font-mono text-gray-800 font-bold">#{task._id.slice(-8)}</p>
@@ -428,7 +363,8 @@ export default function TaskManagement() {
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

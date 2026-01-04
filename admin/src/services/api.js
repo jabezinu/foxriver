@@ -61,9 +61,7 @@ export const adminWithdrawalAPI = {
 
 export const adminTaskAPI = {
     getTasks: () => api.get('/tasks/all'),
-    upload: (data) => api.post('/tasks/upload', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    upload: (data) => api.post('/tasks/upload', data),
     delete: (id) => api.delete(`/tasks/${id}`),
     // Playlist management
     getPlaylists: () => api.get('/tasks/playlists'),
