@@ -24,7 +24,15 @@ import MainLayout from './layout/MainLayout';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitializing } = useAuthStore();
+
+  if (isInitializing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

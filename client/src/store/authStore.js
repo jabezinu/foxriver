@@ -6,6 +6,7 @@ export const useAuthStore = create((set) => ({
     token: localStorage.getItem('foxriver_token'),
     isAuthenticated: false,
     loading: false,
+    isInitializing: true,
     error: null,
 
     login: async (credentials) => {
@@ -15,11 +16,12 @@ export const useAuthStore = create((set) => ({
             const { token, user } = response.data;
 
             localStorage.setItem('foxriver_token', token);
-            set({ user, token, isAuthenticated: true, loading: false });
+            localStorage.setItem('foxriver_last_activity', Date.now().toString());
+            set({ user, token, isAuthenticated: true, loading: false, isInitializing: false });
             return { success: true };
         } catch (error) {
             const message = error.response?.data?.message || 'Login failed';
-            set({ loading: false, error: message });
+            set({ loading: false, error: message, isInitializing: false });
             return { success: false, message };
         }
     },
@@ -42,23 +44,40 @@ export const useAuthStore = create((set) => ({
 
     logout: () => {
         localStorage.removeItem('foxriver_token');
-        set({ user: null, token: null, isAuthenticated: false });
+        localStorage.removeItem('foxriver_last_activity');
+        set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
     },
 
     verifyToken: async () => {
         const token = localStorage.getItem('foxriver_token');
+        const lastActivity = localStorage.getItem('foxriver_last_activity');
+
         if (!token) {
-            set({ isAuthenticated: false });
+            set({ isAuthenticated: false, isInitializing: false });
             return false;
+        }
+
+        // Check 5-minute timeout
+        if (lastActivity) {
+            const now = Date.now();
+            const diff = now - parseInt(lastActivity);
+            if (diff > 5 * 60 * 1000) {
+                localStorage.removeItem('foxriver_token');
+                localStorage.removeItem('foxriver_last_activity');
+                set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
+                return false;
+            }
         }
 
         try {
             const response = await authAPI.verify();
-            set({ user: response.data.user, isAuthenticated: true });
+            localStorage.setItem('foxriver_last_activity', Date.now().toString());
+            set({ user: response.data.user, isAuthenticated: true, isInitializing: false });
             return true;
         } catch (error) {
             localStorage.removeItem('foxriver_token');
-            set({ user: null, token: null, isAuthenticated: false });
+            localStorage.removeItem('foxriver_last_activity');
+            set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
             return false;
         }
     },
