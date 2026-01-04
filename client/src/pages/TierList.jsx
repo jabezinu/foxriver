@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { HiChevronLeft, HiFire, HiLightningBolt, HiCheckCircle } from 'react-icons/hi';
 import Loading from '../components/Loading';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function TierList() {
     const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function TierList() {
                                             {tier.level}
                                         </span>
                                         <h3 className="text-lg font-black text-gray-800">
-                                            {tier.price.toLocaleString()} <span className="text-[10px] font-medium text-gray-400">ETB</span>
+                                            {formatNumber(tier.price)} <span className="text-[10px] font-medium text-gray-400">ETB</span>
                                         </h3>
                                     </div>
                                     {isCurrent && (
@@ -82,15 +83,15 @@ export default function TierList() {
                                     </div>
                                     <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
                                         <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">Price</p>
-                                        <p className="font-bold text-emerald-600 text-[10px] leading-none">{tier.perVideoIncome.toFixed(0)}</p>
+                                        <p className="font-bold text-emerald-600 text-[10px] leading-none">{formatNumber(tier.perVideoIncome.toFixed(0))}</p>
                                     </div>
                                     <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
                                         <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">Daily</p>
-                                        <p className="font-bold text-blue-600 text-[10px] leading-none">{tier.dailyIncome.toFixed(0)}</p>
+                                        <p className="font-bold text-blue-600 text-[10px] leading-none">{formatNumber(tier.dailyIncome.toFixed(0))}</p>
                                     </div>
                                     <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
                                         <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">4-Day</p>
-                                        <p className="font-bold text-purple-600 text-[10px] leading-none">{tier.fourDayIncome.toFixed(0)}</p>
+                                        <p className="font-bold text-purple-600 text-[10px] leading-none">{formatNumber(tier.fourDayIncome.toFixed(0))}</p>
                                     </div>
                                 </div>
 

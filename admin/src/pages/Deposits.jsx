@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminDepositAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { HiCurrencyDollar, HiCheck, HiX, HiExternalLink } from 'react-icons/hi';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function DepositRequests() {
     const [deposits, setDeposits] = useState([]);
@@ -90,7 +91,7 @@ export default function DepositRequests() {
                             <div key={dep._id} className="admin-card flex flex-col md:flex-row gap-6 items-center">
                                 <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-2xl min-w-[120px]">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Incoming</p>
-                                    <p className="text-xl font-bold text-indigo-600">{dep.amount}</p>
+                                    <p className="text-xl font-bold text-indigo-600">{formatNumber(dep.amount)}</p>
                                     <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">ETB Capital</p>
                                 </div>
 

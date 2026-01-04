@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminWithdrawalAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { HiBriefcase, HiCheck, HiX, HiCreditCard } from 'react-icons/hi';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function WithdrawalRequests() {
     const [withdrawals, setWithdrawals] = useState([]);
@@ -90,7 +91,7 @@ export default function WithdrawalRequests() {
                                 <div className="flex flex-col md:flex-row gap-6 items-center mb-6">
                                     <div className="flex flex-col items-center justify-center p-4 bg-purple-50 rounded-2xl min-w-[140px]">
                                         <p className="text-[10px] font-bold text-purple-400 uppercase mb-1">Net Payout</p>
-                                        <p className="text-2xl font-bold text-purple-600">{wit.netAmount}</p>
+                                        <p className="text-2xl font-bold text-purple-600">{formatNumber(wit.netAmount)}</p>
                                         <p className="text-[8px] font-bold text-purple-400 uppercase tracking-tighter">ETB After 10% Tax</p>
                                     </div>
 
@@ -112,8 +113,8 @@ export default function WithdrawalRequests() {
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <span className="text-[9px] text-gray-400 uppercase font-bold">Gross Amount</span>
-                                                <span className="text-sm font-bold text-gray-500">{wit.amount} ETB</span>
-                                                <span className="text-[9px] text-red-400 font-bold mt-1">10% Tax: {wit.taxAmount} ETB</span>
+                                                <span className="text-sm font-bold text-gray-500">{formatNumber(wit.amount)} ETB</span>
+                                                <span className="text-[9px] text-red-400 font-bold mt-1">10% Tax: {formatNumber(wit.taxAmount)} ETB</span>
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <span className="text-[9px] text-gray-400 uppercase font-bold">Wallet Source</span>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { membershipAPI, userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { formatNumber } from '../utils/formatNumber';
 import {
     HiDownload, HiUpload, HiViewGrid, HiLightningBolt,
     HiBriefcase, HiInformationCircle, HiNewspaper,
@@ -107,16 +108,17 @@ export default function Home() {
             <div className="px-4 py-6">
                 <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 text-white shadow-xl">
                     <p className="text-green-100 text-sm mb-1">Total Balance</p>
-                    <h2 className="text-3xl font-bold mb-6">ETB {wallet.incomeWallet + wallet.personalWallet}</h2>
+                    <h2 className="text-3xl font-bold mb-6">ETB {formatNumber(wallet.incomeWallet + wallet.personalWallet)}</h2>
+
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white/20 rounded-2xl p-3">
                             <p className="text-xs text-green-100">Income Wallet</p>
-                            <p className="font-semibold">{wallet.incomeWallet} ETB</p>
+                            <p className="font-semibold">{formatNumber(wallet.incomeWallet)} ETB</p>
                         </div>
                         <div className="bg-white/20 rounded-2xl p-3">
                             <p className="text-xs text-green-100">Personal Wallet</p>
-                            <p className="font-semibold">{wallet.personalWallet} ETB</p>
+                            <p className="font-semibold">{formatNumber(wallet.personalWallet)} ETB</p>
                         </div>
                     </div>
                 </div>

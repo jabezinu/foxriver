@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCreditCard, HiCheck } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function Deposit() {
     const navigate = useNavigate();
@@ -100,7 +101,7 @@ export default function Deposit() {
                         {/* Section 1: Account Balance */}
                         <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-6 border border-gray-50">
                             <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Account Balance</p>
-                            <h2 className="text-2xl font-bold text-gray-900">{balance.toLocaleString()} ETB</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">{formatNumber(balance)} ETB</h2>
                         </div>
 
                         {/* Section 2: Deposit Amount & Grid */}
@@ -109,7 +110,7 @@ export default function Deposit() {
                                 <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-wider">Deposit Amount</h3>
                                 <div className="text-right">
                                     <span className="text-xl font-bold text-green-600">
-                                        {selectedAmount ? selectedAmount.toLocaleString() : '0'}
+                                        {selectedAmount ? formatNumber(selectedAmount) : '0'}
                                     </span>
                                     <span className="text-[10px] font-bold text-gray-400 ml-1">ETB</span>
                                 </div>
@@ -125,7 +126,7 @@ export default function Deposit() {
                                             : 'border-gray-100 bg-white text-gray-600'
                                             }`}
                                     >
-                                        {amount.toLocaleString()}
+                                        {formatNumber(amount)}
                                     </button>
                                 ))}
                             </div>
@@ -165,7 +166,7 @@ export default function Deposit() {
                     <div className="animate-slideUp">
                         <div className="bg-green-50 border border-green-200 rounded-3xl p-6 mb-8 text-center">
                             <p className="text-green-800 font-bold mb-2">Deposit Request Created!</p>
-                            <p className="text-green-600 text-sm">Please transfer <span className="font-bold">{selectedAmount} ETB</span> to the following account:</p>
+                            <p className="text-green-600 text-sm">Please transfer <span className="font-bold">{formatNumber(selectedAmount)} ETB</span> to the following account:</p>
                         </div>
 
                         <div className="bg-white rounded-3xl p-6 shadow-sm mb-8 border border-gray-50">

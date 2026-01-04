@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { HiPlay, HiCheckCircle, HiVideoCamera } from 'react-icons/hi';
 import ReactPlayer from 'react-player';
 import Loading from '../components/Loading';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function Task() {
     const [tasks, setTasks] = useState([]);
@@ -34,7 +35,7 @@ export default function Task() {
         try {
             const response = await taskAPI.completeTask(taskId);
             if (response.data.success) {
-                toast.success(`Task completed! Earned ${response.data.earningsAmount} ETB`);
+                toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB`);
                 fetchTasks();
             }
         } catch (error) {
@@ -50,11 +51,11 @@ export default function Task() {
             <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 flex justify-between items-center border border-gray-50">
                 <div>
                     <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Daily Potential</p>
-                    <h2 className="text-2xl font-bold text-gray-900">{dailyStats.dailyIncome} ETB</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">{formatNumber(dailyStats.dailyIncome)} ETB</h2>
                 </div>
                 <div className="text-right">
                     <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Per Video</p>
-                    <p className="text-xl font-bold text-green-600">{dailyStats.perVideoIncome} ETB</p>
+                    <p className="text-xl font-bold text-green-600">{formatNumber(dailyStats.perVideoIncome)} ETB</p>
                 </div>
             </div>
 
@@ -81,7 +82,7 @@ export default function Task() {
 
                                 <div className="flex-1">
                                     <p className="font-bold text-gray-800 mb-1">Video Task #{task._id.slice(-4)}</p>
-                                    <p className="text-xs font-semibold text-green-600">Earnings: {task.earnings} ETB</p>
+                                    <p className="text-xs font-semibold text-green-600">Earnings: {formatNumber(task.earnings)} ETB</p>
                                 </div>
 
                                 <div>

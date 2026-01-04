@@ -4,6 +4,7 @@ import {
     HiUsers, HiCurrencyDollar, HiCheckCircle, HiBriefcase,
     HiVideoCamera, HiTrendingUp, HiTrendingDown
 } from 'react-icons/hi';
+import { formatNumber } from '../utils/formatNumber';
 import { toast } from 'react-hot-toast';
 import {
     Chart as ChartJS,
@@ -54,10 +55,10 @@ export default function Dashboard() {
     if (loading) return <div className="p-8 text-center text-gray-500">Initializing Dashboard...</div>;
 
     const statCards = [
-        { label: 'Total Users', value: stats.users.total, icon: HiUsers, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Deposit Requests', value: stats.deposits.pending, icon: HiCurrencyDollar, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-        { label: 'Withdrawal Requests', value: stats.withdrawals.pending, icon: HiBriefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { label: 'Revenue (Total Approved)', value: `${stats.deposits.totalAmount} ETB`, icon: HiCheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
+        { label: 'Total Users', value: formatNumber(stats.users.total), icon: HiUsers, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Deposit Requests', value: formatNumber(stats.deposits.pending), icon: HiCurrencyDollar, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+        { label: 'Withdrawal Requests', value: formatNumber(stats.withdrawals.pending), icon: HiBriefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Revenue (Total Approved)', value: `${formatNumber(stats.deposits.totalAmount)} ETB`, icon: HiCheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
     ];
 
     // Chart Data

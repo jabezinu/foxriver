@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCash, HiEye, HiEyeOff, HiLibrary } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function Withdraw() {
     const navigate = useNavigate();
@@ -85,12 +86,12 @@ export default function Withdraw() {
                 <div className="bg-white rounded-3xl p-5 shadow-sm mb-6 border border-gray-50 flex justify-between items-center">
                     <div>
                         <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Income Balance</p>
-                        <p className="text-lg font-bold text-gray-900">{wallets.incomeWallet.toLocaleString()} <span className="text-[10px] text-gray-400">ETB</span></p>
+                        <p className="text-lg font-bold text-gray-900">{formatNumber(wallets.incomeWallet)} <span className="text-[10px] text-gray-400">ETB</span></p>
                     </div>
                     <div className="h-8 w-px bg-gray-100"></div>
                     <div className="text-right">
                         <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Personal Balance</p>
-                        <p className="text-lg font-bold text-gray-900">{wallets.personalWallet.toLocaleString()} <span className="text-[10px] text-gray-400">ETB</span></p>
+                        <p className="text-lg font-bold text-gray-900">{formatNumber(wallets.personalWallet)} <span className="text-[10px] text-gray-400">ETB</span></p>
                     </div>
                 </div>
 
@@ -99,7 +100,7 @@ export default function Withdraw() {
                         <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-wider">Withdrawal Amount</h3>
                         <div className="flex items-baseline gap-1">
                             <span className="text-2xl font-black text-green-600">
-                                {selectedAmount ? selectedAmount.toLocaleString() : '0'}
+                                {selectedAmount ? formatNumber(selectedAmount) : '0'}
                             </span>
                             <span className="text-[10px] font-bold text-gray-400 uppercase">ETB</span>
                         </div>
@@ -115,7 +116,7 @@ export default function Withdraw() {
                                     : 'border-gray-100 bg-white text-gray-600'
                                     }`}
                             >
-                                {amount.toLocaleString()}
+                                {formatNumber(amount)}
                             </button>
                         ))}
                     </div>
@@ -156,15 +157,15 @@ export default function Withdraw() {
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                                 <span className="text-blue-500">Gross Amount</span>
-                                <span className="font-bold">{selectedAmount} ETB</span>
+                                <span className="font-bold">{formatNumber(selectedAmount)} ETB</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-blue-500">Tax (10%)</span>
-                                <span className="font-bold text-red-500">-{taxAmount} ETB</span>
+                                <span className="font-bold text-red-500">-{formatNumber(taxAmount)} ETB</span>
                             </div>
                             <div className="pt-2 border-t border-blue-100 flex justify-between">
                                 <span className="font-bold text-blue-800">Net Arrival</span>
-                                <span className="font-bold text-xl text-green-600">{netAmount} ETB</span>
+                                <span className="font-bold text-xl text-green-600">{formatNumber(netAmount)} ETB</span>
                             </div>
                         </div>
                     </div>
