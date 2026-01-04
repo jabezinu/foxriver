@@ -11,6 +11,26 @@ import {
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
 
+const MenuItem = ({ item, navigate, isLarge = false }) => (
+    <div
+        onClick={item.path ? () => navigate(item.path) : item.action}
+        className={`group relative flex flex-col items-center justify-center bg-white/70 backdrop-blur-md rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300 active:scale-95 cursor-pointer border border-white/40 ${isLarge ? 'flex-row gap-4 justify-start px-6 py-4' : ''}`}
+    >
+        <div className={`p-4 rounded-2xl mb-2 transition-transform duration-300 group-hover:scale-110 shadow-inner ${item.color} ${isLarge ? 'mb-0' : ''}`}>
+            <item.icon className={`${isLarge ? 'text-3xl' : 'text-2xl'}`} />
+        </div>
+        <div className={`${isLarge ? 'flex flex-col items-start' : 'text-center'}`}>
+            <span className={`font-bold text-gray-800 tracking-tight leading-tight ${isLarge ? 'text-base' : 'text-[11px] uppercase tracking-wide'}`}>
+                {item.label}
+            </span>
+            {isLarge && <span className="text-xs text-gray-500">Invite and earn commission</span>}
+        </div>
+
+        {/* Subtle highlight effect */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+    </div>
+);
+
 export default function Home() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
@@ -43,10 +63,10 @@ export default function Home() {
         { icon: HiDownload, label: 'Deposit', color: 'bg-green-100 text-green-600', path: '/deposit' },
         { icon: HiUpload, label: 'Withdraw', color: 'bg-blue-100 text-blue-600', path: '/withdraw' },
         { icon: HiViewGrid, label: 'Tier List', color: 'bg-purple-100 text-purple-600', path: '/tiers' },
-        { icon: HiLightningBolt, label: 'Wealth Fund', color: 'bg-yellow-100 text-yellow-600', path: '/wealth' },
+        { icon: HiLightningBolt, label: 'Wealth', color: 'bg-yellow-100 text-yellow-600', path: '/wealth' },
         { icon: HiLightningBolt, label: 'Lucky Wheel', color: 'bg-pink-100 text-pink-600', action: () => toast('Lucky Wheel coming soon!') },
         { icon: HiInformationCircle, label: 'About Us', color: 'bg-indigo-100 text-indigo-600', action: () => toast.success('Foxriver: Ethiopia\'s leading digital earning platform.') },
-        { icon: HiNewspaper, label: 'Company News', color: 'bg-orange-100 text-orange-600', path: '/news' },
+        { icon: HiNewspaper, label: 'Company Name', color: 'bg-orange-100 text-orange-600', path: '/news' },
         { icon: HiQuestionMarkCircle, label: 'Q&A', color: 'bg-teal-100 text-teal-600', path: '/qna' },
         {
             icon: HiShare,
@@ -67,9 +87,11 @@ export default function Home() {
     if (loading) return <Loading />;
 
     return (
-        <div className="animate-fadeIn">
+        <div className="animate-fadeIn min-h-screen bg-[#f8fafc] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+            <div className="fixed inset-0 bg-gradient-to-b from-green-50/50 to-transparent pointer-events-none" />
+
             {/* Top Bar */}
-            <div className="bg-white px-4 py-3 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex justify-between items-center sticky top-0 z-10 shadow-sm border-b border-gray-100">
                 <h1 className="text-xl font-bold text-green-600">Foxriver</h1>
                 <div className="flex gap-4">
                     <button className="text-gray-600 text-2xl" onClick={() => toast('Language: English')}>
@@ -101,21 +123,32 @@ export default function Home() {
             </div>
 
             {/* Quick Menu Grid */}
-            <div className="px-4 pb-6">
+            <div className="px-4 pb-6 space-y-4">
+                {/* Row 1: Deposit, Withdraw */}
+                <div className="grid grid-cols-2 gap-4">
+                    {menuItems.slice(0, 2).map((item, index) => (
+                        <MenuItem key={index} item={item} navigate={navigate} />
+                    ))}
+                </div>
+
+                {/* Row 2: Tier List, Wealth, Lucky Wheel */}
                 <div className="grid grid-cols-3 gap-4">
-                    {menuItems.map((item, index) => (
-                        <div
-                            key={index}
-                            onClick={item.path ? () => navigate(item.path) : item.action}
-                            className="flex flex-col items-center justify-center bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer"
-                        >
-                            <div className={`p-3 rounded-xl mb-2 ${item.color}`}>
-                                <item.icon className="text-2xl" />
-                            </div>
-                            <span className="text-[10px] font-bold text-gray-700 text-center uppercase tracking-wider">
-                                {item.label}
-                            </span>
-                        </div>
+                    {menuItems.slice(2, 5).map((item, index) => (
+                        <MenuItem key={index + 2} item={item} navigate={navigate} />
+                    ))}
+                </div>
+
+                {/* Row 3: About Us, Company Name, Q&A */}
+                <div className="grid grid-cols-3 gap-4">
+                    {menuItems.slice(5, 8).map((item, index) => (
+                        <MenuItem key={index + 5} item={item} navigate={navigate} />
+                    ))}
+                </div>
+
+                {/* Row 4: Invitation Link (Featured Card) */}
+                <div className="grid grid-cols-1">
+                    {menuItems.slice(8, 9).map((item, index) => (
+                        <MenuItem key={index + 8} item={item} navigate={navigate} isLarge={true} />
                     ))}
                 </div>
             </div>
