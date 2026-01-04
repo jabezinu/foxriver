@@ -16,6 +16,8 @@ import Mail from './pages/Mail';
 import Settings from './pages/Settings';
 import CompanyNews from './pages/CompanyNews';
 import QnA from './pages/QnA';
+import TierList from './pages/TierList';
+
 
 // Layout
 import MainLayout from './layout/MainLayout';
@@ -72,7 +74,9 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="news" element={<CompanyNews />} />
           <Route path="qna" element={<QnA />} />
+          <Route path="tiers" element={<TierList />} />
         </Route>
+
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
