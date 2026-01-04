@@ -16,7 +16,7 @@ export default function Deposit() {
     const [currentDeposit, setCurrentDeposit] = useState(null);
     const [ftNumber, setFtNumber] = useState('');
 
-    const amounts = [3300, 9600, 27000, 78000, 220000, 590000, 1280000, 2530000, 5000000, 9800000];
+    const amounts = [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000];
     const methods = [
         { id: 'CBE', name: 'Commercial Bank of Ethiopia', account: '1000123456789' },
         { id: 'BOA', name: 'Bank of Abyssinia', account: '77889900' },
@@ -94,33 +94,33 @@ export default function Deposit() {
                 <h1 className="text-xl font-bold text-gray-900">Deposit</h1>
             </div>
 
-            <div className="px-4 py-6">
+            <div className="px-3 py-6">
                 {step === 1 ? (
                     <>
                         {/* Section 1: Account Balance */}
-                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
-                            <p className="text-xs text-gray-500 uppercase font-bold mb-1">Account Balance</p>
+                        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-6 border border-gray-50">
+                            <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Account Balance</p>
                             <h2 className="text-2xl font-bold text-gray-900">{balance.toLocaleString()} ETB</h2>
                         </div>
 
                         {/* Section 2: Deposit Amount & Grid */}
-                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
+                        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-6 border border-gray-50">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="font-bold text-gray-800 uppercase text-xs tracking-wider">Deposit Amount</h3>
+                                <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-wider">Deposit Amount</h3>
                                 <div className="text-right">
-                                    <span className="text-2xl font-bold text-green-600">
+                                    <span className="text-xl font-bold text-green-600">
                                         {selectedAmount ? selectedAmount.toLocaleString() : '0'}
                                     </span>
-                                    <span className="text-xs font-bold text-gray-400 ml-1">ETB</span>
+                                    <span className="text-[10px] font-bold text-gray-400 ml-1">ETB</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-4 gap-1">
                                 {amounts.map((amount) => (
                                     <button
                                         key={amount}
                                         onClick={() => setSelectedAmount(amount)}
-                                        className={`py-4 rounded-2xl font-bold transition-all border-2 ${selectedAmount === amount
+                                        className={`py-2 px-0 rounded-lg font-bold text-[9px] transition-all border-2 text-center flex items-center justify-center ${selectedAmount === amount
                                             ? 'border-green-500 bg-green-50 text-green-600'
                                             : 'border-gray-100 bg-white text-gray-600'
                                             }`}
@@ -132,23 +132,23 @@ export default function Deposit() {
                         </div>
 
                         {/* Section 3: Payment Method Dropdown */}
-                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-8 border border-gray-50">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Select Payment Method</label>
+                        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-8 border border-gray-50">
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Select Payment Method</label>
                             <div className="relative">
                                 <select
                                     value={paymentMethod}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-5 py-4 font-bold text-gray-800 appearance-none focus:border-green-500 outline-none transition-all cursor-pointer"
+                                    className="w-full max-w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-3 py-4 font-bold text-xs text-gray-800 focus:border-green-500 outline-none transition-all cursor-pointer truncate pr-8"
                                 >
-                                    <option value="" disabled>Choose a bank / service</option>
+                                    <option value="" disabled>Choose bank/service</option>
                                     {methods.map((method) => (
-                                        <option key={method.id} value={method.id}>
+                                        <option key={method.id} value={method.id} className="text-sm">
                                             {method.name}
                                         </option>
                                     ))}
                                 </select>
-                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                    <HiCreditCard className="text-xl" />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <HiCreditCard className="text-lg" />
                                 </div>
                             </div>
                         </div>
