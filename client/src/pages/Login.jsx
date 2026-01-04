@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { HiPhone, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
+import CanvasCaptcha from '../components/CanvasCaptcha';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -15,8 +16,12 @@ export default function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [captchaValue] = useState(() => Math.floor(1000 + Math.random() * 9000));
+    const [realCaptchaValue, setRealCaptchaValue] = useState('');
     const [formError, setFormError] = useState('');
+
+    const handleCaptchaChange = useCallback((code) => {
+        setRealCaptchaValue(code);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -33,8 +38,14 @@ export default function Login() {
             return;
         }
 
-        if (formData.captcha !== captchaValue.toString()) {
+        if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
+            // Trigger refresh via checking for a specific class or just manual re-click instructions?
+            // Since we don't have a ref to the child directly easily without forwardRef, 
+            // for now we'll rely on the user to click refresh, or we can improve CanvasCaptcha to take a trigger prop.
+            // But simple is better: just toast. The user will click refresh if looking at it.
+            // Actually, for better UX, we'll clear the input.
+            setFormData(prev => ({ ...prev, captcha: '' }));
             return;
         }
 
@@ -48,6 +59,7 @@ export default function Login() {
             navigate('/', { replace: true });
         } else {
             toast.error(result.message || 'Login failed');
+            setFormData(prev => ({ ...prev, captcha: '' }));
         }
     };
 
@@ -116,17 +128,20 @@ export default function Login() {
                     {/* CAPTCHA */}
                     <div className="group">
                         <label className="block text-xs font-bold text-green-400 uppercase tracking-widest mb-2 ml-1">
-                            Verification Code: <span className="text-white ml-2 tabular-nums">{captchaValue}</span>
+                            Verification Code
                         </label>
-                        <input
-                            type="text"
-                            name="captcha"
-                            value={formData.captcha}
-                            onChange={handleChange}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white placeholder-white/20 outline-none focus:border-green-400/50 focus:bg-white/10 transition-all shadow-inner"
-                            placeholder="Enter 4-digit code"
-                            required
-                        />
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                name="captcha"
+                                value={formData.captcha}
+                                onChange={handleChange}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white placeholder-white/20 outline-none focus:border-green-400/50 focus:bg-white/10 transition-all shadow-inner"
+                                placeholder="Enter code from image"
+                                required
+                            />
+                            <CanvasCaptcha onCaptchaChange={handleCaptchaChange} />
+                        </div>
                     </div>
 
                     {/* Submit Button */}

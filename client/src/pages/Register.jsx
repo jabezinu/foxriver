@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { HiPhone, HiLockClosed, HiEye, HiEyeOff } from 'react-icons/hi';
+import CanvasCaptcha from '../components/CanvasCaptcha';
 
 export default function Register() {
     const navigate = useNavigate();
@@ -18,8 +19,12 @@ export default function Register() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [captchaValue] = useState(() => Math.floor(1000 + Math.random() * 9000));
+    const [realCaptchaValue, setRealCaptchaValue] = useState('');
     const [formError, setFormError] = useState('');
+
+    const handleCaptchaChange = useCallback((code) => {
+        setRealCaptchaValue(code);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,8 +51,9 @@ export default function Register() {
             return;
         }
 
-        if (formData.captcha !== captchaValue.toString()) {
+        if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
+            setFormData(prev => ({ ...prev, captcha: '' }));
             return;
         }
 
@@ -62,6 +68,7 @@ export default function Register() {
             navigate('/', { replace: true });
         } else {
             toast.error(result.message || 'Registration failed');
+            setFormData(prev => ({ ...prev, captcha: '' }));
         }
     };
 
@@ -164,17 +171,20 @@ export default function Register() {
                     {/* CAPTCHA */}
                     <div className="group">
                         <label className="block text-[10px] font-bold text-green-400 uppercase tracking-[0.2em] mb-1.5 ml-1">
-                            Verification: <span className="text-white ml-2 tabular-nums">{captchaValue}</span>
+                            Verification
                         </label>
-                        <input
-                            type="text"
-                            name="captcha"
-                            value={formData.captcha}
-                            onChange={handleChange}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-4 text-white placeholder-white/20 outline-none focus:border-green-400/50 focus:bg-white/10 transition-all shadow-inner text-sm"
-                            placeholder="Enter 4-digit code"
-                            required
-                        />
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                name="captcha"
+                                value={formData.captcha}
+                                onChange={handleChange}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-4 text-white placeholder-white/20 outline-none focus:border-green-400/50 focus:bg-white/10 transition-all shadow-inner text-sm"
+                                placeholder="Enter code from image"
+                                required
+                            />
+                            <CanvasCaptcha onCaptchaChange={handleCaptchaChange} />
+                        </div>
                     </div>
 
                     {/* Submit Button */}
