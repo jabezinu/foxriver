@@ -42,20 +42,29 @@ export default function Home() {
 
     // Message Popup State
     const [messageQueue, setMessageQueue] = useState([]);
-    const [viewingDetail, setViewingDetail] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [walletRes, messagesRes] = await Promise.all([
-                    userAPI.getWallet(),
-                    messageAPI.getUserMessages()
-                ]);
+                // Determine if we should show the welcome popup
+                const shouldShowWelcome = sessionStorage.getItem('showWelcome');
+
+                const promises = [userAPI.getWallet()];
+                if (shouldShowWelcome === 'true') {
+                    promises.push(messageAPI.getUserMessages());
+                }
+
+                const results = await Promise.all(promises);
+                const walletRes = results[0];
 
                 setWallet(walletRes.data.wallet);
 
-                // Show ALL messages regardless of read status
-                setMessageQueue(messagesRes.data.messages);
+                if (shouldShowWelcome === 'true' && results[1]) {
+                    const messagesRes = results[1];
+                    setMessageQueue(messagesRes.data.messages);
+                    // Consume the flag so it doesn't show again on reload/navigation
+                    sessionStorage.removeItem('showWelcome');
+                }
 
             } catch (error) {
                 toast.error('Failed to update data');
@@ -76,7 +85,6 @@ export default function Home() {
         // Simply move to the next message in the local queue
         if (messageQueue.length > 0) {
             setMessageQueue(prev => prev.slice(1));
-            setViewingDetail(false);
         }
     };
 
@@ -221,40 +229,17 @@ export default function Home() {
                     title={messageQueue[0].title}
                 >
                     <div className="space-y-4">
-                        {!viewingDetail ? (
-                            <div className="py-4">
-                                <p className="text-gray-600 text-center">
-                                    You have a new message from the administrator.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="py-4 bg-gray-50 rounded-xl p-4 max-h-60 overflow-y-auto">
-                                <p className="text-gray-800 whitespace-pre-wrap">{messageQueue[0].content}</p>
-                            </div>
-                        )}
+                        <div className="py-4 bg-gray-50 rounded-xl p-4 max-h-60 overflow-y-auto">
+                            <p className="text-gray-800 whitespace-pre-wrap">{messageQueue[0].content}</p>
+                        </div>
 
-                        <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="pt-2">
                             <button
                                 onClick={handleNextMessage}
-                                className="px-4 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50"
+                                className="btn-primary w-full py-3 rounded-xl font-bold text-sm"
                             >
-                                Cancel
+                                Close
                             </button>
-                            {!viewingDetail ? (
-                                <button
-                                    onClick={() => setViewingDetail(true)}
-                                    className="btn-primary text-sm"
-                                >
-                                    View Detail
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={handleNextMessage}
-                                    className="btn-primary text-sm"
-                                >
-                                    Close
-                                </button>
-                            )}
                         </div>
                     </div>
                 </Modal>

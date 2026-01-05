@@ -40,11 +40,6 @@ export default function Login() {
 
         if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
-            // Trigger refresh via checking for a specific class or just manual re-click instructions?
-            // Since we don't have a ref to the child directly easily without forwardRef, 
-            // for now we'll rely on the user to click refresh, or we can improve CanvasCaptcha to take a trigger prop.
-            // But simple is better: just toast. The user will click refresh if looking at it.
-            // Actually, for better UX, we'll clear the input.
             setFormData(prev => ({ ...prev, captcha: '' }));
             return;
         }
@@ -56,6 +51,7 @@ export default function Login() {
 
         if (result.success) {
             toast.success('Welcome back!');
+            sessionStorage.setItem('showWelcome', 'true');
             navigate('/', { replace: true });
         } else {
             toast.error(result.message || 'Login failed');

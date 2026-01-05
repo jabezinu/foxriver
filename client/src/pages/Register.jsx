@@ -65,6 +65,7 @@ export default function Register() {
 
         if (result.success) {
             toast.success('Account created successfully!');
+            sessionStorage.setItem('showWelcome', 'true');
             navigate('/', { replace: true });
         } else {
             toast.error(result.message || 'Registration failed');
