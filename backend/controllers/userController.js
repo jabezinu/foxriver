@@ -9,6 +9,24 @@ exports.getProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('+transactionPassword');
 
+        // Check for pending bank account change
+        if (user.bankChangeStatus === 'pending') {
+            const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+            const timeDiff = Date.now() - new Date(user.bankChangeRequestDate).getTime();
+
+            if (timeDiff >= threeDaysInMillis) {
+                // Auto-approve after 3 days
+                user.bankAccount = {
+                    ...user.pendingBankAccount,
+                    isSet: true
+                };
+                user.bankChangeStatus = 'none';
+                user.pendingBankAccount = undefined;
+                user.bankChangeRequestDate = undefined;
+                await user.save();
+            }
+        }
+
         const userObj = user.toObject();
         const hasTransactionPassword = !!userObj.transactionPassword;
         delete userObj.transactionPassword;
@@ -60,11 +78,23 @@ exports.setBankAccount = async (req, res) => {
 
         const user = await User.findById(req.user.id);
 
-        // If bank account is already set, don't allow changes
+        // If bank account is already set, handle as change request
         if (user.bankAccount.isSet) {
-            return res.status(400).json({
-                success: false,
-                message: 'Bank account already set. Please contact your manager to make changes.'
+            user.pendingBankAccount = {
+                accountName,
+                bank,
+                accountNumber,
+                phone
+            };
+            user.bankChangeStatus = 'pending';
+            user.bankChangeRequestDate = Date.now();
+            await user.save();
+
+            return res.status(200).json({
+                success: true,
+                message: 'Bank account change requested. It will be updated automatically in 3 days.',
+                isPending: true,
+                requestDate: user.bankChangeRequestDate
             });
         }
 

@@ -49,17 +49,17 @@ export default function Settings() {
 
     const handleUpdateBank = async () => {
         try {
-            await userAPI.setBankAccount({
+            const res = await userAPI.setBankAccount({
                 bank: formData.bankName,
                 accountNumber: formData.accountNumber,
                 accountName: formData.accountName,
                 phone: formData.bankPhone
             });
-            toast.success('Bank account linked successfully!');
+            toast.success(res.data.message || 'Bank account updated!');
             setModalType(null);
             fetchProfile();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Update failed. Bank details can only be set once.');
+            toast.error(error.response?.data?.message || 'Update failed.');
         }
     };
 
@@ -112,9 +112,6 @@ export default function Settings() {
             icon: HiLibrary,
             desc: profile.bankAccount?.isSet ? `${profile.bankAccount.bankName} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked',
             action: () => {
-                if (profile.bankAccount?.isSet) {
-                    toast.error("Bank details can only be set ONCE. For changes, contact manager.");
-                }
                 setModalType('bank');
             }
         },
@@ -187,33 +184,49 @@ export default function Settings() {
             {/* Bank Modal */}
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
-                    {profile.bankAccount?.isSet && (
-                        <p className="text-[10px] text-red-400 bg-red-50 p-3 rounded-xl font-bold uppercase mb-2">
-                            Warning: Bank details can only be set ONCE. For changes, contact manager.
+                    {profile.bankChangeStatus === 'pending' && (
+                        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mb-4">
+                            <p className="text-yellow-700 font-bold text-xs uppercase tracking-wide mb-1">
+                                Pending Change Request
+                            </p>
+                            <p className="text-yellow-600 text-xs">
+                                Requested on: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
+                                Will be updated on: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                            </p>
+                        </div>
+                    )}
+
+                    {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && (
+                        <p className="text-[10px] text-blue-400 bg-blue-50 p-3 rounded-xl font-bold uppercase mb-2">
+                            You can request to change your bank details. Changes will accept after 3 days.
                         </p>
                     )}
+
                     <input
                         type="text" placeholder="Bank Name (e.g. CBE)" className="input-field"
                         value={formData.bankName} onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-                        disabled={profile.bankAccount?.isSet}
+                        disabled={profile.bankChangeStatus === 'pending'}
                     />
                     <input
                         type="text" placeholder="Account Number" className="input-field"
                         value={formData.accountNumber} onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
-                        disabled={profile.bankAccount?.isSet}
+                        disabled={profile.bankChangeStatus === 'pending'}
                     />
                     <input
                         type="text" placeholder="Account Holder Name" className="input-field"
                         value={formData.accountName} onChange={e => setFormData({ ...formData, accountName: e.target.value })}
-                        disabled={profile.bankAccount?.isSet}
+                        disabled={profile.bankChangeStatus === 'pending'}
                     />
                     <input
                         type="tel" placeholder="Phone Number" className="input-field"
                         value={formData.bankPhone} onChange={e => setFormData({ ...formData, bankPhone: e.target.value })}
-                        disabled={profile.bankAccount?.isSet}
+                        disabled={profile.bankChangeStatus === 'pending'}
                     />
-                    {!profile.bankAccount?.isSet && (
-                        <button onClick={handleUpdateBank} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">Save Account</button>
+
+                    {profile.bankChangeStatus !== 'pending' && (
+                        <button onClick={handleUpdateBank} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">
+                            {profile.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
+                        </button>
                     )}
                 </div>
             </Modal>

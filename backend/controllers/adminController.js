@@ -175,6 +175,17 @@ exports.updateUser = async (req, res) => {
         if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
         if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
 
+        // Handle bank change approval
+        if (req.body.approveBankChange && user.bankChangeStatus === 'pending') {
+            user.bankAccount = {
+                ...user.pendingBankAccount,
+                isSet: true
+            };
+            user.bankChangeStatus = 'none';
+            user.pendingBankAccount = undefined;
+            user.bankChangeRequestDate = undefined;
+        }
+
         await user.save();
 
         res.status(200).json({

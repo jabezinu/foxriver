@@ -55,6 +55,21 @@ const userSchema = new mongoose.Schema({
             default: false
         }
     },
+    pendingBankAccount: {
+        accountName: String,
+        bank: {
+            type: String,
+            enum: ['CBE', 'Awash', 'BOA', '']
+        },
+        accountNumber: String,
+        phone: String
+    },
+    bankChangeRequestDate: Date,
+    bankChangeStatus: {
+        type: String,
+        enum: ['none', 'pending'],
+        default: 'none'
+    },
     referrerId: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',

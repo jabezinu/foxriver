@@ -246,6 +246,29 @@ export default function UserManagement() {
                                     onChange={e => setEditForm({ ...editForm, personalWallet: e.target.value })}
                                 />
                             </div>
+
+                            {editingUser.bankChangeStatus === 'pending' && editingUser.pendingBankAccount && (
+                                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                                    <p className="text-yellow-800 font-bold text-xs uppercase mb-2">Pending Bank Change</p>
+                                    <div className="text-xs text-gray-600 space-y-1 mb-3">
+                                        <p><span className="font-bold">Bank:</span> {editingUser.pendingBankAccount.bank}</p>
+                                        <p><span className="font-bold">Account:</span> {editingUser.pendingBankAccount.accountNumber}</p>
+                                        <p><span className="font-bold">Name:</span> {editingUser.pendingBankAccount.accountName}</p>
+                                        <p><span className="font-bold">Phone:</span> {editingUser.pendingBankAccount.phone}</p>
+                                        <p className="text-[10px] text-gray-400 mt-2">Requested: {new Date(editingUser.bankChangeRequestDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                            checked={editForm.approveBankChange || false}
+                                            onChange={e => setEditForm({ ...editForm, approveBankChange: e.target.checked })}
+                                        />
+                                        <span className="text-sm font-bold text-gray-700">Approve Change Immediately</span>
+                                    </label>
+                                </div>
+                            )}
+
                             <div className="pt-4 flex gap-3">
                                 <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs uppercase hover:bg-gray-50">Cancel</button>
                                 <button type="submit" className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs uppercase hover:bg-indigo-700 shadow-lg shadow-indigo-200">Save Changes</button>
