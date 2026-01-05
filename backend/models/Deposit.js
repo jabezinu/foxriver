@@ -12,9 +12,9 @@ const depositSchema = new mongoose.Schema({
         enum: [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000]
     },
     paymentMethod: {
-        type: String,
-        required: [true, 'Please select a payment method'],
-        enum: ['CBE', 'BOA', 'TeleBirr']
+        type: mongoose.Schema.ObjectId,
+        ref: 'BankAccount',
+        required: [true, 'Please select a payment method']
     },
     transactionFT: {
         type: String,

@@ -151,6 +151,7 @@ exports.getAllDeposits = async (req, res) => {
         const deposits = await Deposit.find(filter)
             .populate('user', 'phone membershipLevel')
             .populate('approvedBy', 'phone')
+            .populate('paymentMethod', 'bankName accountNumber accountHolderName')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
