@@ -112,19 +112,18 @@ export default function Team() {
                             <div className="flex gap-2">
                                 <div className="flex-1 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 flex justify-between items-center">
                                     <div className="overflow-hidden">
-                                        <p className="text-[8px] text-white/40 font-bold uppercase mb-0.5">Invite Code</p>
-                                        <p className="font-bold text-sm tracking-widest uppercase truncate">{user?.invitationCode}</p>
+                                        <p className="text-[8px] text-white/40 font-bold uppercase mb-0.5">Invitation Link</p>
+                                        <p className="font-bold text-[10px] tracking-tight truncate opacity-90">
+                                            {window.location.origin}/register?ref={user?.invitationCode}
+                                        </p>
                                     </div>
-                                    <button onClick={handleCopyCode} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-colors">
-                                        <HiDuplicate className="text-lg" />
-                                    </button>
                                 </div>
                                 <button
                                     onClick={handleCopyLink}
-                                    className="px-5 bg-green-500 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition-all active:scale-95"
+                                    className="px-5 bg-green-500 rounded-2xl font-bold flex items-center justify-center gap-1 hover:bg-green-600 transition-all active:scale-95 shrink-0"
                                 >
-                                    <HiShare className="text-lg" />
-                                    <span className="text-xs uppercase tracking-widest">Link</span>
+                                    <HiDuplicate className="text-lg" />
+                                    <span className="text-xs uppercase tracking-widest text-white">Invite</span>
                                 </button>
                             </div>
                         </div>
