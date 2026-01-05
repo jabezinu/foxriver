@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { adminUserAPI } from '../services/api';
-import { HiSearch, HiIdentification, HiExternalLink, HiPencil, HiTrash, HiX } from 'react-icons/hi';
+import { HiSearch, HiIdentification, HiExternalLink, HiPencil, HiTrash, HiX, HiClipboardList } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading';
 
 import ConfirmModal from '../components/ConfirmModal';
+import UserHistoryModal from '../components/UserHistoryModal';
 
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
@@ -12,6 +13,7 @@ export default function UserManagement() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterLevel, setFilterLevel] = useState('');
     const [deleteId, setDeleteId] = useState(null);
+    const [historyUser, setHistoryUser] = useState(null);
 
     // Edit Modal State
     const [editingUser, setEditingUser] = useState(null);
@@ -125,6 +127,12 @@ export default function UserManagement() {
                 isDangerous={true}
             />
 
+            <UserHistoryModal
+                isOpen={!!historyUser}
+                user={historyUser}
+                onClose={() => setHistoryUser(null)}
+            />
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Personnel Database</h1>
@@ -222,6 +230,13 @@ export default function UserManagement() {
                                                     title="Edit User"
                                                 >
                                                     <HiPencil />
+                                                </button>
+                                                <button
+                                                    onClick={() => setHistoryUser(user)}
+                                                    className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition-all pointer-events-auto"
+                                                    title="View History"
+                                                >
+                                                    <HiClipboardList />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(user._id)}

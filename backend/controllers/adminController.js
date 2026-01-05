@@ -327,3 +327,47 @@ exports.updateAdminProfile = async (req, res) => {
         });
     }
 };
+
+// @desc    Get user deposit history
+// @route   GET /api/admin/users/:id/deposits
+// @access  Private/Admin
+exports.getUserDepositHistory = async (req, res) => {
+    try {
+        const deposits = await Deposit.find({ user: req.params.id })
+            .populate('approvedBy', 'phone')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: deposits.length,
+            deposits
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Get user withdrawal history
+// @route   GET /api/admin/users/:id/withdrawals
+// @access  Private/Admin
+exports.getUserWithdrawalHistory = async (req, res) => {
+    try {
+        const withdrawals = await Withdrawal.find({ user: req.params.id })
+            .populate('approvedBy', 'phone')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: withdrawals.length,
+            withdrawals
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
