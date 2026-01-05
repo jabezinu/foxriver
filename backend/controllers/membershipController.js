@@ -32,12 +32,20 @@ exports.getTiers = async (req, res) => {
     }
 };
 
-// @desc    Upgrade membership (requires deposit approval first)
+// @desc    Upgrade membership (deducts from selected wallet)
 // @route   POST /api/memberships/upgrade
 // @access  Private
 exports.upgradeMembership = async (req, res) => {
     try {
-        const { newLevel } = req.body;
+        const { newLevel, walletType } = req.body;
+
+        // Validate wallet type
+        if (!['income', 'personal'].includes(walletType)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid wallet type selected'
+            });
+        }
 
         const user = await User.findById(req.user.id);
         const currentMembership = await Membership.findOne({ level: user.membershipLevel });
@@ -50,7 +58,10 @@ exports.upgradeMembership = async (req, res) => {
             });
         }
 
-        // Check if upgrade is valid (can only upgrade to higher level)
+        // Check if upgrade is valid (can only upgrade to higher level or strictly higher?) 
+        // Logic says "Upgrade", so strictly higher makes sense, but sometimes users might just want to pay to change. 
+        // Based on previous code: newMembership.order <= currentMembership.order check exists. 
+        // I will keep the check.
         if (newMembership.order <= currentMembership.order) {
             return res.status(400).json({
                 success: false,
@@ -58,8 +69,19 @@ exports.upgradeMembership = async (req, res) => {
             });
         }
 
-        // Note: In a real scenario, this should be linked to a deposit approval
-        // For now, we'll just update the level
+        // Check Balance
+        const walletField = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
+        if (user[walletField] < newMembership.price) {
+            return res.status(400).json({
+                success: false,
+                message: `Insufficient funds in ${walletType} wallet`
+            });
+        }
+
+        // Deduct funds
+        user[walletField] -= newMembership.price;
+
+        // Update Level
         user.membershipLevel = newLevel;
         await user.save();
 
@@ -68,7 +90,8 @@ exports.upgradeMembership = async (req, res) => {
             message: `Successfully upgraded to ${newLevel}`,
             user: {
                 membershipLevel: user.membershipLevel,
-                invitationCode: user.invitationCode
+                incomeWallet: user.incomeWallet,
+                personalWallet: user.personalWallet
             }
         });
     } catch (error) {
