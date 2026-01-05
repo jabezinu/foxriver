@@ -67,7 +67,7 @@ export default function Home() {
         { icon: HiLightningBolt, label: 'Wealth', color: 'bg-yellow-100 text-yellow-600', path: '/wealth' },
         { icon: HiLightningBolt, label: 'Lucky Wheel', color: 'bg-pink-100 text-pink-600', action: () => toast('Lucky Wheel coming soon!') },
         { icon: HiInformationCircle, label: 'About Us', color: 'bg-indigo-100 text-indigo-600', action: () => toast.success('Foxriver: Ethiopia\'s leading digital earning platform.') },
-        { icon: HiNewspaper, label: 'Company Name', color: 'bg-orange-100 text-orange-600', path: '/news' },
+        { icon: HiNewspaper, label: 'Company News', color: 'bg-orange-100 text-orange-600', path: '/news' },
         { icon: HiQuestionMarkCircle, label: 'Q&A', color: 'bg-teal-100 text-teal-600', path: '/qna' },
         {
             icon: HiShare,
