@@ -60,6 +60,11 @@ export default function AdminLayout() {
         { path: '/messages', icon: HiMail, label: 'Messages' },
     ];
 
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
     return (
         <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar */}
@@ -98,7 +103,7 @@ export default function AdminLayout() {
                         </div>
                     </div>
                     <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm font-bold"
                     >
                         <HiLogout />
