@@ -83,12 +83,12 @@ export default function Dashboard() {
 
     return (
         <div className="animate-fadeIn">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
                     <p className="text-sm text-gray-500">Real-time system health and user analytics.</p>
                 </div>
-                <button onClick={fetchStats} className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                <button onClick={fetchStats} className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider w-full md:w-auto justify-center">
                     <HiTrendingUp />
                     Refresh Stats
                 </button>

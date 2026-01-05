@@ -164,12 +164,12 @@ export default function TaskManagement() {
                 isDangerous={true}
             />
 
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Task Control</h1>
                     <p className="text-sm text-gray-500">Manage daily video assignments and YouTube rotation pools.</p>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl">
+                <div className="flex flex-col sm:flex-row bg-gray-100 p-1 rounded-xl w-full md:w-auto">
                     <button
                         onClick={() => setActiveTab('manual')}
                         className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -354,7 +354,7 @@ export default function TaskManagement() {
                             ) : (
                                 <div className="space-y-4">
                                     {playlists.map((pl) => (
-                                        <div key={pl._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group">
+                                        <div key={pl._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between group gap-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-indigo-500 shadow-sm">
                                                     <HiCollection className="text-2xl" />

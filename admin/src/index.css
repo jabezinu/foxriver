@@ -72,3 +72,13 @@ body {
 .table-header {
     @apply bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-4 py-3;
 }
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

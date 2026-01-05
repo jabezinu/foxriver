@@ -95,7 +95,7 @@ export default function Messages() {
                 isDangerous={true}
             />
 
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Communication Relay</h1>
                     <p className="text-sm text-gray-500">Dispatch orbital broadcasts and system alerts to all operatives.</p>

@@ -95,7 +95,7 @@ export default function UserManagement() {
                 isDangerous={true}
             />
 
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Personnel Database</h1>
                     <p className="text-sm text-gray-500">Monitor and manage all system operatives.</p>
@@ -135,69 +135,71 @@ export default function UserManagement() {
                         <Loading />
                     </div>
                 ) : (
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="table-header">Operative ID</th>
-                                <th className="table-header">Tier</th>
-                                <th className="table-header">Income Wallet</th>
-                                <th className="table-header">Personal Wallet</th>
-                                <th className="table-header">Joined Date</th>
-                                <th className="table-header text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map((user) => (
-                                <tr key={user._id} className="table-row">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                                                <HiIdentification />
-                                            </div>
-                                            <span className="font-bold text-gray-800 tracking-tight">{user.phone}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase w-fit mb-1">
-                                                {user.membershipLevel}
-                                            </span>
-                                            {user.bankAccount?.isSet ? (
-                                                <div className="text-[9px] text-gray-400 font-bold uppercase">
-                                                    {user.bankAccount.bankName} • {user.bankAccount.accountNumber.slice(-4)}
-                                                </div>
-                                            ) : (
-                                                <span className="text-[9px] text-red-300 font-bold uppercase italic">No Bank linked</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-green-600">{user.incomeWallet} ETB</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-blue-600">{user.personalWallet} ETB</td>
-                                    <td className="px-6 py-4 text-xs text-gray-500 font-medium">
-                                        {new Date(user.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <button
-                                                onClick={() => handleEdit(user)}
-                                                className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all pointer-events-auto"
-                                                title="Edit User"
-                                            >
-                                                <HiPencil />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(user._id)}
-                                                className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all pointer-events-auto"
-                                                title="Delete User"
-                                            >
-                                                <HiTrash />
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr>
+                                    <th className="table-header">Operative ID</th>
+                                    <th className="table-header">Tier</th>
+                                    <th className="table-header">Income Wallet</th>
+                                    <th className="table-header">Personal Wallet</th>
+                                    <th className="table-header">Joined Date</th>
+                                    <th className="table-header text-center">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {users.map((user) => (
+                                    <tr key={user._id} className="table-row">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                                                    <HiIdentification />
+                                                </div>
+                                                <span className="font-bold text-gray-800 tracking-tight">{user.phone}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase w-fit mb-1">
+                                                    {user.membershipLevel}
+                                                </span>
+                                                {user.bankAccount?.isSet ? (
+                                                    <div className="text-[9px] text-gray-400 font-bold uppercase">
+                                                        {user.bankAccount.bankName} • {user.bankAccount.accountNumber.slice(-4)}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[9px] text-red-300 font-bold uppercase italic">No Bank linked</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold text-green-600">{user.incomeWallet} ETB</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-blue-600">{user.personalWallet} ETB</td>
+                                        <td className="px-6 py-4 text-xs text-gray-500 font-medium">
+                                            {new Date(user.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(user)}
+                                                    className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all pointer-events-auto"
+                                                    title="Edit User"
+                                                >
+                                                    <HiPencil />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(user._id)}
+                                                    className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all pointer-events-auto"
+                                                    title="Delete User"
+                                                >
+                                                    <HiTrash />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 
