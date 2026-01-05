@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { HiPhone, HiLockClosed, HiShieldCheck } from 'react-icons/hi';
+import { HiPhone, HiLockClosed, HiShieldCheck, HiEye, HiEyeOff } from 'react-icons/hi';
 
 export default function AdminLogin() {
     const navigate = useNavigate();
@@ -12,6 +12,7 @@ export default function AdminLogin() {
         phone: '+251',
         password: '',
     });
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -56,13 +57,20 @@ export default function AdminLogin() {
                         <div className="relative">
                             <HiLockClosed className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xl" />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                className="w-full bg-[#334155] border-transparent rounded-xl px-12 py-3.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                className="w-full bg-[#334155] border-transparent rounded-xl px-12 py-3.5 pr-12 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 placeholder="••••••••"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                {showPassword ? <HiEyeOff className="text-xl" /> : <HiEye className="text-xl" />}
+                            </button>
                         </div>
                     </div>
 

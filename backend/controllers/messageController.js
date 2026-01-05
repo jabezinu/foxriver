@@ -147,3 +147,66 @@ exports.getAllMessages = async (req, res) => {
         });
     }
 };
+
+// @desc    Update message (admin)
+// @route   PUT /api/messages/:id
+// @access  Private/Admin
+exports.updateMessage = async (req, res) => {
+    try {
+        const { title, content } = req.body;
+
+        let message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        message = await Message.findByIdAndUpdate(
+            req.params.id,
+            { title, content },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Message updated successfully',
+            data: message
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Delete message (admin)
+// @route   DELETE /api/messages/:id
+// @access  Private/Admin
+exports.deleteMessage = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        await message.remove();
+
+        res.status(200).json({
+            success: true,
+            message: 'Message deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};

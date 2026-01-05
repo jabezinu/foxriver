@@ -73,6 +73,8 @@ export const adminTaskAPI = {
 export const adminMessageAPI = {
     getAll: () => api.get('/messages/all'),
     send: (data) => api.post('/messages/send', data),
+    update: (id, data) => api.put(`/messages/${id}`, data),
+    delete: (id) => api.delete(`/messages/${id}`),
 };
 
 export const adminNewsAPI = {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminMessageAPI } from '../services/api';
-import { HiMail, HiUsers, HiLightningBolt, HiMailOpen } from 'react-icons/hi';
+import { HiMail, HiUsers, HiLightningBolt, HiMailOpen, HiTrash, HiPencil, HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
 export default function Messages() {
@@ -8,6 +8,7 @@ export default function Messages() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '', isBroadcast: true });
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         fetchMessages();
@@ -29,15 +30,49 @@ export default function Messages() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await adminMessageAPI.send(formData);
-            toast.success('Satellite broadcast successful!');
-            setFormData({ title: '', content: '', isBroadcast: true });
+            if (editingId) {
+                await adminMessageAPI.update(editingId, formData);
+                toast.success('Broadcast updated successfully!');
+            } else {
+                await adminMessageAPI.send(formData);
+                toast.success('Satellite broadcast successful!');
+            }
+
+            resetForm();
             fetchMessages();
         } catch (error) {
             toast.error('Transmission failed');
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this broadcast?')) return;
+        try {
+            await adminMessageAPI.delete(id);
+            toast.success('Broadcast deleted');
+            fetchMessages();
+            if (editingId === id) resetForm();
+        } catch (error) {
+            toast.error('Deletion failed');
+        }
+    };
+
+    const handleEdit = (msg) => {
+        setFormData({
+            title: msg.title,
+            content: msg.content,
+            isBroadcast: msg.isBroadcast
+        });
+        setEditingId(msg._id);
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const resetForm = () => {
+        setFormData({ title: '', content: '', isBroadcast: true });
+        setEditingId(null);
     };
 
     return (
@@ -50,13 +85,22 @@ export default function Messages() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Send Box */}
-                <div className="admin-card h-fit">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
-                            <HiLightningBolt />
+                {/* Send/Edit Box */}
+                <div className="admin-card h-fit sticky top-4">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editingId ? 'bg-blue-50 text-blue-500' : 'bg-orange-50 text-orange-500'}`}>
+                                {editingId ? <HiPencil /> : <HiLightningBolt />}
+                            </div>
+                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest leading-none">
+                                {editingId ? 'Edit Broadcast' : 'Emergency Broadcast'}
+                            </h3>
                         </div>
-                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest leading-none">Emergency Broadcast</h3>
+                        {editingId && (
+                            <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                                <HiX className="text-xl" />
+                            </button>
+                        )}
                     </div>
 
                     <form onSubmit={handleSend} className="space-y-4">
@@ -79,9 +123,9 @@ export default function Messages() {
                         </div>
                         <button
                             type="submit" disabled={submitting}
-                            className="admin-btn-primary w-full py-4 tracking-[0.2em] text-xs font-bold uppercase shadow-lg shadow-indigo-200"
+                            className={`w-full py-4 tracking-[0.2em] text-xs font-bold uppercase shadow-lg transition-all rounded-xl text-white ${editingId ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-200' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-200'}`}
                         >
-                            {submitting ? 'Transmitting Data...' : 'Initiate Broadcast'}
+                            {submitting ? 'Processing...' : (editingId ? 'Update Signal' : 'Initiate Broadcast')}
                         </button>
                     </form>
                 </div>
@@ -94,7 +138,7 @@ export default function Messages() {
                     ) : (
                         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                             {messages.map((msg) => (
-                                <div key={msg._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 relative group transition-all hover:bg-white hover:shadow-md">
+                                <div key={msg._id} className={`p-4 rounded-2xl border relative group transition-all hover:shadow-md ${editingId === msg._id ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100 hover:bg-white'}`}>
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-indigo-400 border border-gray-100 shadow-sm">
@@ -102,7 +146,21 @@ export default function Messages() {
                                             </div>
                                             <h4 className="font-bold text-gray-800 text-sm">{msg.title}</h4>
                                         </div>
-                                        <span className="text-[9px] text-gray-400 font-bold uppercase">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] text-gray-400 font-bold uppercase mr-2">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                                            <button
+                                                onClick={() => handleEdit(msg)}
+                                                className="p-1.5 text-blue-500 hover:bg-blue-100 rounded-lg transition-colors"
+                                            >
+                                                <HiPencil className="text-lg" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(msg._id)}
+                                                className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                            >
+                                                <HiTrash className="text-lg" />
+                                            </button>
+                                        </div>
                                     </div>
                                     <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">{msg.content}</p>
                                     <div className="mt-3 flex gap-4">
