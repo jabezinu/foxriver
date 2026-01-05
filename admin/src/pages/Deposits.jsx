@@ -135,8 +135,12 @@ export default function DepositRequests() {
                                             <span className="text-sm font-mono font-bold text-green-600">{dep.transactionFT || 'WAITING'}</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Method</span>
-                                            <span className="text-sm font-bold text-gray-700">{dep.paymentMethod}</span>
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Bank Name</span>
+                                            <span className="text-sm font-bold text-gray-700">{dep.paymentMethod?.bankName || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Account</span>
+                                            <span className="text-xs font-mono font-bold text-indigo-600">{dep.paymentMethod?.accountNumber || 'N/A'}</span>
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[9px] text-gray-400 uppercase font-bold">Request Date</span>
