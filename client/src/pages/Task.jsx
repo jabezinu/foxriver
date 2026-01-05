@@ -47,7 +47,7 @@ export default function Task() {
     const handleViewVideo = (task) => {
         if (task.isCompleted) return;
         setActiveVideo({ url: task.videoUrl, id: task._id });
-        setCountdown(8);
+        setCountdown(15);
     };
 
     const handleAutoResolve = async () => {
