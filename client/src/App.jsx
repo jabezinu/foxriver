@@ -17,6 +17,7 @@ import Settings from './pages/Settings';
 import CompanyNews from './pages/CompanyNews';
 import QnA from './pages/QnA';
 import TierList from './pages/TierList';
+import Team from './pages/Team';
 
 
 // Layout
@@ -83,6 +84,7 @@ function App() {
           <Route path="news" element={<CompanyNews />} />
           <Route path="qna" element={<QnA />} />
           <Route path="tiers" element={<TierList />} />
+          <Route path="team" element={<Team />} />
         </Route>
 
 

@@ -6,6 +6,8 @@ const Message = require('../models/Message');
 const SystemSetting = require('../models/SystemSetting');
 const Commission = require('../models/Commission');
 const TaskCompletion = require('../models/TaskCompletion');
+const Membership = require('../models/Membership');
+const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -174,7 +176,18 @@ exports.updateUser = async (req, res) => {
             });
         }
 
-        if (membershipLevel) user.membershipLevel = membershipLevel;
+        if (membershipLevel) {
+            const oldLevel = user.membershipLevel;
+            user.membershipLevel = membershipLevel;
+
+            // If level changed and it's not Intern, trigger commissions
+            if (oldLevel !== membershipLevel && membershipLevel !== 'Intern') {
+                const membership = await Membership.findOne({ level: membershipLevel });
+                if (membership) {
+                    await calculateAndCreateMembershipCommissions(user, membership);
+                }
+            }
+        }
         if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
         if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
         if (req.body.withdrawalRestrictedUntil !== undefined) {

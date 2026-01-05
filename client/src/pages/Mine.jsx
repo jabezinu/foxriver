@@ -101,7 +101,7 @@ export default function Mine() {
                     <p className="text-xs text-white/50 font-bold uppercase mb-1">Referral Team</p>
                     <h4 className="text-2xl font-bold mb-4">Commission Center</h4>
                     <button
-                        onClick={() => navigate('/mine')} // Or a referral page
+                        onClick={() => navigate('/team')} // Updated from /mine
                         className="bg-white text-gray-900 text-[10px] font-bold px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-green-50 transition-all"
                     >
                         Check Rewards
