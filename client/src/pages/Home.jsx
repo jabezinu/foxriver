@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { membershipAPI, userAPI } from '../services/api';
+import { membershipAPI, userAPI, messageAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { formatNumber } from '../utils/formatNumber';
 import {
@@ -40,13 +40,25 @@ export default function Home() {
     const [showInvitation, setShowInvitation] = useState(false);
     const [referralLink, setReferralLink] = useState('');
 
+    // Message Popup State
+    const [messageQueue, setMessageQueue] = useState([]);
+    const [viewingDetail, setViewingDetail] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const walletRes = await userAPI.getWallet();
+                const [walletRes, messagesRes] = await Promise.all([
+                    userAPI.getWallet(),
+                    messageAPI.getUserMessages()
+                ]);
+
                 setWallet(walletRes.data.wallet);
+
+                // Show ALL messages regardless of read status
+                setMessageQueue(messagesRes.data.messages);
+
             } catch (error) {
-                toast.error('Failed to update wallet balance');
+                toast.error('Failed to update data');
                 console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
@@ -58,6 +70,14 @@ export default function Home() {
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
         toast.success('Referral link copied to clipboard!');
+    };
+
+    const handleNextMessage = () => {
+        // Simply move to the next message in the local queue
+        if (messageQueue.length > 0) {
+            setMessageQueue(prev => prev.slice(1));
+            setViewingDetail(false);
+        }
     };
 
     const menuItems = [
@@ -192,6 +212,53 @@ export default function Home() {
                     </button>
                 </div>
             </Modal>
+
+            {/* Message/Announcement Popup */}
+            {messageQueue.length > 0 && (
+                <Modal
+                    isOpen={true}
+                    onClose={handleNextMessage}
+                    title={messageQueue[0].title}
+                >
+                    <div className="space-y-4">
+                        {!viewingDetail ? (
+                            <div className="py-4">
+                                <p className="text-gray-600 text-center">
+                                    You have a new message from the administrator.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="py-4 bg-gray-50 rounded-xl p-4 max-h-60 overflow-y-auto">
+                                <p className="text-gray-800 whitespace-pre-wrap">{messageQueue[0].content}</p>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4 pt-2">
+                            <button
+                                onClick={handleNextMessage}
+                                className="px-4 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            {!viewingDetail ? (
+                                <button
+                                    onClick={() => setViewingDetail(true)}
+                                    className="btn-primary text-sm"
+                                >
+                                    View Detail
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleNextMessage}
+                                    className="btn-primary text-sm"
+                                >
+                                    Close
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }
