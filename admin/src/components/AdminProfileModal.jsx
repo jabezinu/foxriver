@@ -7,6 +7,7 @@ import { useAdminAuthStore } from '../store/authStore';
 export default function AdminProfileModal({ isOpen, onClose, admin }) {
     const [formData, setFormData] = useState({
         phone: '',
+        currentPassword: '',
         password: '',
         confirmPassword: ''
     });
@@ -15,16 +16,28 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
 
     useEffect(() => {
         if (admin && isOpen) {
-            setFormData(prev => ({ ...prev, phone: admin.phone || '' }));
+            setFormData(prev => ({
+                ...prev,
+                phone: admin.phone || '',
+                currentPassword: '',
+                password: '',
+                confirmPassword: ''
+            }));
         }
     }, [admin, isOpen]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (formData.password && formData.password !== formData.confirmPassword) {
-            toast.error('Passwords do not match');
-            return;
+        if (formData.password) {
+            if (!formData.currentPassword) {
+                toast.error('Current password is required to set a new password');
+                return;
+            }
+            if (formData.password !== formData.confirmPassword) {
+                toast.error('New passwords do not match');
+                return;
+            }
         }
 
         setSubmitting(true);
@@ -32,20 +45,17 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
             const updateData = {
                 phone: formData.phone
             };
+
             if (formData.password) {
                 updateData.password = formData.password;
+                updateData.currentPassword = formData.currentPassword;
             }
 
             await adminProfileAPI.updateProfile(updateData);
             toast.success('Profile updated successfully');
 
-            // If password changed, maybe force logout? Or just close modal.
-            // Let's just close modal for now, but if phone changed it might affect login.
             onClose();
 
-            // Optional: Reload window to refresh user state if handled globally, 
-            // but effectively we might want to update the store. 
-            // For safety, if they change credentials, asking them to login again is good practice.
             if (formData.password || (admin.phone !== formData.phone)) {
                 toast.success('Credentials changed. Please login again.');
                 logout();
@@ -74,8 +84,19 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-400 mb-3 italic">Leave blank to keep current password</p>
+                    <p className="text-xs text-gray-400 mb-3 italic">Leave new password blank to keep current one</p>
                     <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Current Password</label>
+                            <input
+                                type="password"
+                                className="admin-input"
+                                value={formData.currentPassword}
+                                onChange={e => setFormData({ ...formData, currentPassword: e.target.value })}
+                                placeholder="Required to change password"
+                            />
+                        </div>
+
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">New Password</label>
                             <input
@@ -86,19 +107,17 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
                                 placeholder="••••••••"
                             />
                         </div>
-                        {formData.password && (
-                            <div className="animate-fadeIn">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    className="admin-input"
-                                    value={formData.confirmPassword}
-                                    onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
-                        )}
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Confirm New Password</label>
+                            <input
+                                type="password"
+                                className="admin-input"
+                                value={formData.confirmPassword}
+                                onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                placeholder="••••••••"
+                            />
+                        </div>
                     </div>
                 </div>
 

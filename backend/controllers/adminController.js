@@ -234,8 +234,10 @@ exports.deleteUser = async (req, res) => {
 // @access  Private/Admin
 exports.updateAdminProfile = async (req, res) => {
     try {
-        const { phone, password } = req.body;
-        const user = await User.findById(req.user.id);
+        const { phone, password, currentPassword } = req.body;
+
+        // Find user
+        let user = await User.findById(req.user.id);
 
         if (!user) {
             return res.status(404).json({
@@ -244,8 +246,30 @@ exports.updateAdminProfile = async (req, res) => {
             });
         }
 
+        // Handle password change security
+        if (password) {
+            if (!currentPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Current password is required to set a new password'
+                });
+            }
+
+            // Get user with password field
+            const userWithPassword = await User.findById(req.user.id).select('+password');
+            const isMatch = await userWithPassword.matchPassword(currentPassword);
+
+            if (!isMatch) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid current password'
+                });
+            }
+
+            user.password = password;
+        }
+
         if (phone) user.phone = phone;
-        if (password) user.password = password;
 
         await user.save();
 
