@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { userAPI, depositAPI } from '../services/api';
+import { userAPI, depositAPI, bankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { HiArrowLeft, HiCreditCard, HiCheck, HiChevronDown } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
@@ -17,30 +17,37 @@ export default function Deposit() {
     const [step, setStep] = useState(1); // 1: Amount, 2: FT submission
     const [currentDeposit, setCurrentDeposit] = useState(null);
     const [ftNumber, setFtNumber] = useState('');
+    const [methods, setMethods] = useState([]);
 
     const amounts = [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000];
-    const methods = [
-        { id: 'CBE', name: 'Commercial Bank of Ethiopia', account: '1000123456789' },
-        { id: 'BOA', name: 'Bank of Abyssinia', account: '77889900' },
-        { id: 'TeleBirr', name: 'TeleBirr', account: '0911223344' }
-    ];
 
     useEffect(() => {
-        fetchBalance();
+        const fetchData = async () => {
+            try {
+                const [walletRes, bankRes] = await Promise.all([
+                    userAPI.getWallet(),
+                    bankAPI.getBanks()
+                ]);
+                setBalance(walletRes.data.wallet.personalWallet);
+
+                const bankMethods = bankRes.data.data.map(bank => ({
+                    id: bank._id,
+                    name: bank.bankName,
+                    account: bank.accountNumber,
+                    holder: bank.accountHolderName
+                }));
+                setMethods(bankMethods);
+            } catch (error) {
+                toast.error('Failed to load data');
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
 
-    const fetchBalance = async () => {
-        try {
-            const res = await userAPI.getWallet();
-            const walletData = res.data.wallet;
-            setBalance(walletData.personalWallet);
-        } catch (error) {
-            toast.error('Failed to update balance');
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleCreateDeposit = async () => {
         if (!selectedAmount || !paymentMethod) {
@@ -272,7 +279,7 @@ export default function Deposit() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                     <p className="text-sm font-medium text-gray-500">Account Name</p>
-                                    <p className="font-bold text-gray-800 text-lg">Foxriver Ethiopia Co.</p>
+                                    <p className="font-bold text-gray-800 text-lg">{methods.find(m => m.id === paymentMethod)?.holder}</p>
                                 </div>
                             </div>
                         </div>

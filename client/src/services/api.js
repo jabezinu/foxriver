@@ -100,4 +100,8 @@ export const newsAPI = {
     getNews: () => api.get('/news'),
 };
 
+export const bankAPI = {
+    getBanks: () => api.get('/bank'),
+};
+
 export default api;

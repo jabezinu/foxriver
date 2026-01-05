@@ -16,6 +16,7 @@ import TaskManagement from './pages/Tasks';
 import NewsManagement from './pages/News';
 import QnaManagement from './pages/QnA';
 import Messages from './pages/Messages';
+import BankSettings from './pages/BankSettings';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -68,6 +69,7 @@ function App() {
           <Route path="news" element={<NewsManagement />} />
           <Route path="qna" element={<QnaManagement />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="bank-settings" element={<BankSettings />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

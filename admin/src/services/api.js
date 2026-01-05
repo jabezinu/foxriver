@@ -102,4 +102,11 @@ export const adminProfileAPI = {
     updateProfile: (data) => api.put('/admin/profile', data),
 };
 
+export const adminBankAPI = {
+    getAll: () => api.get('/bank/admin'),
+    create: (data) => api.post('/bank', data),
+    update: (id, data) => api.put(`/bank/${id}`, data),
+    delete: (id) => api.delete(`/bank/${id}`),
+};
+
 export default api;
