@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
@@ -8,6 +8,7 @@ import CanvasCaptcha from '../components/CanvasCaptcha';
 export default function Login() {
     const navigate = useNavigate();
     const { login, loading, error } = useAuthStore();
+    const captchaRef = useRef(null);
 
     const [formData, setFormData] = useState({
         phone: '+251',
@@ -41,6 +42,7 @@ export default function Login() {
         if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
             setFormData(prev => ({ ...prev, captcha: '' }));
+            captchaRef.current?.refreshCaptcha();
             return;
         }
 
@@ -56,6 +58,7 @@ export default function Login() {
         } else {
             toast.error(result.message || 'Login failed');
             setFormData(prev => ({ ...prev, captcha: '' }));
+            captchaRef.current?.refreshCaptcha();
         }
     };
 
@@ -136,7 +139,7 @@ export default function Login() {
                                 placeholder="Enter code from image"
                                 required
                             />
-                            <CanvasCaptcha onCaptchaChange={handleCaptchaChange} />
+                            <CanvasCaptcha ref={captchaRef} onCaptchaChange={handleCaptchaChange} />
                         </div>
                     </div>
 

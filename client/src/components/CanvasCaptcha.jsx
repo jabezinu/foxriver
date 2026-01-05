@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { HiRefresh } from 'react-icons/hi';
 
-const CanvasCaptcha = ({ onCaptchaChange }) => {
+const CanvasCaptcha = forwardRef(({ onCaptchaChange }, ref) => {
     const canvasRef = useRef(null);
     const [randomString, setRandomString] = useState("");
 
@@ -78,6 +78,12 @@ const CanvasCaptcha = ({ onCaptchaChange }) => {
 
     }, [onCaptchaChange]); // onCaptchaChange should be stable
 
+    useImperativeHandle(ref, () => ({
+        refreshCaptcha: () => {
+            drawCaptcha();
+        }
+    }));
+
     useEffect(() => {
         drawCaptcha();
     }, [drawCaptcha]);
@@ -106,6 +112,6 @@ const CanvasCaptcha = ({ onCaptchaChange }) => {
             </button>
         </div>
     );
-};
+});
 
 export default CanvasCaptcha;

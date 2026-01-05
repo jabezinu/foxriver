@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
@@ -9,6 +9,7 @@ export default function Register() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { register, loading, error } = useAuthStore();
+    const captchaRef = useRef(null);
 
     const [formData, setFormData] = useState({
         phone: '+251',
@@ -38,22 +39,26 @@ export default function Register() {
         // Validation
         if (!formData.phone.startsWith('+251') || formData.phone.length !== 13) {
             toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
+            captchaRef.current?.refreshCaptcha();
             return;
         }
 
         if (formData.password.length < 6) {
             toast.error('Password must be at least 6 characters');
+            captchaRef.current?.refreshCaptcha();
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
             toast.error('Passwords do not match');
+            captchaRef.current?.refreshCaptcha();
             return;
         }
 
         if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
             setFormData(prev => ({ ...prev, captcha: '' }));
+            captchaRef.current?.refreshCaptcha();
             return;
         }
 
@@ -70,6 +75,7 @@ export default function Register() {
         } else {
             toast.error(result.message || 'Registration failed');
             setFormData(prev => ({ ...prev, captcha: '' }));
+            captchaRef.current?.refreshCaptcha();
         }
     };
 
@@ -170,7 +176,7 @@ export default function Register() {
                                 placeholder="Enter code from image"
                                 required
                             />
-                            <CanvasCaptcha onCaptchaChange={handleCaptchaChange} />
+                            <CanvasCaptcha ref={captchaRef} onCaptchaChange={handleCaptchaChange} />
                         </div>
                     </div>
 
