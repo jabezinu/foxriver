@@ -35,6 +35,13 @@ exports.createWithdrawal = async (req, res) => {
             });
         }
 
+        if (transactionPassword.length !== 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Transaction password must be exactly 6 digits'
+            });
+        }
+
         const isMatch = await user.matchTransactionPassword(transactionPassword);
         if (!isMatch) {
             return res.status(401).json({

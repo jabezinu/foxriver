@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
             validator: function (v) {
                 return !v || /^\d{6}$/.test(v);
             },
-            message: 'Transaction password must be 6 digits'
+            message: 'Transaction password must be exactly 6 digits'
         }
     },
     bankAccount: {

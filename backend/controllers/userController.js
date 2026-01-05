@@ -101,7 +101,7 @@ exports.setTransactionPassword = async (req, res) => {
         if (!isValidTransactionPassword(newPassword)) {
             return res.status(400).json({
                 success: false,
-                message: 'Transaction password must be 6 digits'
+                message: 'Transaction password must be exactly 6 digits'
             });
         }
 
@@ -113,6 +113,13 @@ exports.setTransactionPassword = async (req, res) => {
                 return res.status(400).json({
                     success: false,
                     message: 'Please provide current transaction password to change it'
+                });
+            }
+
+            if (currentPassword === newPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You didn't change the password"
                 });
             }
             const isMatch = await user.matchTransactionPassword(currentPassword);

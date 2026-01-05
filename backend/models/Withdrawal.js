@@ -43,9 +43,9 @@ const withdrawalSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Calculate tax (10%) before saving
-withdrawalSchema.pre('save', function (next) {
-    if (this.isNew) {
+// Calculate tax (10%) before validation
+withdrawalSchema.pre('validate', function (next) {
+    if (this.isNew || this.isModified('amount')) {
         this.grossAmount = this.amount;
         this.taxAmount = this.amount * 0.1;
         this.netAmount = this.amount - this.taxAmount;

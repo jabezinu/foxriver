@@ -81,6 +81,16 @@ export default function Settings() {
     };
 
     const handleSetTransactionPass = async () => {
+        if (formData.transactionPassword.length !== 6) {
+            toast.error('Transaction password must be exactly 6 digits');
+            return;
+        }
+
+        if (profile.hasTransactionPassword && formData.oldPassword === formData.transactionPassword) {
+            toast.error("You didn't change the password");
+            return;
+        }
+
         try {
             await userAPI.setTransactionPassword({
                 currentPassword: formData.oldPassword,

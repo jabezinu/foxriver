@@ -45,6 +45,11 @@ export default function Withdraw() {
             return;
         }
 
+        if (transactionPassword.length !== 6) {
+            toast.error('Transaction password must be exactly 6 digits');
+            return;
+        }
+
         if (wallets[`${walletType}Wallet`] < selectedAmount) {
             toast.error('Insufficient balance in selected wallet');
             return;
