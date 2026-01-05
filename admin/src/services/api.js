@@ -25,6 +25,7 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('foxriver_admin_token');
+            localStorage.removeItem('foxriver_admin_last_active');
             window.location.href = '/login';
         }
         return Promise.reject(error);

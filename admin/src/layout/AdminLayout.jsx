@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import {
@@ -8,6 +9,45 @@ import {
 export default function AdminLayout() {
     const { logout, admin } = useAdminAuthStore();
     const navigate = useNavigate();
+
+    // Check for inactivity every minute
+    useEffect(() => {
+        const checkActivity = () => {
+            const lastActive = localStorage.getItem('foxriver_admin_last_active');
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            if (lastActive && (now - parseInt(lastActive)) > oneDay) {
+                logout();
+            }
+        };
+
+        const intervalId = setInterval(checkActivity, 60000); // Check every minute
+        return () => clearInterval(intervalId);
+    }, [logout]);
+
+    // Track user activity to keep session alive
+    useEffect(() => {
+        const handleActivity = () => {
+            const lastActive = parseInt(localStorage.getItem('foxriver_admin_last_active') || '0');
+            // Only update if more than 1 minute has passed since last update
+            if (Date.now() - lastActive > 60000) {
+                localStorage.setItem('foxriver_admin_last_active', Date.now().toString());
+            }
+        };
+
+        window.addEventListener('mousemove', handleActivity);
+        window.addEventListener('keydown', handleActivity);
+        window.addEventListener('click', handleActivity);
+        window.addEventListener('touchstart', handleActivity);
+
+        return () => {
+            window.removeEventListener('mousemove', handleActivity);
+            window.removeEventListener('keydown', handleActivity);
+            window.removeEventListener('click', handleActivity);
+            window.removeEventListener('touchstart', handleActivity);
+        };
+    }, []);
 
     const menuItems = [
         { path: '/', icon: HiChartBar, label: 'Dashboard' },
