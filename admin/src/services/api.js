@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.3.53:5001/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
     baseURL: API_URL,
@@ -107,6 +107,12 @@ export const adminBankAPI = {
     create: (data) => api.post('/bank', data),
     update: (id, data) => api.put(`/bank/${id}`, data),
     delete: (id) => api.delete(`/bank/${id}`),
+};
+
+export const adminReferralAPI = {
+    getSettings: () => api.get('/admin/settings'),
+    updateSettings: (data) => api.put('/admin/settings', data),
+    getCommissions: () => api.get('/admin/commissions'),
 };
 
 export default api;

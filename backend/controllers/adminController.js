@@ -3,6 +3,8 @@ const Deposit = require('../models/Deposit');
 const Withdrawal = require('../models/Withdrawal');
 const Task = require('../models/Task');
 const Message = require('../models/Message');
+const SystemSetting = require('../models/SystemSetting');
+const Commission = require('../models/Commission');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -363,6 +365,81 @@ exports.getUserWithdrawalHistory = async (req, res) => {
             success: true,
             count: withdrawals.length,
             withdrawals
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+// @desc    Get system settings
+// @route   GET /api/admin/settings
+// @access  Private/Admin
+exports.getSystemSettings = async (req, res) => {
+    try {
+        let settings = await SystemSetting.findOne();
+
+        if (!settings) {
+            settings = await SystemSetting.create({});
+        }
+
+        res.status(200).json({
+            success: true,
+            settings
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Update system settings
+// @route   PUT /api/admin/settings
+// @access  Private/Admin
+exports.updateSystemSettings = async (req, res) => {
+    try {
+        let settings = await SystemSetting.findOne();
+
+        if (!settings) {
+            settings = await SystemSetting.create(req.body);
+        } else {
+            settings = await SystemSetting.findByIdAndUpdate(
+                settings._id,
+                req.body,
+                { new: true, runValidators: true }
+            );
+        }
+
+        res.status(200).json({
+            success: true,
+            settings,
+            message: 'Settings updated successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Get all commissions
+// @route   GET /api/admin/commissions
+// @access  Private/Admin
+exports.getAllCommissions = async (req, res) => {
+    try {
+        const commissions = await Commission.find()
+            .populate('user', 'phone membershipLevel')
+            .populate('downlineUser', 'phone membershipLevel')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: commissions.length,
+            commissions
         });
     } catch (error) {
         res.status(500).json({

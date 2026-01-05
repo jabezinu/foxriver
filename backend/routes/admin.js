@@ -9,7 +9,10 @@ const {
     updateAdminProfile,
     restrictAllUsers,
     getUserDepositHistory,
-    getUserWithdrawalHistory
+    getUserWithdrawalHistory,
+    getSystemSettings,
+    updateSystemSettings,
+    getAllCommissions
 } = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middlewares/auth');
 
@@ -22,5 +25,9 @@ router.delete('/users/:id', protect, adminOnly, deleteUser);
 router.get('/users/:id/deposits', protect, adminOnly, getUserDepositHistory);
 router.get('/users/:id/withdrawals', protect, adminOnly, getUserWithdrawalHistory);
 router.put('/profile', protect, adminOnly, updateAdminProfile);
+
+router.get('/settings', protect, adminOnly, getSystemSettings);
+router.put('/settings', protect, adminOnly, updateSystemSettings);
+router.get('/commissions', protect, adminOnly, getAllCommissions);
 
 module.exports = router;

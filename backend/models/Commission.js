@@ -18,8 +18,7 @@ const commissionSchema = new mongoose.Schema({
     },
     percentage: {
         type: Number,
-        required: true,
-        enum: [10, 5, 2]
+        required: true
     },
     amountEarned: {
         type: Number,
