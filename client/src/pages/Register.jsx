@@ -154,20 +154,6 @@ export default function Register() {
                         </div>
                     </div>
 
-                    {/* Invitation Code */}
-                    <div className="group">
-                        <label className="block text-[10px] font-bold text-green-400 uppercase tracking-[0.2em] mb-1.5 ml-1">
-                            Invitation Code
-                        </label>
-                        <input
-                            type="text"
-                            name="invitationCode"
-                            value={formData.invitationCode}
-                            onChange={handleChange}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-4 text-white placeholder-white/20 outline-none focus:border-green-400/50 focus:bg-white/10 transition-all shadow-inner text-sm"
-                            placeholder="Optional code"
-                        />
-                    </div>
 
                     {/* CAPTCHA */}
                     <div className="group">
