@@ -54,7 +54,7 @@ export default function Mine() {
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Available</span>
                     </div>
                     <p className="text-xl font-bold text-gray-900">{wallet.incomeWallet} ETB</p>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Income Wallet</p>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Income Balance</p>
                 </div>
                 <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50">
                     <div className="flex justify-between items-center mb-4">
@@ -62,7 +62,7 @@ export default function Mine() {
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Settled</span>
                     </div>
                     <p className="text-xl font-bold text-gray-900">{wallet.personalWallet} ETB</p>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Personal Wallet</p>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Personal Balance</p>
                 </div>
             </div>
 

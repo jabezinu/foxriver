@@ -43,9 +43,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
                     sourceTask: taskCompletion._id
                 });
 
-                // Credit commission to A-level user's income wallet
-                aLevelUser.incomeWallet += aCommission;
-                await aLevelUser.save();
+                // Credit commission to A-level user's income balance atomically
+                await User.findByIdAndUpdate(aLevelUser._id, { $inc: { incomeWallet: aCommission } });
 
                 // B-level (referrer's referrer)
                 if (aLevelUser.referrerId) {
@@ -63,9 +62,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
                                 sourceTask: taskCompletion._id
                             });
 
-                            // Credit commission to B-level user's income wallet
-                            bLevelUser.incomeWallet += bCommission;
-                            await bLevelUser.save();
+                            // Credit commission to B-level user's income balance atomically
+                            await User.findByIdAndUpdate(bLevelUser._id, { $inc: { incomeWallet: bCommission } });
 
                             // C-level (B-level's referrer)
                             if (bLevelUser.referrerId) {
@@ -83,9 +81,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
                                             sourceTask: taskCompletion._id
                                         });
 
-                                        // Credit commission to C-level user's income wallet
-                                        cLevelUser.incomeWallet += cCommission;
-                                        await cLevelUser.save();
+                                        // Credit commission to C-level user's income balance atomically
+                                        await User.findByIdAndUpdate(cLevelUser._id, { $inc: { incomeWallet: cCommission } });
                                     }
                                 }
                             }

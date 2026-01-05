@@ -30,13 +30,15 @@ const membershipSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Calculate daily income: price / 30
+// Calculate daily income: price / 30 (except Intern)
 membershipSchema.methods.getDailyIncome = function () {
+    if (this.level === 'Intern') return 50;
     return this.price / 30;
 };
 
 // Calculate per video income: daily income / 5
 membershipSchema.methods.getPerVideoIncome = function () {
+    if (this.level === 'Intern') return 10;
     return this.getDailyIncome() / 5;
 };
 

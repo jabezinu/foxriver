@@ -133,7 +133,7 @@ export default function Withdraw() {
                                 : 'border-gray-100 bg-white text-gray-400 opacity-60'
                                 }`}
                         >
-                            <span className="uppercase tracking-tighter">Income Wallet</span>
+                            <span className="uppercase tracking-tighter">Income Balance</span>
                         </button>
                         <button
                             onClick={() => setWalletType('personal')}
@@ -142,7 +142,7 @@ export default function Withdraw() {
                                 : 'border-gray-100 bg-white text-gray-400 opacity-60'
                                 }`}
                         >
-                            <span className="uppercase tracking-tighter">Personal Wallet</span>
+                            <span className="uppercase tracking-tighter">Personal Balance</span>
                         </button>
                     </div>
                 </div>

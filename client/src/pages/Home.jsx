@@ -113,11 +113,11 @@ export default function Home() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white/20 rounded-2xl p-3">
-                            <p className="text-xs text-green-100">Income Wallet</p>
+                            <p className="text-xs text-green-100">Income Balance</p>
                             <p className="font-semibold">{formatNumber(wallet.incomeWallet)} ETB</p>
                         </div>
                         <div className="bg-white/20 rounded-2xl p-3">
-                            <p className="text-xs text-green-100">Personal Wallet</p>
+                            <p className="text-xs text-green-100">Personal Balance</p>
                             <p className="font-semibold">{formatNumber(wallet.personalWallet)} ETB</p>
                         </div>
                     </div>

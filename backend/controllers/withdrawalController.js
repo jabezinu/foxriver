@@ -142,16 +142,9 @@ exports.approveWithdrawal = async (req, res) => {
             });
         }
 
-        // Deduct from user's wallet
-        const user = await User.findById(withdrawal.user);
-
-        if (withdrawal.walletType === 'income') {
-            user.incomeWallet -= withdrawal.amount;
-        } else {
-            user.personalWallet -= withdrawal.amount;
-        }
-
-        await user.save();
+        // Deduct from user's balance atomically
+        const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' : 'personalWallet';
+        await User.findByIdAndUpdate(withdrawal.user, { $inc: { [walletField]: -withdrawal.amount } });
 
         // Update withdrawal status
         withdrawal.status = 'approved';

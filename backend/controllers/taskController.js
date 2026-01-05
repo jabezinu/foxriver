@@ -155,11 +155,27 @@ exports.completeTask = async (req, res) => {
         // Calculate earnings
         let earningsAmount = membership.getPerVideoIncome();
 
-        // Cap Intern earnings at 50 ETB per day
+        // Cap Intern earnings: 50 ETB daily, 200 ETB total lifetime
         if (user.membershipLevel === 'Intern') {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            // Fetch total lifetime earnings for this Intern
+            const allTimeEarnings = await TaskCompletion.aggregate([
+                { $match: { user: user._id } },
+                { $group: { _id: null, total: { $sum: '$earningsAmount' } } }
+            ]);
+
+            const lifetimeTotal = allTimeEarnings.length > 0 ? allTimeEarnings[0].total : 0;
+
+            if (lifetimeTotal >= 200) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Your Intern trial has completed (Total 200 ETB limit reached). Please upgrade to V1.'
+                });
+            }
+
+            // Fetch today's earnings
             const todayEarnings = await TaskCompletion.aggregate([
                 {
                     $match: {
@@ -184,8 +200,8 @@ exports.completeTask = async (req, res) => {
                 });
             }
 
-            // Ensure earnings don't exceed daily limit
-            earningsAmount = Math.min(earningsAmount, 50 - currentDailyTotal);
+            // Ensure earnings don't exceed daily or lifetime limits
+            earningsAmount = Math.min(earningsAmount, 50 - currentDailyTotal, 200 - lifetimeTotal);
         }
 
         // Create task completion record
@@ -195,9 +211,12 @@ exports.completeTask = async (req, res) => {
             earningsAmount
         });
 
-        // Credit earnings to user's income wallet
-        user.incomeWallet += earningsAmount;
-        await user.save();
+        // Credit earnings to user's income balance atomically
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { $inc: { incomeWallet: earningsAmount } },
+            { new: true }
+        );
 
         // Calculate and credit referral commissions
         await calculateAndCreateCommissions(completion, earningsAmount);
@@ -207,7 +226,7 @@ exports.completeTask = async (req, res) => {
             message: 'Task completed successfully',
             completion,
             earningsAmount,
-            newWalletBalance: user.incomeWallet
+            newWalletBalance: updatedUser.incomeWallet
         });
     } catch (error) {
         res.status(500).json({

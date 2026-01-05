@@ -154,10 +154,8 @@ exports.approveDeposit = async (req, res) => {
             });
         }
 
-        // Credit user's personal wallet
-        const user = await User.findById(deposit.user);
-        user.personalWallet += deposit.amount;
-        await user.save();
+        // Credit user's personal balance atomically
+        await User.findByIdAndUpdate(deposit.user, { $inc: { personalWallet: deposit.amount } });
 
         // Update deposit status
         deposit.status = 'approved';
