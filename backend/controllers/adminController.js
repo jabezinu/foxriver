@@ -5,6 +5,7 @@ const Task = require('../models/Task');
 const Message = require('../models/Message');
 const SystemSetting = require('../models/SystemSetting');
 const Commission = require('../models/Commission');
+const TaskCompletion = require('../models/TaskCompletion');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -246,7 +247,8 @@ exports.restrictAllUsers = async (req, res) => {
 // @access  Private/Admin
 exports.deleteUser = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const userId = req.params.id;
+        const user = await User.findById(userId);
 
         if (!user) {
             return res.status(404).json({
@@ -255,11 +257,44 @@ exports.deleteUser = async (req, res) => {
             });
         }
 
+        // 1. Delete user's deposits
+        await Deposit.deleteMany({ user: userId });
+
+        // 2. Delete user's withdrawals
+        await Withdrawal.deleteMany({ user: userId });
+
+        // 3. Delete commissions related to user (as receiver or source)
+        await Commission.deleteMany({
+            $or: [
+                { user: userId },
+                { downlineUser: userId }
+            ]
+        });
+
+        // 4. Delete task completions
+        await TaskCompletion.deleteMany({ user: userId });
+
+        // 5. Handle Messages
+        // Delete messages where user is the sender
+        await Message.deleteMany({ sender: userId });
+        // Remove user from recipients of other messages
+        await Message.updateMany(
+            { 'recipients.user': userId },
+            { $pull: { recipients: { user: userId } } }
+        );
+
+        // 6. Update referred users (set referrerId to null)
+        await User.updateMany(
+            { referrerId: userId },
+            { $set: { referrerId: null } }
+        );
+
+        // 7. Finally delete the user
         await user.deleteOne();
 
         res.status(200).json({
             success: true,
-            message: 'User deleted successfully'
+            message: 'User and all related data deleted successfully'
         });
     } catch (error) {
         res.status(500).json({
