@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI, depositAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiCreditCard, HiCheck } from 'react-icons/hi';
+import { HiArrowLeft, HiCreditCard, HiCheck, HiChevronDown } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
@@ -12,6 +12,7 @@ export default function Deposit() {
     const [balance, setBalance] = useState(0);
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [step, setStep] = useState(1); // 1: Amount, 2: FT submission
     const [currentDeposit, setCurrentDeposit] = useState(null);
@@ -95,10 +96,15 @@ export default function Deposit() {
         }
     };
 
+    const getSelectedMethodName = () => {
+        const method = methods.find(m => m.id === paymentMethod);
+        return method ? method.name : 'Choose bank/service';
+    };
+
     if (loading) return <Loading />;
 
     return (
-        <div className="animate-fadeIn">
+        <div className="animate-fadeIn relative">
             {/* Header */}
             <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <button onClick={() => navigate(-1)} className="text-2xl text-gray-800">
@@ -107,7 +113,7 @@ export default function Deposit() {
                 <h1 className="text-xl font-bold text-gray-900">Deposit</h1>
             </div>
 
-            <div className="px-3 py-6">
+            <div className="px-3 py-6 relative z-0">
                 {step === 1 ? (
                     <>
                         {/* Section 1: Account Balance */}
@@ -144,25 +150,68 @@ export default function Deposit() {
                             </div>
                         </div>
 
-                        {/* Section 3: Payment Method Dropdown */}
-                        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-8 border border-gray-50">
+                        {/* Section 3: Payment Method Dropdown (Custom) */}
+                        <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm mb-8 border border-gray-50 relative z-20">
                             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Select Payment Method</label>
-                            <div className="relative">
-                                <select
-                                    value={paymentMethod}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="w-full max-w-full bg-gray-50 border-2 border-gray-100 rounded-2xl px-3 py-4 font-bold text-xs text-gray-800 focus:border-green-500 outline-none transition-all cursor-pointer truncate pr-8"
+
+                            {/* Backdrop for clicking outside */}
+                            {isDropdownOpen && (
+                                <div
+                                    className="fixed inset-0 z-30 bg-transparent"
+                                    onClick={() => setIsDropdownOpen(false)}
+                                />
+                            )}
+
+                            <div className="relative z-40">
+                                {/* Trigger Button */}
+                                <button
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    className={`w-full bg-gray-50 border-2 rounded-2xl px-4 py-4 flex items-center justify-between transition-colors ${isDropdownOpen ? 'border-green-500' : 'border-gray-100'
+                                        }`}
                                 >
-                                    <option value="" disabled>Choose bank/service</option>
-                                    {methods.map((method) => (
-                                        <option key={method.id} value={method.id} className="text-sm">
-                                            {method.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                    <HiCreditCard className="text-lg" />
-                                </div>
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="text-gray-400 shrink-0">
+                                            <HiCreditCard className="text-xl" />
+                                        </div>
+                                        <span className={`font-bold text-sm truncate ${paymentMethod ? 'text-gray-900' : 'text-gray-400'}`}>
+                                            {getSelectedMethodName()}
+                                        </span>
+                                    </div>
+                                    <HiChevronDown
+                                        className={`text-xl text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+
+                                {/* Dropdown List */}
+                                {isDropdownOpen && (
+                                    <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden animate-fadeIn">
+                                        {methods.map((method) => (
+                                            <button
+                                                key={method.id}
+                                                onClick={() => {
+                                                    setPaymentMethod(method.id);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                                className={`w-full p-4 flex items-center justify-between transition-colors hover:bg-green-50 ${paymentMethod === method.id ? 'bg-green-50/50' : ''
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-2 rounded-lg ${paymentMethod === method.id ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                        <HiCreditCard />
+                                                    </div>
+                                                    <span className={`font-bold text-sm ${paymentMethod === method.id ? 'text-green-700' : 'text-gray-700'
+                                                        }`}>
+                                                        {method.name}
+                                                    </span>
+                                                </div>
+                                                {paymentMethod === method.id && (
+                                                    <HiCheck className="text-green-600 text-lg" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
