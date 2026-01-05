@@ -11,7 +11,13 @@ export default function ReferralSettings() {
         commissionPercentA: 10,
         commissionPercentB: 5,
         commissionPercentC: 2,
-        maxReferralsPerUser: 0
+        maxReferralsPerUser: 0,
+        salaryDirect15Threshold: 15,
+        salaryDirect15Amount: 15000,
+        salaryDirect20Threshold: 20,
+        salaryDirect20Amount: 20000,
+        salaryNetwork40Threshold: 40,
+        salaryNetwork40Amount: 48000
     });
 
     useEffect(() => {
@@ -101,19 +107,89 @@ export default function ReferralSettings() {
                 </div>
 
                 <div className="space-y-6 pt-6 border-t border-gray-50">
-                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Referral Limits</h2>
+                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Monthly Salary Settings</h2>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Max Referrals Per User</label>
-                        <input
-                            type="number"
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                            value={settings.maxReferralsPerUser}
-                            onChange={(e) => setSettings({ ...settings, maxReferralsPerUser: Number(e.target.value) })}
-                            placeholder="0 for unlimited"
-                            required
-                        />
-                        <p className="mt-2 text-xs text-gray-500 italic">Set to 0 if you don't want to limit the number of people a person can invite who provide commission.</p>
+                    <div className="space-y-8">
+                        {/* Rule 1: Lower Direct */}
+                        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
+                            <p className="text-xs font-bold text-indigo-600 uppercase tracking-tighter">Rule 1: Lower Direct Threshold</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Threshold (Invites)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryDirect15Threshold}
+                                        onChange={(e) => setSettings({ ...settings, salaryDirect15Threshold: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Amount (ETB)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryDirect15Amount}
+                                        onChange={(e) => setSettings({ ...settings, salaryDirect15Amount: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Rule 2: Higher Direct */}
+                        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
+                            <p className="text-xs font-bold text-indigo-600 uppercase tracking-tighter">Rule 2: Higher Direct Threshold</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Threshold (Invites)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryDirect20Threshold}
+                                        onChange={(e) => setSettings({ ...settings, salaryDirect20Threshold: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Amount (ETB)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryDirect20Amount}
+                                        onChange={(e) => setSettings({ ...settings, salaryDirect20Amount: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Rule 3: Network */}
+                        <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
+                            <p className="text-xs font-bold text-purple-600 uppercase tracking-tighter">Rule 3: Total Network Threshold (A+B+C)</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Threshold (Users)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryNetwork40Threshold}
+                                        onChange={(e) => setSettings({ ...settings, salaryNetwork40Threshold: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Amount (ETB)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        value={settings.salaryNetwork40Amount}
+                                        onChange={(e) => setSettings({ ...settings, salaryNetwork40Amount: Number(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

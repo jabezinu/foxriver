@@ -163,48 +163,61 @@ export default function Team() {
                             <span className="text-gray-500 font-medium italic">Requirement Progress</span>
                         </div>
 
-                        {/* 15 Direct Rule */}
+                        {/* Rule 1 Progress */}
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">15 Direct Invites</span>
-                                <span className="text-[10px] font-black text-blue-600">{downline?.aLevel.count || 0}/15</span>
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.direct15?.threshold || 15} Direct Invites</span>
+                                <span className="text-[10px] font-black text-blue-600">{downline?.aLevel.count || 0}/{salaryData?.breakdown?.settings?.direct15?.threshold || 15}</span>
                             </div>
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / 15) * 100, 100)}%` }}
+                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct15?.threshold || 15)) * 100, 100)}%` }}
                                 />
                             </div>
+                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.direct15?.threshold || 15} direct invites for {formatNumber(salaryData?.breakdown?.settings?.direct15?.amount || 15000)} ETB/month</p>
                         </div>
 
-                        {/* 20 Direct Rule */}
+                        {/* Rule 2 Progress */}
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">20 Direct Invites</span>
-                                <span className="text-[10px] font-black text-indigo-600">{downline?.aLevel.count || 0}/20</span>
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
+                                <span className="text-[10px] font-black text-indigo-600">{downline?.aLevel.count || 0}/{salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
                             </div>
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
-                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / 20) * 100, 100)}%` }}
+                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct20?.threshold || 20)) * 100, 100)}%` }}
                                 />
                             </div>
+                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.direct20?.threshold || 20} direct invites for {formatNumber(salaryData?.breakdown?.settings?.direct20?.amount || 20000)} ETB/month</p>
                         </div>
 
-                        {/* 40 Total Rule */}
+                        {/* Rule 3 Progress */}
                         <div className="space-y-1.5 pt-1 border-t border-gray-50 mt-2">
                             <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">40 Total Team Units (A+B+C)</span>
-                                <span className="text-[10px] font-black text-purple-600">{downline?.total || 0}/40</span>
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.network40?.threshold || 40} Total Team (A+B+C)</span>
+                                <span className="text-[10px] font-black text-purple-600">{downline?.total || 0}/{salaryData?.breakdown?.settings?.network40?.threshold || 40}</span>
                             </div>
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-purple-500 rounded-full transition-all duration-1000"
-                                    style={{ width: `${Math.min(((downline?.total || 0) / 40) * 100, 100)}%` }}
+                                    style={{ width: `${Math.min(((downline?.total || 0) / (salaryData?.breakdown?.settings?.network40?.threshold || 40)) * 100, 100)}%` }}
                                 />
                             </div>
+                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.network40?.threshold || 40} total network users for {formatNumber(salaryData?.breakdown?.settings?.network40?.amount || 48000)} ETB/month</p>
                         </div>
                     </div>
+
+                    {salaryData?.salary > 0 && (
+                        <div className="mt-4 p-4 bg-green-50/50 border border-green-100 rounded-2xl">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] text-green-600 font-bold uppercase">Current Eligibility</span>
+                                <span className="text-lg font-black text-green-600">{formatNumber(salaryData.salary)} ETB</span>
+                            </div>
+                            <p className="text-[9px] text-green-600/60 mt-0.5 italic">Applied: {salaryData.breakdown.salaryComponents[0].rule}</p>
+                        </div>
+                    )}
 
                     <div className="mt-6 p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
                         <p className="text-[9px] text-blue-600 font-bold leading-relaxed italic">

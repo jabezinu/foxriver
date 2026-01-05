@@ -1,17 +1,27 @@
 const User = require('../models/User');
+const SystemSetting = require('../models/SystemSetting');
 
 /**
  * Calculate monthly salary based on downline counts
- * Rules:
- * - 15 A-level users (Direct): 15,000 ETB
- * - 20 A-level users (Direct): 20,000 ETB
- * - 40 total users (A+B+C): 48,000 ETB
  */
 exports.calculateMonthlySalary = async (userId) => {
     try {
         const user = await User.findById(userId);
         if (!user) {
             return { salary: 0, breakdown: null };
+        }
+
+        // Fetch dynamic settings
+        let settings = await SystemSetting.findOne();
+        if (!settings) {
+            settings = {
+                salaryDirect15Threshold: 15,
+                salaryDirect15Amount: 15000,
+                salaryDirect20Threshold: 20,
+                salaryDirect20Amount: 20000,
+                salaryNetwork40Threshold: 40,
+                salaryNetwork40Amount: 48000
+            };
         }
 
         // Find all A-level (direct) referrals
@@ -36,30 +46,35 @@ exports.calculateMonthlySalary = async (userId) => {
             bLevel: bLevelCount,
             cLevel: cLevelCount,
             total: totalCount,
-            salaryComponents: []
+            salaryComponents: [],
+            settings: {
+                direct15: { threshold: settings.salaryDirect15Threshold, amount: settings.salaryDirect15Amount },
+                direct20: { threshold: settings.salaryDirect20Threshold, amount: settings.salaryDirect20Amount },
+                network40: { threshold: settings.salaryNetwork40Threshold, amount: settings.salaryNetwork40Amount }
+            }
         };
 
-        // Check 40 total users rule (highest priority: 48,000)
-        if (totalCount >= 40) {
-            salary = 48000;
-            breakdown.salaryComponents.push({ rule: '40 total network users', amount: 48000 });
+        // Check Network Threshold (highest priority)
+        if (totalCount >= settings.salaryNetwork40Threshold) {
+            salary = settings.salaryNetwork40Amount;
+            breakdown.salaryComponents.push({ rule: `${settings.salaryNetwork40Threshold} total network users`, amount: settings.salaryNetwork40Amount });
         }
 
-        // Check 20 A-level users rule (20,000)
-        if (aLevelCount >= 20) {
-            const amount = 20000;
+        // Check Higher Direct Threshold
+        if (aLevelCount >= settings.salaryDirect20Threshold) {
+            const amount = settings.salaryDirect20Amount;
             if (amount > salary) {
                 salary = amount;
-                breakdown.salaryComponents = [{ rule: '20 direct A-level users', amount: 20000 }];
+                breakdown.salaryComponents = [{ rule: `${settings.salaryDirect20Threshold} direct A-level users`, amount: settings.salaryDirect20Amount }];
             }
         }
 
-        // Check 15 A-level users rule (15,000)
-        if (aLevelCount >= 15) {
-            const amount = 15000;
+        // Check Lower Direct Threshold
+        if (aLevelCount >= settings.salaryDirect15Threshold) {
+            const amount = settings.salaryDirect15Amount;
             if (amount > salary) {
                 salary = amount;
-                breakdown.salaryComponents = [{ rule: '15 direct A-level users', amount: 15000 }];
+                breakdown.salaryComponents = [{ rule: `${settings.salaryDirect15Threshold} direct A-level users`, amount: settings.salaryDirect15Amount }];
             }
         }
 

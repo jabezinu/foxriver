@@ -29,8 +29,8 @@ const seedDatabase = async () => {
         console.log('✓ Membership tiers seeded successfully');
 
         // Create default admin user if doesn't exist
-        const adminPhone = process.env.ADMIN_PHONE || '+251911111111';
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+        const adminPhone = '+251900000000';
+        const adminPassword = 'admin123';
 
         const adminExists = await User.findOne({ phone: adminPhone });
 

@@ -16,6 +16,30 @@ const systemSettingSchema = new mongoose.Schema({
     maxReferralsPerUser: {
         type: Number,
         default: 0 // 0 means unlimited
+    },
+    salaryDirect15Threshold: {
+        type: Number,
+        default: 15
+    },
+    salaryDirect15Amount: {
+        type: Number,
+        default: 15000
+    },
+    salaryDirect20Threshold: {
+        type: Number,
+        default: 20
+    },
+    salaryDirect20Amount: {
+        type: Number,
+        default: 20000
+    },
+    salaryNetwork40Threshold: {
+        type: Number,
+        default: 40
+    },
+    salaryNetwork40Amount: {
+        type: Number,
+        default: 48000
     }
 }, {
     timestamps: true

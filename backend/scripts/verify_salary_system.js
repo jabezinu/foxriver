@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Salary = require('../models/Salary');
-const Membership = require('../models/Membership');
+const SystemSetting = require('../models/SystemSetting');
 const { processMonthlySalaries } = require('../controllers/adminController');
-require('dotenv').config();
+require('dotenv').config({ path: 'backend/.env' });
 
 const verifySalary = async () => {
     try {
@@ -11,8 +11,20 @@ const verifySalary = async () => {
         console.log('Connected to MongoDB');
 
         // Cleanup
-        await User.deleteMany({ phone: { $in: ['+251911111111', '+251922222222', '+251933333333'] } });
+        await User.deleteMany({ phone: { $regex: /^\+2519(11|2|3|4)/ } });
         await Salary.deleteMany({});
+        await SystemSetting.deleteMany({});
+
+        // Set custom settings
+        await SystemSetting.create({
+            salaryDirect15Threshold: 10,  // Lowered from 15
+            salaryDirect15Amount: 12000,
+            salaryDirect20Threshold: 15,  // Lowered from 20
+            salaryDirect20Amount: 18000,
+            salaryNetwork40Threshold: 30, // Lowered from 40
+            salaryNetwork40Amount: 35000
+        });
+        console.log('Set custom dynamic settings');
 
         // Create a chain to satisfy rules
         // User W (Admin/Inviter)
@@ -80,10 +92,10 @@ const verifySalary = async () => {
         console.log('User W Balance:', updatedW.incomeWallet);
         console.log('Last Salary Date:', updatedW.lastSalaryDate);
 
-        if (updatedW.incomeWallet === 48000) {
-            console.log('✅ Salary calculation passed (48,000 ETB)');
+        if (updatedW.incomeWallet === 35000) {
+            console.log('✅ Dynamic salary calculation passed (35,000 ETB)');
         } else {
-            console.log('❌ Salary calculation failed');
+            console.log('❌ Dynamic salary calculation failed. Expected 35,000, got', updatedW.incomeWallet);
         }
 
         // Test Double Payment Prevention
@@ -92,7 +104,7 @@ const verifySalary = async () => {
         console.log('Res:', res.data);
 
         const finalW = await User.findById(userW._id);
-        if (finalW.incomeWallet === 48000) {
+        if (finalW.incomeWallet === 35000) {
             console.log('✅ Double payment prevention passed');
         } else {
             console.log('❌ Double payment prevention failed');
