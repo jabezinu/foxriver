@@ -45,6 +45,30 @@ exports.submitTransactionFT = async (req, res) => {
     try {
         const { depositId, transactionFT } = req.body;
 
+        // Validate FT Code Format
+        if (!transactionFT) {
+            return res.status(400).json({
+                success: false,
+                message: 'Transaction FT code is required'
+            });
+        }
+
+        const ftCode = transactionFT.trim().toUpperCase();
+
+        if (ftCode.length !== 12) {
+            return res.status(400).json({
+                success: false,
+                message: 'Transaction FT code must be exactly 12 characters'
+            });
+        }
+
+        if (!ftCode.startsWith('FT')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Transaction FT code must start with "FT"'
+            });
+        }
+
         const deposit = await Deposit.findById(depositId);
 
         if (!deposit) {
@@ -69,7 +93,16 @@ exports.submitTransactionFT = async (req, res) => {
             });
         }
 
-        deposit.transactionFT = transactionFT;
+        // Check for uniqueness
+        const existingDeposit = await Deposit.findOne({ transactionFT: ftCode });
+        if (existingDeposit) {
+            return res.status(400).json({
+                success: false,
+                message: 'This Transaction FT code has already been used'
+            });
+        }
+
+        deposit.transactionFT = ftCode;
         deposit.status = 'ft_submitted';
         await deposit.save();
 

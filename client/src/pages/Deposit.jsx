@@ -68,6 +68,18 @@ export default function Deposit() {
             return;
         }
 
+        const formattedFT = ftNumber.trim().toUpperCase();
+
+        if (formattedFT.length !== 12) {
+            toast.error('FT Code must be exactly 12 characters');
+            return;
+        }
+
+        if (!formattedFT.startsWith('FT')) {
+            toast.error('FT Code must start with "FT"');
+            return;
+        }
+
         setSubmitting(true);
         try {
             await depositAPI.submitFT({
@@ -192,8 +204,9 @@ export default function Deposit() {
                             <input
                                 type="text"
                                 value={ftNumber}
-                                onChange={(e) => setFtNumber(e.target.value)}
+                                onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
                                 placeholder="e.g. FT230104XXXX"
+                                maxLength={12}
                                 className="input-field py-4 font-mono text-center tracking-widest"
                             />
                             <p className="text-[10px] text-gray-400 mt-2 italic text-center">Transaction FT is required for manual approval</p>
