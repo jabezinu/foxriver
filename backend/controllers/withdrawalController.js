@@ -17,6 +17,15 @@ exports.createWithdrawal = async (req, res) => {
             });
         }
 
+        // Check for withdrawal restriction
+        if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {
+            const restrictedDate = new Date(req.user.withdrawalRestrictedUntil).toLocaleDateString();
+            return res.status(403).json({
+                success: false,
+                message: `Withdrawal restricted until ${restrictedDate}`
+            });
+        }
+
         // Validate amount
         if (!isValidWithdrawalAmount(amount)) {
             return res.status(400).json({

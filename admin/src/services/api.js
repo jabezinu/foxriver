@@ -46,6 +46,7 @@ export const adminUserAPI = {
     getUserDetails: (id) => api.get(`/admin/users/${id}`),
     updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
     deleteUser: (id) => api.delete(`/admin/users/${id}`),
+    restrictAllUsers: (data) => api.put('/admin/users/restrict-all', data),
 };
 
 export const adminDepositAPI = {

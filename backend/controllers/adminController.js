@@ -174,6 +174,9 @@ exports.updateUser = async (req, res) => {
         if (membershipLevel) user.membershipLevel = membershipLevel;
         if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
         if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
+        if (req.body.withdrawalRestrictedUntil !== undefined) {
+            user.withdrawalRestrictedUntil = req.body.withdrawalRestrictedUntil;
+        }
 
         // Handle bank change approval
         if (req.body.approveBankChange && user.bankChangeStatus === 'pending') {
@@ -197,6 +200,41 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Update failed'
+        });
+    }
+};
+
+// @desc    Restrict withdrawal for all users
+// @route   PUT /api/admin/users/restrict-all
+// @access  Private/Admin
+exports.restrictAllUsers = async (req, res) => {
+    try {
+        const { date } = req.body;
+
+        // Determine update operation
+        let updateOperation;
+        if (date) {
+            updateOperation = { $set: { withdrawalRestrictedUntil: date } };
+        } else {
+            // If date is null or empty, lift restriction
+            updateOperation = { $unset: { withdrawalRestrictedUntil: 1 } };
+        }
+
+        await User.updateMany(
+            { role: 'user' },
+            updateOperation
+        );
+
+        res.status(200).json({
+            success: true,
+            message: date
+                ? 'Withdrawal restriction applied to all users'
+                : 'Withdrawal restrictions lifted for all users'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Operation failed'
         });
     }
 };

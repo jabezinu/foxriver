@@ -84,6 +84,7 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    withdrawalRestrictedUntil: Date,
     lastLogin: Date
 }, {
     timestamps: true

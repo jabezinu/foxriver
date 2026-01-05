@@ -18,7 +18,8 @@ export default function UserManagement() {
     const [editForm, setEditForm] = useState({
         membershipLevel: '',
         incomeWallet: '',
-        personalWallet: ''
+        personalWallet: '',
+        withdrawalRestrictedUntil: ''
     });
 
     useEffect(() => {
@@ -51,7 +52,8 @@ export default function UserManagement() {
         setEditForm({
             membershipLevel: user.membershipLevel,
             incomeWallet: user.incomeWallet,
-            personalWallet: user.personalWallet
+            personalWallet: user.personalWallet,
+            withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : ''
         });
     };
 
@@ -83,6 +85,34 @@ export default function UserManagement() {
         }
     };
 
+    // Restrict All Modal State
+    const [restrictModalOpen, setRestrictModalOpen] = useState(false);
+    const [restrictDate, setRestrictDate] = useState('');
+    const [isLiftRestriction, setIsLiftRestriction] = useState(false);
+
+    const handleRestrictAll = async (e) => {
+        e.preventDefault();
+
+        if (!isLiftRestriction && !restrictDate) return toast.error('Please select a date');
+
+        const message = isLiftRestriction
+            ? 'Are you sure you want to LIFT withdrawal restrictions for ALL users?'
+            : 'Are you sure you want to restrict withdrawals for ALL users until this date?';
+
+        if (!confirm(message)) return;
+
+        try {
+            await adminUserAPI.restrictAllUsers({ date: isLiftRestriction ? null : restrictDate });
+            toast.success(isLiftRestriction ? 'Restrictions lifted for all users' : 'Restriction applied to all users');
+            setRestrictModalOpen(false);
+            setRestrictDate('');
+            setIsLiftRestriction(false);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Operation failed');
+        }
+    };
+
     return (
         <div className="animate-fadeIn relative">
             <ConfirmModal
@@ -100,6 +130,13 @@ export default function UserManagement() {
                     <h1 className="text-2xl font-bold text-gray-900">Personnel Database</h1>
                     <p className="text-sm text-gray-500">Monitor and manage all system operatives.</p>
                 </div>
+                <button
+                    onClick={() => setRestrictModalOpen(true)}
+                    className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold text-xs uppercase hover:bg-red-100 transition-all border border-red-100"
+                >
+                    <HiPencil className="text-lg" />
+                    Global Restriction
+                </button>
             </div>
 
             {/* Filters Bar */}
@@ -246,6 +283,39 @@ export default function UserManagement() {
                                     onChange={e => setEditForm({ ...editForm, personalWallet: e.target.value })}
                                 />
                             </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <label className="flex items-center gap-2 cursor-pointer mb-3">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                        checked={!!editForm.withdrawalRestrictedUntil}
+                                        onChange={e => {
+                                            if (e.target.checked) {
+                                                // Default to tomorrow if checked
+                                                const tomorrow = new Date();
+                                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                                setEditForm({ ...editForm, withdrawalRestrictedUntil: tomorrow.toISOString().split('T')[0] });
+                                            } else {
+                                                setEditForm({ ...editForm, withdrawalRestrictedUntil: '' });
+                                            }
+                                        }}
+                                    />
+                                    <span className="text-xs font-bold text-gray-700 uppercase">Restrict Withdrawals</span>
+                                </label>
+
+                                {editForm.withdrawalRestrictedUntil && (
+                                    <div className="animate-fadeIn">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Restricted Until</label>
+                                        <input
+                                            type="date"
+                                            className="admin-input"
+                                            value={editForm.withdrawalRestrictedUntil}
+                                            onChange={e => setEditForm({ ...editForm, withdrawalRestrictedUntil: e.target.value })}
+                                        />
+                                        <p className="text-[10px] text-gray-400 mt-1">User cannot withdraw until this date passes.</p>
+                                    </div>
+                                )}
+                            </div>
 
                             {editingUser.bankChangeStatus === 'pending' && editingUser.pendingBankAccount && (
                                 <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
@@ -272,6 +342,76 @@ export default function UserManagement() {
                             <div className="pt-4 flex gap-3">
                                 <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs uppercase hover:bg-gray-50">Cancel</button>
                                 <button type="submit" className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs uppercase hover:bg-indigo-700 shadow-lg shadow-indigo-200">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Restrict All Modal */}
+            {restrictModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-800">Global Withdrawal Restriction</h3>
+                            <button onClick={() => setRestrictModalOpen(false)} className="text-gray-400 hover:text-red-500">
+                                <HiX className="text-xl" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleRestrictAll} className="p-6 space-y-4">
+                            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLiftRestriction(false)}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${!isLiftRestriction ? 'bg-white shadow text-red-600' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Apply Restriction
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLiftRestriction(true)}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase transition-all ${isLiftRestriction ? 'bg-white shadow text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Lift Restrictions
+                                </button>
+                            </div>
+
+                            {!isLiftRestriction ? (
+                                <>
+                                    <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                                        <p className="text-red-800 font-bold text-xs uppercase mb-2">Warning</p>
+                                        <p className="text-xs text-gray-600">
+                                            This will restrict withdrawals for <span className="font-bold">ALL</span> users until the selected date. This action overwrites any existing individual restrictions.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Restricted Until</label>
+                                        <input
+                                            type="date"
+                                            className="admin-input"
+                                            value={restrictDate}
+                                            onChange={e => setRestrictDate(e.target.value)}
+                                            required={!isLiftRestriction}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                                    <p className="text-green-800 font-bold text-xs uppercase mb-2">Lift All Restrictions</p>
+                                    <p className="text-xs text-gray-600">
+                                        This will remove withdrawal restrictions for <span className="font-bold">ALL</span> users immediately. They will be able to withdraw funds if they meet other criteria.
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="pt-4 flex gap-3">
+                                <button type="button" onClick={() => setRestrictModalOpen(false)} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs uppercase hover:bg-gray-50">Cancel</button>
+                                <button
+                                    type="submit"
+                                    className={`flex-1 py-3 rounded-xl text-white font-bold text-xs uppercase shadow-lg transition-all ${isLiftRestriction ? 'bg-green-600 hover:bg-green-700 shadow-green-200' : 'bg-red-600 hover:bg-red-700 shadow-red-200'}`}
+                                >
+                                    {isLiftRestriction ? 'Lift Restrictions' : 'Apply to All'}
+                                </button>
                             </div>
                         </form>
                     </div>
