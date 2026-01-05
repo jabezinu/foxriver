@@ -106,7 +106,6 @@ export default function UserManagement() {
             <div className="admin-card mb-8">
                 <div className="flex flex-col md:flex-row gap-4">
                     <form onSubmit={handleSearch} className="flex-1 relative">
-                        <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
                         <input
                             type="text"
                             placeholder="Search by phone number (+251...)"
