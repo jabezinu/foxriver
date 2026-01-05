@@ -3,11 +3,14 @@ import { adminQnaAPI } from '../services/api';
 import { HiPhotograph, HiPlus, HiTrash } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
+import ConfirmModal from '../components/ConfirmModal';
+
 export default function QnaManagement() {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [imageFile, setImageFile] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchImages();
@@ -45,19 +48,34 @@ export default function QnaManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Remove this help image?')) return;
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
         try {
-            await adminQnaAPI.delete(id);
+            await adminQnaAPI.delete(deleteId);
             toast.success('Help image removed');
             fetchImages();
         } catch (error) {
             toast.error('Delete failed');
+        } finally {
+            setDeleteId(null);
         }
     };
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Remove Visual"
+                message="Are you sure you want to remove this help image?"
+                confirmText="Remove"
+                isDangerous={true}
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Q & A Visuals</h1>

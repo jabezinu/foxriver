@@ -3,12 +3,15 @@ import { adminNewsAPI } from '../services/api';
 import { HiPlus, HiTrash, HiPhotograph, HiCheck } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
+import ConfirmModal from '../components/ConfirmModal';
+
 export default function NewsManagement() {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ title: '', content: '' });
     const [imageFile, setImageFile] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchNews();
@@ -49,19 +52,34 @@ export default function NewsManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this news post?')) return;
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
         try {
-            await adminNewsAPI.delete(id);
+            await adminNewsAPI.delete(deleteId);
             toast.success('News post deleted');
             fetchNews();
         } catch (error) {
             toast.error('Delete failed');
+        } finally {
+            setDeleteId(null);
         }
     };
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Intelligence"
+                message="Are you sure you want to delete this news post? This action cannot be undone."
+                confirmText="Delete"
+                isDangerous={true}
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Intelligence Feed</h1>

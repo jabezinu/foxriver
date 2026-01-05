@@ -4,10 +4,15 @@ import { toast } from 'react-hot-toast';
 import { HiBriefcase, HiCheck, HiX, HiCreditCard } from 'react-icons/hi';
 import { formatNumber } from '../utils/formatNumber';
 
+import ConfirmModal from '../components/ConfirmModal';
+import PromptModal from '../components/PromptModal';
+
 export default function WithdrawalRequests() {
     const [withdrawals, setWithdrawals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('pending');
+    const [approveId, setApproveId] = useState(null);
+    const [rejectId, setRejectId] = useState(null);
 
     useEffect(() => {
         fetchWithdrawals();
@@ -25,10 +30,13 @@ export default function WithdrawalRequests() {
         }
     };
 
-    const handleApprove = async (id) => {
-        if (!window.confirm('Confirm funds have been MANUALLY transferred to user bank? This will mark request as SUCCEEDED and deduct balance.')) return;
+    const handleApprove = (id) => {
+        setApproveId(id);
+    };
+
+    const confirmApprove = async () => {
         try {
-            await adminWithdrawalAPI.approve(id, { notes: 'Transferred by Finance Dept' });
+            await adminWithdrawalAPI.approve(approveId, { notes: 'Transferred by Finance Dept' });
             toast.success('Withdrawal marked as successfully transferred!');
             fetchWithdrawals();
         } catch (error) {
@@ -36,11 +44,13 @@ export default function WithdrawalRequests() {
         }
     };
 
-    const handleReject = async (id) => {
-        const reason = window.prompt('Reason for fund rejection:');
-        if (reason === null) return;
+    const handleReject = (id) => {
+        setRejectId(id);
+    };
+
+    const confirmReject = async (reason) => {
         try {
-            await adminWithdrawalAPI.reject(id, { notes: reason || 'Account issue / Verification failed' });
+            await adminWithdrawalAPI.reject(rejectId, { notes: reason || 'Account issue / Verification failed' });
             toast.success('Withdrawal request invalidated');
             fetchWithdrawals();
         } catch (error) {
@@ -50,6 +60,25 @@ export default function WithdrawalRequests() {
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!approveId}
+                onClose={() => setApproveId(null)}
+                onConfirm={confirmApprove}
+                title="Confirm Payout"
+                message="Confirm funds have been MANUALLY transferred to user bank? This will mark request as SUCCEEDED and deduct balance."
+                confirmText="Confirm Transfer"
+            />
+
+            <PromptModal
+                isOpen={!!rejectId}
+                onClose={() => setRejectId(null)}
+                onConfirm={confirmReject}
+                title="Decline Payout"
+                message="Please provide a reason for declining this withdrawal:"
+                placeholder="e.g. Account Name Mismatch"
+                confirmText="Decline Request"
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Payout Control</h1>

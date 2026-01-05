@@ -4,10 +4,15 @@ import { toast } from 'react-hot-toast';
 import { HiCurrencyDollar, HiCheck, HiX, HiExternalLink } from 'react-icons/hi';
 import { formatNumber } from '../utils/formatNumber';
 
+import ConfirmModal from '../components/ConfirmModal';
+import PromptModal from '../components/PromptModal';
+
 export default function DepositRequests() {
     const [deposits, setDeposits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('ft_submitted');
+    const [approveId, setApproveId] = useState(null);
+    const [rejectId, setRejectId] = useState(null);
 
     useEffect(() => {
         fetchDeposits();
@@ -26,10 +31,13 @@ export default function DepositRequests() {
         }
     };
 
-    const handleApprove = async (id) => {
-        if (!window.confirm('Are you sure you want to APPROVE this deposit? The user wallet will be credited immediately.')) return;
+    const handleApprove = (id) => {
+        setApproveId(id);
+    };
+
+    const confirmApprove = async () => {
         try {
-            await adminDepositAPI.approve(id, { notes: 'Approved by admin' });
+            await adminDepositAPI.approve(approveId, { notes: 'Approved by admin' });
             toast.success('Deposit approved and user credited!');
             fetchDeposits();
         } catch (error) {
@@ -37,11 +45,13 @@ export default function DepositRequests() {
         }
     };
 
-    const handleReject = async (id) => {
-        const reason = window.prompt('Reason for rejection:');
-        if (reason === null) return;
+    const handleReject = (id) => {
+        setRejectId(id);
+    };
+
+    const confirmReject = async (reason) => {
         try {
-            await adminDepositAPI.reject(id, { notes: reason || 'Rejected by admin' });
+            await adminDepositAPI.reject(rejectId, { notes: reason || 'Rejected by admin' });
             toast.success('Deposit rejected');
             fetchDeposits();
         } catch (error) {
@@ -51,6 +61,25 @@ export default function DepositRequests() {
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!approveId}
+                onClose={() => setApproveId(null)}
+                onConfirm={confirmApprove}
+                title="Authorize Capital"
+                message="Are you sure you want to APPROVE this deposit? The user wallet will be credited immediately."
+                confirmText="Approve Funds"
+            />
+
+            <PromptModal
+                isOpen={!!rejectId}
+                onClose={() => setRejectId(null)}
+                onConfirm={confirmReject}
+                title="Reject Transaction"
+                message="Please provide a reason for rejecting this deposit:"
+                placeholder="e.g. Invalid Transaction ID"
+                confirmText="Reject Deposit"
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Capital Ledger</h1>

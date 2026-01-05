@@ -3,6 +3,8 @@ import { adminTaskAPI } from '../services/api';
 import { HiVideoCamera, HiPlus, HiTrash, HiPlay, HiRefresh, HiLink, HiCollection } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
+import ConfirmModal from '../components/ConfirmModal';
+
 export default function TaskManagement() {
     const [activeTab, setActiveTab] = useState('manual'); // 'manual' or 'playlists'
     const [tasks, setTasks] = useState([]);
@@ -11,6 +13,8 @@ export default function TaskManagement() {
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [deleteTaskId, setDeleteTaskId] = useState(null);
+    const [deletePlaylistId, setDeletePlaylistId] = useState(null);
 
     // Manual Task Form
     const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -64,15 +68,20 @@ export default function TaskManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this task?')) return;
+    const handleDelete = (id) => {
+        setDeleteTaskId(id);
+    };
+
+    const confirmDeleteTask = async () => {
         try {
-            await adminTaskAPI.delete(id);
+            await adminTaskAPI.delete(deleteTaskId);
             toast.success('Task deleted');
             const res = await adminTaskAPI.getTasks();
             setTasks(res.data.tasks);
         } catch (error) {
             toast.error('Delete failed');
+        } finally {
+            setDeleteTaskId(null);
         }
     };
 
@@ -95,16 +104,21 @@ export default function TaskManagement() {
         }
     };
 
-    const handleDeletePlaylist = async (id) => {
-        if (!window.confirm('Deleting a playlist will also remove its videos from the pool. Continue?')) return;
+    const handleDeletePlaylist = (id) => {
+        setDeletePlaylistId(id);
+    };
+
+    const confirmDeletePlaylist = async () => {
         try {
-            await adminTaskAPI.deletePlaylist(id);
+            await adminTaskAPI.deletePlaylist(deletePlaylistId);
             toast.success('Playlist removed');
             const res = await adminTaskAPI.getPlaylists();
             setPlaylists(res.data.playlists);
             setVideoCount(res.data.videoCount);
         } catch (error) {
             toast.error('Delete failed');
+        } finally {
+            setDeletePlaylistId(null);
         }
     };
 
@@ -130,6 +144,26 @@ export default function TaskManagement() {
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!deleteTaskId}
+                onClose={() => setDeleteTaskId(null)}
+                onConfirm={confirmDeleteTask}
+                title="Delete Task"
+                message="Are you sure you want to delete this task?"
+                confirmText="Delete"
+                isDangerous={true}
+            />
+
+            <ConfirmModal
+                isOpen={!!deletePlaylistId}
+                onClose={() => setDeletePlaylistId(null)}
+                onConfirm={confirmDeletePlaylist}
+                title="Remove Playlist"
+                message="Deleting a playlist will also remove its videos from the pool. Continue?"
+                confirmText="Remove Playlist"
+                isDangerous={true}
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Task Control</h1>

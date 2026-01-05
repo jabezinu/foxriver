@@ -3,12 +3,15 @@ import { adminMessageAPI } from '../services/api';
 import { HiMail, HiUsers, HiLightningBolt, HiMailOpen, HiTrash, HiPencil, HiX } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 
+import ConfirmModal from '../components/ConfirmModal';
+
 export default function Messages() {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '', isBroadcast: true });
     const [editingId, setEditingId] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchMessages();
@@ -47,15 +50,20 @@ export default function Messages() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this broadcast?')) return;
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
         try {
-            await adminMessageAPI.delete(id);
+            await adminMessageAPI.delete(deleteId);
             toast.success('Broadcast deleted');
             fetchMessages();
-            if (editingId === id) resetForm();
+            if (editingId === deleteId) resetForm();
         } catch (error) {
             toast.error('Deletion failed');
+        } finally {
+            setDeleteId(null);
         }
     };
 
@@ -77,6 +85,16 @@ export default function Messages() {
 
     return (
         <div className="animate-fadeIn">
+            <ConfirmModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Broadcast"
+                message="Are you sure you want to delete this broadcast? This action cannot be undone."
+                confirmText="Delete"
+                isDangerous={true}
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Communication Relay</h1>

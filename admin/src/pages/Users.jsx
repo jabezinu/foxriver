@@ -4,11 +4,14 @@ import { HiSearch, HiIdentification, HiExternalLink, HiPencil, HiTrash, HiX } fr
 import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading';
 
+import ConfirmModal from '../components/ConfirmModal';
+
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterLevel, setFilterLevel] = useState('');
+    const [deleteId, setDeleteId] = useState(null);
 
     // Edit Modal State
     const [editingUser, setEditingUser] = useState(null);
@@ -52,14 +55,19 @@ export default function UserManagement() {
         });
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('CRITICAL: Are you sure you want to delete this user? This cannot be undone.')) return;
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
         try {
-            await adminUserAPI.deleteUser(id);
+            await adminUserAPI.deleteUser(deleteId);
             toast.success('User deleted successfully');
             fetchUsers();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Delete failed');
+        } finally {
+            setDeleteId(null);
         }
     };
 
@@ -77,6 +85,16 @@ export default function UserManagement() {
 
     return (
         <div className="animate-fadeIn relative">
+            <ConfirmModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Deactivate Operative"
+                message="CRITICAL: Are you sure you want to delete this user? This action cannot be undone and will remove all their data."
+                confirmText="Delete User"
+                isDangerous={true}
+            />
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Personnel Database</h1>
