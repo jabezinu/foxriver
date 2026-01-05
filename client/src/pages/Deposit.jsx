@@ -18,6 +18,8 @@ export default function Deposit() {
     const [currentDeposit, setCurrentDeposit] = useState(null);
     const [ftNumber, setFtNumber] = useState('');
     const [methods, setMethods] = useState([]);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     const amounts = [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000];
 
@@ -45,7 +47,20 @@ export default function Deposit() {
             }
         };
 
+        const fetchHistory = async () => {
+            setLoadingHistory(true);
+            try {
+                const res = await depositAPI.getUserDeposits();
+                setHistory(res.data.deposits);
+            } catch (error) {
+                console.error('Failed to load history', error);
+            } finally {
+                setLoadingHistory(false);
+            }
+        };
+
         fetchData();
+        fetchHistory();
     }, []);
 
 
@@ -245,10 +260,57 @@ export default function Deposit() {
                         <button
                             onClick={handleCreateDeposit}
                             disabled={submitting}
-                            className="btn-primary w-full py-6 rounded-2xl text-base font-bold shadow-xl shadow-green-200 hover:shadow-green-300 hover:scale-[1.02] active:scale-[0.98] transition-all transform disabled:opacity-70 disabled:hover:scale-100"
+                            className="btn-primary w-full py-6 rounded-2xl text-base font-bold shadow-xl shadow-green-200 hover:shadow-green-300 hover:scale-[1.02] active:scale-[0.98] transition-all transform disabled:opacity-70 disabled:hover:scale-100 mb-12"
                         >
                             {submitting ? <span className="spinner w-6 h-6 border-2"></span> : 'CONTINUE TO PAYMENT'}
                         </button>
+
+                        {/* Section 4: History */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-2">
+                                <h3 className="font-bold text-gray-800 text-sm uppercase tracking-widest">Recent Records</h3>
+                                <div className="h-px flex-1 bg-gray-100 mx-4"></div>
+                            </div>
+
+                            {loadingHistory ? (
+                                <div className="text-center py-10">
+                                    <div className="spinner w-6 h-6 border-2 border-green-500 mx-auto"></div>
+                                </div>
+                            ) : history.length === 0 ? (
+                                <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-100">
+                                    <p className="text-gray-300 font-bold text-xs uppercase tracking-widest">No records found</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {history.map((item) => (
+                                        <div key={item._id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-xl ${item.status === 'approved' ? 'bg-green-50 text-green-600' :
+                                                    item.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                                                        'bg-yellow-50 text-yellow-600'
+                                                    }`}>
+                                                    <HiCreditCard className="text-xl" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-800 text-sm">{formatNumber(item.amount)} ETB</p>
+                                                    <p className="text-[10px] text-gray-400 font-medium">
+                                                        {new Date(item.createdAt).toLocaleDateString()} • {item.transactionFT || 'No FT'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${item.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                item.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                    'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {item.status === 'approved' ? 'Success' :
+                                                    item.status === 'rejected' ? 'Failed' :
+                                                        item.status === 'ft_submitted' ? 'Pending Approval' : 'Awaiting Payment'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </>
                 ) : (
                     <div className="animate-slideUp max-w-xl mx-auto">
