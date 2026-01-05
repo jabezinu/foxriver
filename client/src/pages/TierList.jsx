@@ -40,17 +40,7 @@ export default function TierList() {
     };
 
     const canShowJoinButton = (tierLevel) => {
-        if (!isHigherLevel(tierLevel)) return false;
-
-        // Special rule for Interns
-        if (user?.membershipLevel === 'Intern') {
-            const levels = ['Intern', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'];
-            const tierIdx = levels.indexOf(tierLevel);
-            const v3Idx = levels.indexOf('V3');
-            // Hide if lower than V3
-            if (tierIdx < v3Idx) return false;
-        }
-        return true;
+        return isHigherLevel(tierLevel);
     };
 
     const handleJoinClick = (tier) => {
@@ -196,8 +186,8 @@ export default function TierList() {
                                 {/* Personal Wallet Option */}
                                 <div
                                     className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'personal'
-                                            ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                                            : 'border-gray-200 hover:border-gray-50'
+                                        ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
+                                        : 'border-gray-200 hover:border-gray-50'
                                         }`}
                                     onClick={() => setPaymentMethod('personal')}
                                 >
@@ -213,8 +203,8 @@ export default function TierList() {
                                 {/* Income Wallet Option */}
                                 <div
                                     className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'income'
-                                            ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                                            : 'border-gray-200 hover:border-gray-50'
+                                        ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
+                                        : 'border-gray-200 hover:border-gray-50'
                                         }`}
                                     onClick={() => setPaymentMethod('income')}
                                 >

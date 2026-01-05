@@ -47,6 +47,7 @@ exports.register = async (req, res) => {
             phone,
             password,
             referrerId,
+            membershipLevel: 'Intern',
             invitationCode: generateInvitationCode()
         });
 
