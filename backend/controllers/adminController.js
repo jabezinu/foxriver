@@ -217,3 +217,40 @@ exports.deleteUser = async (req, res) => {
         });
     }
 };
+
+// @desc    Update admin profile
+// @route   PUT /api/admin/profile
+// @access  Private/Admin
+exports.updateAdminProfile = async (req, res) => {
+    try {
+        const { phone, password } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (phone) user.phone = phone;
+        if (password) user.password = password;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            data: {
+                id: user._id,
+                phone: user.phone,
+                role: user.role
+            },
+            message: 'Profile updated successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Profile update failed'
+        });
+    }
+};

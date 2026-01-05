@@ -3,14 +3,16 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import {
     HiChartBar, HiUsers, HiCurrencyDollar, HiBriefcase,
-    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX
+    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog
 } from 'react-icons/hi';
+import AdminProfileModal from '../components/AdminProfileModal';
 
 export default function AdminLayout() {
     const { logout, admin } = useAdminAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     // Close sidebar when route changes on mobile
     useEffect(() => {
@@ -74,6 +76,12 @@ export default function AdminLayout() {
 
     return (
         <div className="flex min-h-screen bg-gray-50">
+            <AdminProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+                admin={admin}
+            />
+
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 bg-[#1e293b] text-white h-16 flex items-center justify-between px-4 z-30 shadow-md">
                 <div className="flex items-center gap-3">
@@ -146,6 +154,13 @@ export default function AdminLayout() {
                             <p className="text-[10px] text-gray-400 uppercase">Super Admin</p>
                         </div>
                     </div>
+                    <button
+                        onClick={() => setIsProfileModalOpen(true)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors text-sm font-bold mb-2"
+                    >
+                        <HiCog className="shrink-0" />
+                        Settings
+                    </button>
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm font-bold"

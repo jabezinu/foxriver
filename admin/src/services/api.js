@@ -95,4 +95,8 @@ export const adminQnaAPI = {
     delete: (id) => api.delete(`/qna/${id}`),
 };
 
+export const adminProfileAPI = {
+    updateProfile: (data) => api.put('/admin/profile', data),
+};
+
 export default api;
