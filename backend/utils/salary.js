@@ -3,9 +3,9 @@ const User = require('../models/User');
 /**
  * Calculate monthly salary based on downline counts
  * Rules:
- * - 15 A-level users: 16,000 ETB
- * - 24 A-level users: 23,000 ETB
- * - 150 total users (A+B+C): 48,000 ETB
+ * - 15 A-level users (Direct): 15,000 ETB
+ * - 20 A-level users (Direct): 20,000 ETB
+ * - 40 total users (A+B+C): 48,000 ETB
  */
 exports.calculateMonthlySalary = async (userId) => {
     try {
@@ -39,27 +39,27 @@ exports.calculateMonthlySalary = async (userId) => {
             salaryComponents: []
         };
 
-        // Check 150 total users rule (highest priority)
-        if (totalCount >= 150) {
+        // Check 40 total users rule (highest priority: 48,000)
+        if (totalCount >= 40) {
             salary = 48000;
-            breakdown.salaryComponents.push({ rule: '150 total users', amount: 48000 });
+            breakdown.salaryComponents.push({ rule: '40 total network users', amount: 48000 });
         }
 
-        // Check 24 A-level users rule
-        if (aLevelCount >= 24) {
-            const bonus = 23000;
-            if (bonus > salary) {
-                salary = bonus;
-                breakdown.salaryComponents = [{ rule: '24 A-level users', amount: 23000 }];
+        // Check 20 A-level users rule (20,000)
+        if (aLevelCount >= 20) {
+            const amount = 20000;
+            if (amount > salary) {
+                salary = amount;
+                breakdown.salaryComponents = [{ rule: '20 direct A-level users', amount: 20000 }];
             }
         }
 
-        // Check 15 A-level users rule
+        // Check 15 A-level users rule (15,000)
         if (aLevelCount >= 15) {
-            const bonus = 16000;
-            if (bonus > salary && aLevelCount < 24) {
-                salary = bonus;
-                breakdown.salaryComponents = [{ rule: '15 A-level users', amount: 16000 }];
+            const amount = 15000;
+            if (amount > salary) {
+                salary = amount;
+                breakdown.salaryComponents = [{ rule: '15 direct A-level users', amount: 15000 }];
             }
         }
 

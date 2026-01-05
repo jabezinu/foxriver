@@ -23,6 +23,7 @@ export default function Team() {
     const [downline, setDownline] = useState(null);
     const [commissions, setCommissions] = useState([]);
     const [commissionTotals, setCommissionTotals] = useState({ A: 0, B: 0, C: 0, total: 0 });
+    const [salaryData, setSalaryData] = useState(null);
     const [expandedLevel, setExpandedLevel] = useState('a'); // 'a', 'b', 'c', or null
 
     useEffect(() => {
@@ -31,13 +32,15 @@ export default function Team() {
 
     const fetchData = async () => {
         try {
-            const [downlineRes, commissionRes] = await Promise.all([
+            const [downlineRes, commissionRes, salaryRes] = await Promise.all([
                 referralAPI.getDownline(),
-                referralAPI.getCommissions()
+                referralAPI.getCommissions(),
+                referralAPI.getSalary()
             ]);
             setDownline(downlineRes.data.downline);
             setCommissions(commissionRes.data.commissions);
             setCommissionTotals(commissionRes.data.totals);
+            setSalaryData(salaryRes.data);
         } catch (error) {
             toast.error('Failed to load team data');
             console.error(error);
@@ -137,6 +140,77 @@ export default function Team() {
                     <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
                         <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">A-Level</p>
                         <p className="text-2xl font-black text-blue-600">{downline?.aLevel.count || 0}</p>
+                    </div>
+                </div>
+
+                {/* Salary Status */}
+                <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-widest">Monthly Salary Status</p>
+                            <h3 className="text-xl font-black text-gray-800">
+                                {salaryData?.salary > 0 ? formatNumber(salaryData.salary) : '0'}
+                                <span className="text-xs font-bold text-gray-400 ml-1">ETB / Month</span>
+                            </h3>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${salaryData?.salary > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                            }`}>
+                            {salaryData?.salary > 0 ? 'Eligible' : 'Ineligible'}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-500 font-medium italic">Requirement Progress</span>
+                        </div>
+
+                        {/* 15 Direct Rule */}
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">15 Direct Invites</span>
+                                <span className="text-[10px] font-black text-blue-600">{downline?.aLevel.count || 0}/15</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / 15) * 100, 100)}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 20 Direct Rule */}
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">20 Direct Invites</span>
+                                <span className="text-[10px] font-black text-indigo-600">{downline?.aLevel.count || 0}/20</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / 20) * 100, 100)}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 40 Total Rule */}
+                        <div className="space-y-1.5 pt-1 border-t border-gray-50 mt-2">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-bold text-gray-700 uppercase">40 Total Team Units (A+B+C)</span>
+                                <span className="text-[10px] font-black text-purple-600">{downline?.total || 0}/40</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-purple-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${Math.min(((downline?.total || 0) / 40) * 100, 100)}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                        <p className="text-[9px] text-blue-600 font-bold leading-relaxed italic">
+                            * Salaries are processed monthly by administrators. Ensure your team counts are met before the payout date.
+                        </p>
                     </div>
                 </div>
 
