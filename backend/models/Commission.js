@@ -28,7 +28,11 @@ const commissionSchema = new mongoose.Schema({
     sourceTask: {
         type: mongoose.Schema.ObjectId,
         ref: 'TaskCompletion',
-        required: true
+        required: false
+    },
+    sourceMembership: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true

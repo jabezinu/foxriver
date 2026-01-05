@@ -107,7 +107,7 @@ export default function Home() {
                     setReferralLink(res.data.referralLink);
                     setShowInvitation(true);
                 } catch (error) {
-                    toast.error('Referral link only available for V1+ users');
+                    toast.error('Failed to get referral link');
                 }
             }
         },

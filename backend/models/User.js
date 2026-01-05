@@ -133,9 +133,6 @@ userSchema.methods.matchTransactionPassword = async function (enteredPassword) {
 
 // Get referral link
 userSchema.methods.getReferralLink = function () {
-    if (this.membershipLevel === 'Intern') {
-        return null;
-    }
     return `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${this.invitationCode}`;
 };
 

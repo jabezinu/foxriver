@@ -1,5 +1,6 @@
 const Membership = require('../models/Membership');
 const User = require('../models/User');
+const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
 
 // @desc    Get all membership tiers
 // @route   GET /api/memberships/tiers
@@ -84,6 +85,9 @@ exports.upgradeMembership = async (req, res) => {
         // Update Level
         user.membershipLevel = newLevel;
         await user.save();
+
+        // Calculate and credit membership commissions
+        await calculateAndCreateMembershipCommissions(user, newMembership);
 
         res.status(200).json({
             success: true,

@@ -103,3 +103,97 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
         throw error;
     }
 };
+/**
+ * Calculate commissions for membership purchases
+ * A-level: 10%
+ * B-level: 5%
+ * C-level: 2%
+ * 
+ * Rules:
+ * 1. Inviter only earns if newMembership.order <= inviter.membership.order
+ * 2. No commission if the invited user joins with Intern level
+ */
+exports.calculateAndCreateMembershipCommissions = async (user, newMembership) => {
+    try {
+        if (!user.referrerId || newMembership.level === 'Intern') {
+            return [];
+        }
+
+        const memberships = await Membership.find().sort({ order: 1 });
+        const membershipOrder = {};
+        memberships.forEach(m => {
+            membershipOrder[m.level] = m.order;
+        });
+
+        const purchaseOrder = newMembership.order;
+        const commissions = [];
+
+        // A-level (direct referrer)
+        const aLevelUser = await User.findById(user.referrerId);
+        if (aLevelUser) {
+            const aLevelOrder = membershipOrder[aLevelUser.membershipLevel];
+            // Rule: Inviter only earns if new membership is equal or lower level than inviter
+            if (aLevelOrder >= purchaseOrder) {
+                const aCommission = newMembership.price * 0.10;
+                commissions.push({
+                    user: aLevelUser._id,
+                    downlineUser: user._id,
+                    level: 'A',
+                    percentage: 10,
+                    amountEarned: aCommission,
+                    sourceMembership: newMembership.level
+                });
+                await User.findByIdAndUpdate(aLevelUser._id, { $inc: { incomeWallet: aCommission } });
+
+                // B-level
+                if (aLevelUser.referrerId) {
+                    const bLevelUser = await User.findById(aLevelUser.referrerId);
+                    if (bLevelUser) {
+                        const bLevelOrder = membershipOrder[bLevelUser.membershipLevel];
+                        if (bLevelOrder >= purchaseOrder) {
+                            const bCommission = newMembership.price * 0.05;
+                            commissions.push({
+                                user: bLevelUser._id,
+                                downlineUser: user._id,
+                                level: 'B',
+                                percentage: 5,
+                                amountEarned: bCommission,
+                                sourceMembership: newMembership.level
+                            });
+                            await User.findByIdAndUpdate(bLevelUser._id, { $inc: { incomeWallet: bCommission } });
+
+                            // C-level
+                            if (bLevelUser.referrerId) {
+                                const cLevelUser = await User.findById(bLevelUser.referrerId);
+                                if (cLevelUser) {
+                                    const cLevelOrder = membershipOrder[cLevelUser.membershipLevel];
+                                    if (cLevelOrder >= purchaseOrder) {
+                                        const cCommission = newMembership.price * 0.02;
+                                        commissions.push({
+                                            user: cLevelUser._id,
+                                            downlineUser: user._id,
+                                            level: 'C',
+                                            percentage: 2,
+                                            amountEarned: cCommission,
+                                            sourceMembership: newMembership.level
+                                        });
+                                        await User.findByIdAndUpdate(cLevelUser._id, { $inc: { incomeWallet: cCommission } });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (commissions.length > 0) {
+            await Commission.insertMany(commissions);
+        }
+
+        return commissions;
+    } catch (error) {
+        console.error('Error calculating membership commissions:', error);
+        throw error;
+    }
+};
