@@ -9,13 +9,15 @@ exports.createWithdrawal = async (req, res) => {
     try {
         const { amount, walletType, transactionPassword } = req.body;
 
-        // Check if user is Intern
+        // Check if user is Intern (Removed restriction)
+        /*
         if (req.user.membershipLevel === 'Intern') {
             return res.status(403).json({
                 success: false,
                 message: 'Intern users cannot withdraw. Please upgrade your level.'
             });
         }
+        */
 
         // Check for withdrawal restriction
         if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {

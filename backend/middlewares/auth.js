@@ -48,14 +48,7 @@ exports.adminOnly = (req, res, next) => {
     }
 };
 
-// Check if user is V1 or higher
+// Check if user is V1 or higher (Now allows Interns too)
 exports.isV1OrHigher = (req, res, next) => {
-    if (req.user && req.user.membershipLevel !== 'Intern') {
-        next();
-    } else {
-        res.status(403).json({
-            success: false,
-            message: 'Please upgrade your level to access this feature',
-        });
-    }
+    next();
 };
