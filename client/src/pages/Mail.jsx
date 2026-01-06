@@ -42,26 +42,26 @@ export default function Mail() {
     if (loading) return <Loading />;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 animate-fade-in">
+        <div className="min-h-screen bg-zinc-950 pb-20 animate-fade-in">
             {/* Header */}
-            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+            <div className="bg-zinc-900/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-zinc-800">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="p-2 -ml-2 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 >
                     <ChevronLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900">Message Center</h1>
+                <h1 className="text-xl font-bold text-white">Message Center</h1>
             </div>
 
             <div className="px-4 py-6">
                 {messages.length === 0 ? (
                     <div className="text-center py-24 px-6">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <MailOpen className="text-gray-300" size={32} />
+                        <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-800">
+                            <MailOpen className="text-zinc-600" size={32} />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">No messages yet</h3>
-                        <p className="text-gray-400 text-sm">We'll notify you when you receive new updates.</p>
+                        <h3 className="text-lg font-bold text-zinc-300 mb-2">No messages yet</h3>
+                        <p className="text-zinc-500 text-sm">We'll notify you when you receive new updates.</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -69,22 +69,22 @@ export default function Mail() {
                             <Card
                                 key={msg._id}
                                 onClick={() => handleRead(msg)}
-                                className={`flex gap-4 items-start p-4 cursor-pointer hover:shadow-md transition-all border-l-4 ${!msg.isRead ? 'border-l-primary-500 bg-white' : 'border-l-transparent bg-gray-50/50 opacity-80'
+                                className={`flex gap-4 items-start p-4 cursor-pointer hover:bg-zinc-800 transition-all border-l-4 ${!msg.isRead ? 'border-l-primary-500 bg-zinc-900 border-zinc-800' : 'border-l-transparent bg-zinc-950 border-zinc-900 opacity-60'
                                     }`}
                             >
-                                <div className={`p-3 rounded-xl flex-shrink-0 ${!msg.isRead ? 'bg-primary-50 text-primary-600' : 'bg-gray-100 text-gray-400'}`}>
+                                <div className={`p-3 rounded-xl flex-shrink-0 ${!msg.isRead ? 'bg-primary-500/10 text-primary-500' : 'bg-zinc-900 text-zinc-600'}`}>
                                     {msg.isRead ? <MailOpen size={20} /> : <MailIcon size={20} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-1">
-                                        <h3 className={`text-sm font-bold truncate pr-2 ${!msg.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
+                                        <h3 className={`text-sm font-bold truncate pr-2 ${!msg.isRead ? 'text-white' : 'text-zinc-500'}`}>
                                             {msg.title}
                                         </h3>
-                                        <span className="text-[10px] text-gray-400 font-bold whitespace-nowrap flex-shrink-0">
+                                        <span className="text-[10px] text-zinc-600 font-bold whitespace-nowrap flex-shrink-0">
                                             {new Date(msg.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{msg.content}</p>
+                                    <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{msg.content}</p>
                                 </div>
                             </Card>
                         ))}
@@ -94,32 +94,33 @@ export default function Mail() {
 
             {/* Message View Overlay */}
             {activeMessage && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl w-full max-w-md p-6 animate-slide-up shadow-2xl relative overflow-hidden">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-zinc-900 rounded-3xl w-full max-w-md p-6 animate-slide-up shadow-2xl relative overflow-hidden border border-zinc-800">
                         <div className="absolute top-0 right-0 p-4">
-                            <button onClick={() => setActiveMessage(null)} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors">
+                            <button onClick={() => setActiveMessage(null)} className="p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="flex items-center gap-2 mb-6">
-                            <span className="bg-primary-100 text-primary-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide">Official Message</span>
+                            <span className="bg-primary-500/10 text-primary-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide border border-primary-500/20">Official Message</span>
                         </div>
 
-                        <h2 className="text-xl font-black text-gray-900 mb-3 pr-8 leading-tight">{activeMessage.title}</h2>
-                        <p className="text-[11px] text-gray-400 font-bold mb-6 flex items-center gap-1.5 uppercase tracking-wide">
+                        <h2 className="text-xl font-black text-white mb-3 pr-8 leading-tight">{activeMessage.title}</h2>
+                        <p className="text-[11px] text-zinc-500 font-bold mb-6 flex items-center gap-1.5 uppercase tracking-wide">
                             <CheckCircle size={14} className="text-emerald-500" />
                             Received on {new Date(activeMessage.createdAt).toLocaleString()}
                         </p>
 
-                        <div className="bg-gray-50 rounded-2xl p-5 mb-6 max-h-[60vh] overflow-y-auto border border-gray-100">
-                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{activeMessage.content}</p>
+                        <div className="bg-zinc-950 rounded-2xl p-5 mb-6 max-h-[60vh] overflow-y-auto border border-zinc-800">
+                            <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{activeMessage.content}</p>
                         </div>
 
                         <Button
                             onClick={() => setActiveMessage(null)}
                             fullWidth
                             variant="secondary"
+                            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
                         >
                             Back to Inbox
                         </Button>

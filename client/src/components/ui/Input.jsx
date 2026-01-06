@@ -11,35 +11,35 @@ export const Input = ({
     return (
         <div className={`w-full ${containerClassName}`}>
             {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
+                <label className="block text-sm font-bold text-zinc-400 mb-1.5 ml-1 uppercase tracking-wider text-[10px]">
                     {label}
                 </label>
             )}
             <div className="relative">
                 <input
                     className={`
-            w-full px-4 py-3 rounded-xl border-2 bg-white
-            placeholder-gray-400 text-gray-900
+            w-full px-4 py-3.5 rounded-xl border-2 bg-zinc-950
+            placeholder-zinc-600 text-white
             transition-all duration-300
-            focus:outline-none focus:ring-2 focus:ring-offset-0
-            disabled:bg-gray-50 disabled:text-gray-500
+            focus:outline-none focus:ring-1 focus:ring-offset-0
+            disabled:bg-zinc-900 disabled:text-zinc-600 disabled:border-zinc-800
             ${icon ? 'pl-11' : ''}
             ${error
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-100'
-                            : 'border-gray-100 focus:border-primary-500 focus:ring-primary-100'
+                            ? 'border-red-900/50 focus:border-red-500 focus:ring-red-900/50'
+                            : 'border-zinc-800 focus:border-primary-500 focus:ring-primary-500/20'
                         }
             ${className}
           `}
                     {...props}
                 />
                 {icon && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
                         {icon}
                     </div>
                 )}
             </div>
             {error && (
-                <p className="mt-1 text-xs text-red-500 ml-1 animate-slide-down">
+                <p className="mt-1 text-xs text-red-400 ml-1 animate-slide-down font-medium">
                     {error}
                 </p>
             )}

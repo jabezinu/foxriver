@@ -116,46 +116,46 @@ export default function Settings() {
             action: () => {
                 setModalType('bank');
             },
-            color: 'text-blue-600 bg-blue-50'
+            color: 'text-blue-500 bg-blue-500/10 border-blue-500/20'
         },
         {
             label: 'Transaction Password',
             icon: ShieldCheck,
             desc: 'Verify withdrawals securely',
             action: () => setModalType('transPass'),
-            color: 'text-emerald-600 bg-emerald-50'
+            color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
         },
         {
             label: 'Login Password',
             icon: Lock,
             desc: 'Secure your account access',
             action: () => setModalType('loginPass'),
-            color: 'text-purple-600 bg-purple-50'
+            color: 'text-primary-500 bg-primary-500/10 border-primary-500/20'
         }
     ];
 
     return (
-        <div className="animate-fade-in min-h-screen bg-gray-50 pb-8">
+        <div className="animate-fade-in min-h-screen bg-zinc-950 pb-8">
             {/* Header */}
-            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+            <div className="bg-zinc-900/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-zinc-800">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="p-2 -ml-2 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+                <h1 className="text-xl font-bold text-white">Settings</h1>
             </div>
 
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* User Card */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm mb-8 flex items-center gap-4 border border-gray-100">
-                    <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-8 flex items-center gap-4 border border-zinc-800">
+                    <div className="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 border border-zinc-700">
                         <User size={28} />
                     </div>
                     <div>
-                        <p className="font-bold text-gray-900 text-lg">{profile.phone}</p>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wide">
+                        <p className="font-bold text-white text-lg">{profile.phone}</p>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-500/10 text-primary-500 text-xs font-bold uppercase tracking-wide border border-primary-500/20">
                             {/* <User size={10} strokeWidth={3} /> */}
                             <span>Level {profile.membershipLevel}</span>
                         </div>
@@ -167,14 +167,14 @@ export default function Settings() {
                         <div
                             key={idx}
                             onClick={item.action}
-                            className="bg-white rounded-2xl p-4 flex items-center gap-4 cursor-pointer border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                            className="bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 cursor-pointer border border-zinc-800 shadow-sm hover:border-zinc-700 hover:bg-zinc-800 transition-all active:scale-[0.98]"
                         >
-                            <div className={`p-3 rounded-xl ${item.color}`}>
+                            <div className={`p-3 rounded-xl border ${item.color}`}>
                                 <item.icon size={22} />
                             </div>
                             <div className="flex-1">
-                                <p className="font-bold text-gray-900 text-sm">{item.label}</p>
-                                <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
+                                <p className="font-bold text-zinc-200 text-sm">{item.label}</p>
+                                <p className="text-xs text-zinc-500 font-medium">{item.desc}</p>
                             </div>
                         </div>
                     ))}
@@ -195,11 +195,11 @@ export default function Settings() {
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
                     {profile.bankChangeStatus === 'pending' && (
-                        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mb-2">
-                            <p className="text-amber-800 font-bold text-xs uppercase tracking-wide mb-1">
+                        <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 mb-2">
+                            <p className="text-amber-500 font-bold text-xs uppercase tracking-wide mb-1">
                                 Change Pending
                             </p>
-                            <p className="text-amber-700 text-xs leading-relaxed">
+                            <p className="text-amber-200/80 text-xs leading-relaxed">
                                 Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
                                 Effective: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                             </p>
@@ -207,7 +207,7 @@ export default function Settings() {
                     )}
 
                     {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && (
-                        <p className="text-xs text-blue-600 bg-blue-50 p-3 rounded-xl font-medium mb-2 border border-blue-100">
+                        <p className="text-xs text-blue-400 bg-blue-500/10 p-3 rounded-xl font-medium mb-2 border border-blue-500/20">
                             Changes to bank details will take 3 days to verify.
                         </p>
                     )}
@@ -243,7 +243,7 @@ export default function Settings() {
 
                     {profile.bankChangeStatus !== 'pending' && (
                         <div className="pt-2">
-                            <Button onClick={handleUpdateBank} fullWidth>
+                            <Button onClick={handleUpdateBank} fullWidth className="shadow-glow">
                                 {profile.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
                             </Button>
                         </div>
@@ -273,7 +273,7 @@ export default function Settings() {
                         onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
                     />
                     <div className="pt-2">
-                        <Button onClick={handleChangeLoginPass} fullWidth>
+                        <Button onClick={handleChangeLoginPass} fullWidth className="shadow-glow">
                             Update Password
                         </Button>
                     </div>
@@ -283,7 +283,7 @@ export default function Settings() {
             {/* Transaction Password Modal */}
             <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title={profile.hasTransactionPassword ? "Change PIN" : "Set PIN"}>
                 <div className="space-y-5">
-                    <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+                    <p className="text-sm text-zinc-400 mb-2 leading-relaxed">
                         {profile.hasTransactionPassword
                             ? "Enter your current 6-digit PIN and the new one to change it."
                             : "Set a 6-digit numeric PIN for withdrawal authorization."}
@@ -291,11 +291,11 @@ export default function Settings() {
 
                     {profile.hasTransactionPassword && (
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-2 text-center uppercase">Current PIN</label>
+                            <label className="block text-xs font-bold text-zinc-500 mb-2 text-center uppercase">Current PIN</label>
                             <input
                                 type="password"
                                 maxLength={6}
-                                className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
+                                className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
                                 value={formData.oldPassword}
                                 onChange={e => setFormData({ ...formData, oldPassword: e.target.value })}
                             />
@@ -303,20 +303,20 @@ export default function Settings() {
                     )}
 
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-2 text-center uppercase">
+                        <label className="block text-xs font-bold text-zinc-500 mb-2 text-center uppercase">
                             {profile.hasTransactionPassword ? "New PIN" : "6-Digit PIN"}
                         </label>
                         <input
                             type="password"
                             maxLength={6}
-                            className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
+                            className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
                             value={formData.transactionPassword}
                             onChange={e => setFormData({ ...formData, transactionPassword: e.target.value })}
                         />
                     </div>
 
                     <div className="pt-4">
-                        <Button onClick={handleSetTransactionPass} fullWidth>
+                        <Button onClick={handleSetTransactionPass} fullWidth className="shadow-glow">
                             {profile.hasTransactionPassword ? "Update PIN" : "Set PIN"}
                         </Button>
                     </div>

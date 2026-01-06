@@ -20,9 +20,9 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
         onClick={item.path ? () => navigate(item.path) : item.action}
         className={`
             group relative flex flex-col items-center justify-center 
-            bg-white rounded-2xl p-4 
-            border border-gray-100 shadow-sm
-            hover:shadow-md hover:-translate-y-0.5
+            bg-zinc-900 rounded-2xl p-4 
+            border border-zinc-800 shadow-sm
+            hover:shadow-glow hover:border-primary-500/30 hover:-translate-y-0.5
             transition-all duration-300 active:scale-95 cursor-pointer 
             ${isLarge ? 'flex-row gap-4 justify-start px-6 py-5' : 'aspect-square'}
         `}
@@ -36,10 +36,10 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
             <item.icon size={isLarge ? 28 : 24} strokeWidth={isLarge ? 1.5 : 2} />
         </div>
         <div className={`${isLarge ? 'flex flex-col items-start' : 'text-center'}`}>
-            <span className={`font-semibold text-gray-800 leading-tight ${isLarge ? 'text-base' : 'text-xs'}`}>
+            <span className={`font-semibold text-zinc-100 leading-tight ${isLarge ? 'text-base' : 'text-xs'}`}>
                 {item.label}
             </span>
-            {isLarge && <span className="text-xs text-gray-500 mt-1">Invite friends and earn commission together</span>}
+            {isLarge && <span className="text-xs text-zinc-400 mt-1">Invite friends and earn commission together</span>}
         </div>
     </div>
 );
@@ -47,7 +47,7 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
 export default function Home() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const { unreadMessages } = useAppStore(); // Assuming you updated useAppStore to expose this, or we can fetch locally if not
+    const { unreadMessages } = useAppStore();
     const [loading, setLoading] = useState(true);
     const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
     const [showInvitation, setShowInvitation] = useState(false);
@@ -77,7 +77,6 @@ export default function Home() {
                 }
 
             } catch (error) {
-                // Silent fail or low-key toast
                 console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
@@ -98,18 +97,18 @@ export default function Home() {
     };
 
     const menuItems = [
-        { icon: Download, label: 'Deposit', color: 'bg-emerald-100 text-emerald-600', path: '/deposit' },
-        { icon: Upload, label: 'Withdraw', color: 'bg-blue-100 text-blue-600', path: '/withdraw' },
-        { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-100 text-purple-600', path: '/tiers' },
-        { icon: Zap, label: 'Wealth', color: 'bg-amber-100 text-amber-600', path: '/wealth' },
-        { icon: Globe, label: 'Spin', color: 'bg-pink-100 text-pink-600', action: () => toast('Lucky Wheel coming soon!') },
-        { icon: Info, label: 'About', color: 'bg-indigo-100 text-indigo-600', action: () => toast.success('Foxriver: Digital Earning Platform') },
-        { icon: Newspaper, label: 'News', color: 'bg-orange-100 text-orange-600', path: '/news' },
-        { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-100 text-teal-600', path: '/qna' },
+        { icon: Download, label: 'Deposit', color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
+        { icon: Upload, label: 'Withdraw', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
+        { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
+        { icon: Zap, label: 'Wealth', color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/wealth' },
+        { icon: Globe, label: 'Spin', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', action: () => toast('Lucky Wheel coming soon!') },
+        { icon: Info, label: 'About', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', action: () => toast.success('Foxriver: Digital Earning Platform') },
+        { icon: Newspaper, label: 'News', color: 'bg-orange-500/10 text-orange-400 border border-orange-500/20', path: '/news' },
+        { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
         {
             icon: Share2,
             label: 'Invite Friends',
-            color: 'bg-rose-100 text-rose-600',
+            color: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
             action: async () => {
                 try {
                     const res = await userAPI.getReferralLink();
@@ -125,18 +124,18 @@ export default function Home() {
     if (loading) return <Loading />;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-6">
+        <div className="min-h-screen pb-6">
             {/* Top Bar */}
-            <div className="bg-white/80 backdrop-blur-md px-5 py-4 flex justify-between items-center sticky top-0 z-30 border-b border-gray-100">
+            <div className="bg-zinc-900/80 backdrop-blur-md px-5 py-4 flex justify-between items-center sticky top-0 z-30 border-b border-zinc-800">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-black text-sm">F</div>
-                    <span className="font-bold text-gray-900 text-lg">Foxriver</span>
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-black font-black text-sm shadow-glow">F</div>
+                    <span className="font-bold text-white text-lg tracking-tight">Foxriver</span>
                 </div>
                 <div className="flex gap-3">
-                    <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors" onClick={() => toast('Language: English')}>
+                    <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => toast('Language: English')}>
                         <Globe size={20} />
                     </button>
-                    <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors" onClick={() => navigate('/settings')}>
+                    <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => navigate('/settings')}>
                         <Settings size={20} />
                     </button>
                 </div>
@@ -144,26 +143,27 @@ export default function Home() {
 
             {/* Hero Section */}
             <div className="px-5 pt-6 pb-2">
-                <div className="bg-gradient-to-br from-[#10b981] to-[#059669] rounded-[2rem] p-6 text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
+                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-amber-400 rounded-[2rem] p-6 text-black shadow-lg shadow-primary-500/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
 
                     <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2 opacity-90">
-                            <span className="text-sm font-medium">Total Balance</span>
+                        <div className="flex items-center gap-2 mb-2 opacity-80">
+                            <span className="text-sm font-bold uppercase tracking-wide">Total Balance</span>
                             <EyeToggle />
                         </div>
-                        <h2 className="text-4xl font-bold mb-8 tracking-tight">
-                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-medium opacity-80">ETB</span>
+                        <h2 className="text-4xl font-black mb-8 tracking-tight text-white drop-shadow-sm">
+                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">ETB</span>
                         </h2>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                                <p className="text-xs text-emerald-100 mb-1">Income Wallet</p>
-                                <p className="font-bold text-lg">{formatNumber(wallet.incomeWallet)}</p>
+                            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-black/30 transition-colors">
+                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Income Wallet</p>
+                                <p className="font-bold text-lg text-white">{formatNumber(wallet.incomeWallet)}</p>
                             </div>
-                            <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                                <p className="text-xs text-emerald-100 mb-1">Asset Wallet</p>
-                                <p className="font-bold text-lg">{formatNumber(wallet.personalWallet)}</p>
+                            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-black/30 transition-colors">
+                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Asset Wallet</p>
+                                <p className="font-bold text-lg text-white">{formatNumber(wallet.personalWallet)}</p>
                             </div>
                         </div>
                     </div>
@@ -173,7 +173,7 @@ export default function Home() {
             {/* Menu Grid */}
             <div className="px-5 py-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-gray-900 text-lg">Quick Actions</h3>
+                    <h3 className="font-bold text-white text-lg">Quick Actions</h3>
                 </div>
 
                 <div className="grid grid-cols-4 gap-3 mb-4">
@@ -192,14 +192,14 @@ export default function Home() {
 
             {/* News / Updates */}
             <div className="px-5 mb-8">
-                <h3 className="font-bold text-gray-900 text-lg mb-4">Latest Updates</h3>
-                <Card className="flex items-start gap-4 p-4" hover onClick={() => navigate('/news')}>
-                    <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center shrink-0 text-primary-600">
+                <h3 className="font-bold text-white text-lg mb-4">Latest Updates</h3>
+                <Card className="flex items-start gap-4 p-4 bg-zinc-900 border-zinc-800" hover onClick={() => navigate('/news')}>
+                    <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center shrink-0 text-primary-500 border border-primary-500/20">
                         <Bell size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900 text-sm mb-1">System Upgrade Notice</h4>
-                        <p className="text-xs text-gray-500 leading-relaxed">
+                        <h4 className="font-bold text-white text-sm mb-1">System Upgrade Notice</h4>
+                        <p className="text-xs text-zinc-400 leading-relaxed">
                             We have upgraded the tier system. Check out the new VIP levels for higher returns!
                         </p>
                     </div>
@@ -213,13 +213,13 @@ export default function Home() {
                 title="Invite Friends"
             >
                 <div className="text-center pt-2">
-                    <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-600">
+                    <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500 border border-rose-500/20">
                         <Share2 size={32} />
                     </div>
-                    <p className="text-gray-600 mb-6 text-sm">
+                    <p className="text-zinc-400 mb-6 text-sm">
                         Share your unique link. Earn commisions when your friends join and deposit!
                     </p>
-                    <div className="bg-gray-50 p-4 rounded-xl break-all mb-6 text-xs font-mono text-gray-700 border border-gray-100">
+                    <div className="bg-black/30 p-4 rounded-xl break-all mb-6 text-xs font-mono text-primary-500 border border-zinc-800 selection:bg-primary-500 selection:text-black">
                         {referralLink}
                     </div>
                     <Button onClick={handleCopyLink} fullWidth>
@@ -235,8 +235,8 @@ export default function Home() {
                     title={messageQueue[0].title}
                 >
                     <div className="space-y-6">
-                        <div className="bg-gray-50 rounded-2xl p-4 max-h-60 overflow-y-auto border border-gray-100">
-                            <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">{messageQueue[0].content}</p>
+                        <div className="bg-black/30 rounded-2xl p-4 max-h-60 overflow-y-auto border border-zinc-800">
+                            <p className="text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{messageQueue[0].content}</p>
                         </div>
                         <Button onClick={handleNextMessage} fullWidth>
                             Got it

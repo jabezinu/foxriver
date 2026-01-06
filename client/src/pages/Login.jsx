@@ -63,20 +63,20 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 overflow-hidden relative">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950 overflow-hidden relative">
             {/* Background Decorations */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-primary-100 rounded-full blur-3xl opacity-60" />
-                <div className="absolute bottom-[-10%] left-[-5%] w-64 h-64 bg-secondary-100 rounded-full blur-3xl opacity-60" />
+                <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-primary-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-[-10%] left-[-5%] w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
             </div>
 
-            <Card className="w-full max-w-md z-10 p-8 shadow-2xl border-none">
+            <Card className="w-full max-w-md z-10 p-8 shadow-2xl border-none bg-zinc-900/90 backdrop-blur-xl">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-glow mb-4">
-                        <span className="text-3xl font-black text-white tracking-tighter">F</span>
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-amber-600 shadow-glow mb-4">
+                        <span className="text-3xl font-black text-black tracking-tighter">F</span>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-                    <p className="text-gray-500 text-sm mt-1">Sign in to manage your portable wealth</p>
+                    <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
+                    <p className="text-zinc-500 text-sm mt-1">Sign in to manage your portable wealth</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,24 +92,24 @@ export default function Login() {
                     />
 
                     <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-gray-700 ml-1">Password</label>
+                        <label className="block text-sm font-medium text-zinc-300 ml-1">Password</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-300 pl-11 pr-11 bg-white text-gray-900"
+                                className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 pl-11 pr-11 placeholder-zinc-600"
                                 placeholder="••••••••"
                                 required
                             />
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
                                 <Lock size={18} />
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -117,31 +117,31 @@ export default function Login() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Verification</label>
+                        <label className="block text-sm font-medium text-zinc-300 mb-1.5 ml-1">Verification</label>
                         <div className="flex gap-3">
                             <input
                                 type="text"
                                 name="captcha"
                                 value={formData.captcha}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-300 bg-white"
+                                className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 placeholder-zinc-600"
                                 placeholder="Enter code"
                                 required
                             />
-                            <div className="shrink-0 h-[50px] overflow-hidden rounded-xl border-2 border-gray-100">
+                            <div className="shrink-0 h-[50px] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
                                 <CanvasCaptcha ref={captchaRef} onCaptchaChange={handleCaptchaChange} />
                             </div>
                         </div>
                     </div>
 
-                    <Button type="submit" loading={loading} fullWidth size="lg">
+                    <Button type="submit" loading={loading} fullWidth size="lg" className="shadow-glow font-bold">
                         Sign In
                     </Button>
                 </form>
 
-                <p className="text-center text-gray-500 text-sm mt-8">
+                <p className="text-center text-zinc-500 text-sm mt-8">
                     Don't have an account?{' '}
-                    <Link to="/register" className="text-primary-600 font-semibold hover:text-primary-700 hover:underline">
+                    <Link to="/register" className="text-primary-500 font-bold hover:text-primary-400 hover:underline transition-colors">
                         Register Now
                     </Link>
                 </p>

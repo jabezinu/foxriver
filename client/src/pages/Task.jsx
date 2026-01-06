@@ -76,27 +76,27 @@ export default function Task() {
     if (loading) return <Loading />;
 
     return (
-        <div className="animate-fade-in px-4 py-8 pb-24 bg-gray-50 min-h-screen">
+        <div className="animate-fade-in px-4 py-8 pb-24 bg-zinc-950 min-h-screen">
             {/* Header Info */}
-            <Card className="p-5 flex justify-between items-center bg-white border-0 shadow-lg shadow-indigo-500/5 mb-8">
+            <Card className="p-5 flex justify-between items-center bg-zinc-900 border-zinc-800 shadow-lg shadow-black/20 mb-8">
                 <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Daily Potential</p>
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"></span>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Daily Potential</p>
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">{formatNumber(dailyStats.dailyIncome)} <span className="text-xs font-bold text-gray-400 uppercase align-top">ETB</span></h2>
+                    <h2 className="text-3xl font-black text-white tracking-tight">{formatNumber(dailyStats.dailyIncome)} <span className="text-xs font-bold text-zinc-500 uppercase align-top">ETB</span></h2>
                 </div>
                 <div className="text-right">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Per Video</p>
-                    <div className="inline-flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg text-emerald-700 font-bold border border-emerald-100">
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Per Video</p>
+                    <div className="inline-flex items-center gap-1 bg-zinc-950/50 px-3 py-1.5 rounded-lg text-primary-500 font-bold border border-zinc-800">
                         <Video size={14} />
                         <span>{formatNumber(dailyStats.perVideoIncome)} ETB</span>
                     </div>
                 </div>
             </Card>
 
-            <h3 className="font-bold text-gray-900 mb-5 flex items-center gap-2 text-sm uppercase tracking-wide px-1">
-                <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <h3 className="font-bold text-white mb-5 flex items-center gap-2 text-sm uppercase tracking-wide px-1">
+                <div className="w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-500/20">
                     <Video size={16} />
                 </div>
                 Today's Tasks
@@ -105,27 +105,27 @@ export default function Task() {
             {/* Task List */}
             <div className="space-y-4">
                 {tasks.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-gray-100 mx-1">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Clock className="text-gray-300" size={24} />
+                    <div className="text-center py-16 bg-zinc-900 rounded-3xl border-2 border-dashed border-zinc-800 mx-1">
+                        <div className="w-16 h-16 bg-zinc-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-800">
+                            <Clock className="text-zinc-600" size={24} />
                         </div>
-                        <p className="text-gray-400 font-medium mb-1">No tasks available</p>
-                        <p className="text-xs text-gray-300">Check back tomorrow for more</p>
+                        <p className="text-zinc-500 font-medium mb-1">No tasks available</p>
+                        <p className="text-xs text-zinc-600">Check back tomorrow for more</p>
                     </div>
                 ) : (
                     tasks.map((task) => (
-                        <Card key={task._id} className="p-4 flex items-center gap-4 transition-all hover:shadow-md border-gray-100">
-                            <div className="relative group">
-                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted ? 'bg-gray-100 text-gray-300' : 'bg-indigo-50 text-indigo-500'
+                        <Card key={task._id} className="p-4 flex items-center gap-4 transition-all hover:bg-zinc-800/80 border-zinc-800 bg-zinc-900 group">
+                            <div className="relative">
+                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted ? 'bg-zinc-950 text-zinc-600 border border-zinc-800' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
                                     }`}>
                                     <Video size={32} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
                                 </div>
-                                {task.isCompleted && <div className="absolute inset-0 bg-white/50 rounded-2xl" />}
+                                {task.isCompleted && <div className="absolute inset-0 bg-black/40 rounded-2xl" />}
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm leading-tight mb-2 truncate">{task.title}</p>
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+                                <p className="font-bold text-zinc-200 text-sm leading-tight mb-2 truncate group-hover:text-primary-400 transition-colors">{task.title}</p>
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-950 text-zinc-400 text-[10px] font-bold uppercase tracking-wider border border-zinc-800">
                                     <span>+{formatNumber(task.earnings)} ETB</span>
                                 </div>
                             </div>
@@ -133,12 +133,12 @@ export default function Task() {
                             <div className="flex-shrink-0">
                                 {task.isCompleted ? (
                                     <div className="flex flex-col items-center gap-1 text-emerald-500">
-                                        <CheckCircle size={28} fill="currentColor" className="text-emerald-100" />
+                                        <CheckCircle size={28} fill="currentColor" className="text-zinc-950" />
                                     </div>
                                 ) : (
                                     <Button
                                         onClick={() => handleViewVideo(task)}
-                                        className="h-10 w-10 p-0 rounded-full flex items-center justify-center shadow-indigo-500/20 shadow-lg"
+                                        className="h-10 w-10 p-0 rounded-full flex items-center justify-center shadow-glow border-none bg-primary-500 hover:bg-primary-600 text-black"
                                     >
                                         <Play size={18} fill="currentColor" className="ml-0.5" />
                                     </Button>
@@ -151,24 +151,24 @@ export default function Task() {
 
             {/* Video Preview Overlay */}
             {activeVideo && (
-                <div className="fixed inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 animate-fade-in backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 animate-fade-in backdrop-blur-md">
                     {/* Countdown Banner */}
                     <div className="absolute top-8 left-0 right-0 flex justify-center px-4 animate-slide-down">
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl flex items-center gap-5 shadow-2xl">
+                        <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-700 px-6 py-4 rounded-2xl flex items-center gap-5 shadow-2xl">
                             <div className="relative">
-                                <div className="w-12 h-12 rounded-full border-4 border-indigo-500 flex items-center justify-center text-white font-bold text-xl relative z-10 bg-black/20">
+                                <div className="w-12 h-12 rounded-full border-4 border-primary-500 flex items-center justify-center text-white font-bold text-xl relative z-10 bg-black/50">
                                     {countdown}
                                 </div>
-                                <div className="absolute inset-0 rounded-full border-4 border-indigo-500 blur-sm animate-pulse-slow"></div>
+                                <div className="absolute inset-0 rounded-full border-4 border-primary-500 blur-sm animate-pulse-slow"></div>
                             </div>
                             <div>
                                 <p className="text-white font-bold uppercase tracking-widest text-sm mb-0.5">Watching Ad</p>
-                                <p className="text-indigo-200 text-xs font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
+                                <p className="text-primary-400 text-xs font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl ring-8 ring-white/10 max-w-2xl relative">
+                    <div className="w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10 max-w-2xl relative">
                         {/* Loading/Buffering Indicator could go here */}
                         <ReactPlayer
                             url={activeVideo.url.startsWith('http') ? activeVideo.url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${activeVideo.url}`}
@@ -192,7 +192,7 @@ export default function Task() {
                             setActiveVideo(null);
                             setCountdown(null);
                         }}
-                        className="mt-12 flex items-center gap-2 text-white/50 text-xs font-bold uppercase tracking-[0.2em] hover:text-white transition-colors group"
+                        className="mt-12 flex items-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] hover:text-white transition-colors group"
                     >
                         <X size={16} className="group-hover:rotate-90 transition-transform" />
                         Cancel Task

@@ -4,14 +4,19 @@
 
 @layer base {
   :root {
-    --primary: 16 185 129;
-    /* Emerald 500 */
-    --secondary: 59 130 246;
-    /* Blue 500 */
-    --background: 249 250 251;
-    /* Gray 50 */
-    --foreground: 17 24 39;
-    /* Gray 900 */
+    /* Base HSL values could be useful, but using direct colors for now */
+    --primary: 245 158 11;
+    /* Amber 500 */
+    --background: 9 9 11;
+    /* Zinc 950 */
+    --foreground: 250 250 250;
+    /* Zinc 50 */
+    --card: 24 24 27;
+    /* Zinc 900 */
+    --card-foreground: 250 250 250;
+    /* Zinc 50 */
+    --border: 39 39 42;
+    /* Zinc 800 */
 
     --radius: 1rem;
   }
@@ -19,18 +24,20 @@
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
-    background-color: rgb(var(--background));
-    color: rgb(var(--foreground));
+    @apply bg-background text-white font-sans antialiased;
+    background-color: #09090b;
+    /* Fallback */
   }
 }
 
 /* Mobile App Container */
 .app-container {
-  @apply mx-auto min-h-screen bg-gray-50 relative overflow-hidden shadow-2xl;
+  @apply mx-auto min-h-screen relative overflow-hidden shadow-2xl;
+  background-color: #09090b;
   max-width: 480px;
 }
 
@@ -45,50 +52,55 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-zinc-800 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-zinc-700;
 }
 
 /* Premium button styles */
 .btn-primary {
-  @apply bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95;
+  @apply bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold py-3 px-6 rounded-xl shadow-glow hover:shadow-glow-strong hover:from-amber-400 hover:to-amber-500 transition-all duration-300 active:scale-95 border-none;
 }
 
 .btn-secondary {
-  @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95;
+  @apply bg-zinc-800 text-white font-semibold py-3 px-6 rounded-xl shadow-md border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-300 active:scale-95;
 }
 
 .btn-outline {
-  @apply border-2 border-green-500 text-green-600 font-semibold py-3 px-6 rounded-xl hover:bg-green-50 transition-all duration-300 active:scale-95;
+  @apply border-2 border-amber-500 text-amber-500 font-semibold py-3 px-6 rounded-xl hover:bg-amber-950/30 transition-all duration-300 active:scale-95;
+}
+
+.btn-danger {
+  @apply bg-red-600/90 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:bg-red-500 transition-all duration-300 active:scale-95;
 }
 
 /* Card styles */
 .card {
-  @apply bg-white rounded-2xl shadow-md p-4 border border-gray-100 hover:shadow-lg transition-shadow duration-300;
+  @apply bg-zinc-900/90 backdrop-blur-sm rounded-2xl shadow-card p-4 border border-zinc-800/50 hover:border-amber-500/30 transition-all duration-300;
 }
 
 .card-hover {
-  @apply bg-white rounded-2xl shadow-md p-4 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer;
+  @apply bg-zinc-900/90 backdrop-blur-sm rounded-2xl shadow-card p-4 border border-zinc-800/50 hover:shadow-glow hover:border-amber-500/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer;
 }
 
 /* Input styles */
 .input-field {
-  @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-100 outline-none transition-all duration-300;
+  @apply w-full px-4 py-3 rounded-xl bg-zinc-950 border-2 border-zinc-800 text-white placeholder-zinc-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all duration-300;
 }
 
 /* Currency formatting */
 .currency-etb::before {
   content: 'ETB ';
   font-weight: 600;
-  color: var(--primary);
+  color: #F59E0B;
+  /* Primary Gold */
 }
 
 /* Loading spinner */
 .spinner {
-  @apply inline-block w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin;
+  @apply inline-block w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin;
 }
 
 /* Animations */
@@ -130,9 +142,12 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  background: white;
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  background: rgba(9, 9, 11, 0.95);
+  /* Zinc 950 with opacity */
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(39, 39, 42, 0.5);
+  /* Zinc 800 */
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
   z-index: 50;
 }
 
@@ -142,15 +157,15 @@
   left: 20px;
   bottom: 90px;
   z-index: 45;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: black;
   width: 56px;
   height: 56px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -164,7 +179,7 @@
 
 .floating-mail:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
 }
 
 .floating-mail:active {
@@ -173,28 +188,21 @@
 
 /* Badge */
 .badge {
-  @apply absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center;
+  @apply absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-zinc-950;
 }
 
 /* Disabled state */
 .disabled {
-  @apply opacity-50 cursor-not-allowed pointer-events-none;
+  @apply opacity-50 cursor-not-allowed pointer-events-none grayscale;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
+/* Text Gradients */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-600;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
+.text-gradient-gold {
+  background: linear-gradient(to right, #FCD34D, #F59E0B, #D97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

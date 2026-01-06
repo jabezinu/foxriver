@@ -80,43 +80,43 @@ export default function Withdraw() {
     if (loading) return <Loading />;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-8 animate-fade-in">
+        <div className="min-h-screen bg-zinc-950 pb-8 animate-fade-in">
             {/* Header */}
-            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+            <div className="bg-zinc-900/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-zinc-800">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="p-2 -ml-2 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900">Withdraw</h1>
+                <h1 className="text-xl font-bold text-white">Withdraw</h1>
             </div>
 
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* Wallet Balances Summary */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm mb-6 border border-gray-100">
+                <div className="bg-zinc-900 rounded-2xl p-5 shadow-sm mb-6 border border-zinc-800">
                     <div className="flex justify-between items-stretch">
                         <div className="flex-1">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Income Balance</p>
-                            <p className="text-xl font-bold text-gray-900">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-gray-400 font-medium">ETB</span></p>
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Income Balance</p>
+                            <p className="text-xl font-bold text-white">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
-                        <div className="w-px bg-gray-100 mx-4"></div>
+                        <div className="w-px bg-zinc-800 mx-4"></div>
                         <div className="flex-1 text-right">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Personal Balance</p>
-                            <p className="text-xl font-bold text-gray-900">{formatNumber(wallets.personalWallet)} <span className="text-xs text-gray-400 font-medium">ETB</span></p>
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Personal Balance</p>
+                            <p className="text-xl font-bold text-white">{formatNumber(wallets.personalWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
                     </div>
                 </div>
 
                 {/* Wallet Selector */}
                 <div className="mb-6">
-                    <label className="block text-sm font-bold text-gray-700 mb-3 ml-1">Withdraw From</label>
+                    <label className="block text-sm font-bold text-zinc-400 mb-3 ml-1 uppercase tracking-wider text-[10px]">Withdraw From</label>
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => setWalletType('income')}
-                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${walletType === 'income'
-                                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
-                                    : 'border-gray-200 bg-white text-gray-400'
+                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'income'
+                                ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
+                                : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
                                 }`}
                         >
                             <Wallet size={24} strokeWidth={walletType === 'income' ? 2 : 1.5} />
@@ -124,9 +124,9 @@ export default function Withdraw() {
                         </button>
                         <button
                             onClick={() => setWalletType('personal')}
-                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${walletType === 'personal'
-                                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
-                                    : 'border-gray-200 bg-white text-gray-400'
+                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'personal'
+                                ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
+                                : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
                                 }`}
                         >
                             <Wallet size={24} strokeWidth={walletType === 'personal' ? 2 : 1.5} />
@@ -136,14 +136,14 @@ export default function Withdraw() {
                 </div>
 
                 {/* Amount Selection */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+                <div className="bg-zinc-900 rounded-2xl p-5 shadow-sm border border-zinc-800 mb-6">
                     <div className="flex justify-between items-end mb-4">
-                        <h3 className="font-bold text-gray-900 text-sm">Withdraw Amount</h3>
+                        <h3 className="font-bold text-white text-sm">Withdraw Amount</h3>
                         <div className="text-right">
-                            <span className="text-xl font-bold text-primary-600">
+                            <span className="text-xl font-bold text-primary-500">
                                 {selectedAmount ? formatNumber(selectedAmount) : '0'}
                             </span>
-                            <span className="text-xs font-medium text-gray-400 ml-1">ETB</span>
+                            <span className="text-xs font-medium text-zinc-500 ml-1">ETB</span>
                         </div>
                     </div>
 
@@ -155,8 +155,8 @@ export default function Withdraw() {
                                 className={`
                                     py-2.5 rounded-lg font-bold text-xs transition-all border
                                     ${selectedAmount === amount
-                                        ? 'border-primary-500 bg-primary-50 text-primary-600 shadow-inner'
-                                        : 'border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:border-gray-200'
+                                        ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
+                                        : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
                                     }
                                 `}
                             >
@@ -168,31 +168,31 @@ export default function Withdraw() {
 
                 {/* Tax Info */}
                 {selectedAmount && (
-                    <div className="bg-amber-50 rounded-2xl p-5 mb-6 border border-amber-100 animate-slide-up">
+                    <div className="bg-amber-500/10 rounded-2xl p-5 mb-6 border border-amber-500/20 animate-slide-up">
                         <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs font-bold text-amber-600 uppercase tracking-wide">Summary</span>
+                            <span className="text-xs font-bold text-amber-500 uppercase tracking-wide">Summary</span>
                             <ShieldCheck size={18} className="text-amber-500" />
                         </div>
                         <div className="space-y-2 text-sm">
-                            <div className="flex justify-between text-amber-800/70">
+                            <div className="flex justify-between text-amber-200/70">
                                 <span>Gross Amount</span>
                                 <span className="font-medium">{formatNumber(selectedAmount)} ETB</span>
                             </div>
-                            <div className="flex justify-between text-amber-800/70">
+                            <div className="flex justify-between text-amber-200/70">
                                 <span>Tax (10%)</span>
-                                <span className="font-medium text-red-500">-{formatNumber(taxAmount)} ETB</span>
+                                <span className="font-medium text-red-400">-{formatNumber(taxAmount)} ETB</span>
                             </div>
-                            <div className="pt-2 border-t border-amber-200/50 flex justify-between items-center mt-1">
-                                <span className="font-bold text-amber-900">Net Arrival</span>
-                                <span className="font-bold text-lg text-emerald-600">{formatNumber(netAmount)} ETB</span>
+                            <div className="pt-2 border-t border-amber-500/20 flex justify-between items-center mt-1">
+                                <span className="font-bold text-amber-200">Net Arrival</span>
+                                <span className="font-bold text-lg text-emerald-400">{formatNumber(netAmount)} ETB</span>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Transaction Password */}
-                <Card className="p-6 mb-8 border-gray-200">
-                    <label className="block text-sm font-bold text-gray-800 mb-4 text-center">Transaction Password</label>
+                <Card className="p-6 mb-8 border-zinc-800 bg-zinc-900">
+                    <label className="block text-sm font-bold text-zinc-300 mb-4 text-center">Transaction Password</label>
                     <div className="relative max-w-[200px] mx-auto">
                         <input
                             type={showPassword ? 'text' : 'password'}
@@ -200,17 +200,17 @@ export default function Withdraw() {
                             onChange={(e) => setTransactionPassword(e.target.value)}
                             placeholder="••••••"
                             maxLength={6}
-                            className="w-full text-center text-2xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
+                            className="w-full text-center text-2xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute -right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                            className="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
                         >
                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                    <p className="text-xs text-center text-gray-400 mt-4">Enter your 6-digit pin to confirm</p>
+                    <p className="text-xs text-center text-zinc-500 mt-4">Enter your 6-digit pin to confirm</p>
                 </Card>
 
                 <Button
@@ -218,7 +218,7 @@ export default function Withdraw() {
                     loading={submitting}
                     disabled={submitting}
                     size="lg"
-                    className="w-full shadow-lg shadow-primary-200"
+                    className="w-full shadow-glow"
                 >
                     Submit Request
                 </Button>
