@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { userAPI, depositAPI, bankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiCreditCard, HiCheck, HiChevronDown } from 'react-icons/hi';
+import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
 import { formatNumber } from '../utils/formatNumber';
 
 export default function Deposit() {
@@ -109,7 +112,7 @@ export default function Deposit() {
                 depositId: currentDeposit._id,
                 transactionFT: ftNumber
             });
-            toast.success('Transaction FT submitted! Awaiting admin approval.');
+            toast.success('Transaction submitted! Awaiting approval.');
             navigate('/');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to submit FT');
@@ -120,61 +123,69 @@ export default function Deposit() {
 
     const getSelectedMethodName = () => {
         const method = methods.find(m => m.id === paymentMethod);
-        return method ? method.name : 'Choose bank/service';
+        return method ? method.name : 'Select Payment Method';
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        toast.success('Copied to clipboard');
     };
 
     if (loading) return <Loading />;
 
     return (
-        <div className="animate-fadeIn min-h-screen bg-gray-50/50">
+        <div className="min-h-screen bg-gray-50 pb-8 animate-fade-in">
             {/* Header */}
-            <div className="bg-white px-6 py-5 flex items-center gap-6 sticky top-0 z-30 shadow-sm border-b border-gray-100">
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
+                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
                 >
-                    <HiArrowLeft className="text-2xl" />
+                    <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Deposit</h1>
+                <h1 className="text-xl font-bold text-gray-900">Deposit</h1>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 py-8 relative z-0">
+            <div className="max-w-md mx-auto px-4 py-6">
                 {step === 1 ? (
                     <>
                         {/* Section 1: Account Balance */}
-                        <div className="bg-white rounded-[2rem] p-8 shadow-sm mb-8 border border-gray-100 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/20 mb-6 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none" />
                             <div className="relative z-10">
-                                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Personal Wallet</p>
+                                <p className="text-emerald-100 text-xs font-medium uppercase tracking-wider mb-2">Personal Wallet</p>
                                 <div className="flex items-baseline gap-1">
-                                    <h2 className="text-4xl font-black text-gray-900 tracking-tight">{formatNumber(balance)}</h2>
-                                    <span className="text-lg font-bold text-gray-400">ETB</span>
+                                    <h2 className="text-3xl font-bold tracking-tight">{formatNumber(balance)}</h2>
+                                    <span className="text-sm font-medium opacity-80">ETB</span>
                                 </div>
                             </div>
-                            {/* Decorative background circle */}
-                            <div className="absolute -right-8 -top-8 w-32 h-32 bg-green-50 rounded-full opacity-50 pointer-events-none" />
                         </div>
 
-                        {/* Section 2: Deposit Amount & Grid */}
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm mb-2 border border-gray-100">
-                            <div className="flex justify-between items-end mb-6 px-1">
-                                <h3 className="font-bold text-gray-800 text-base">Select Amount</h3>
+                        {/* Section 2: Deposit Amount */}
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+                            <div className="flex justify-between items-end mb-4">
+                                <h3 className="font-bold text-gray-900 text-sm">Select Amount</h3>
                                 <div className="text-right">
-                                    <span className="text-2xl font-black text-green-600">
+                                    <span className="text-xl font-bold text-primary-600">
                                         {selectedAmount ? formatNumber(selectedAmount) : '0'}
                                     </span>
-                                    <span className="text-xs font-bold text-gray-400 ml-1">ETB</span>
+                                    <span className="text-xs font-medium text-gray-400 ml-1">ETB</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-4 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 {amounts.map((amount) => (
                                     <button
                                         key={amount}
                                         onClick={() => setSelectedAmount(amount)}
-                                        className={`py-4 px-2 rounded-2xl font-bold text-sm transition-all duration-200 border-2 flex items-center justify-center shadow-sm active:scale-95 ${selectedAmount === amount
-                                            ? 'border-green-500 bg-green-50 text-green-700 shadow-green-100 ring-2 ring-green-100 ring-offset-2'
-                                            : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-50'
-                                            }`}
+                                        className={`
+                                            py-3 px-1 rounded-xl font-bold text-sm transition-all duration-200 
+                                            border flex items-center justify-center relative overflow-hidden
+                                            ${selectedAmount === amount
+                                                ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                                                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                            }
+                                        `}
                                     >
                                         {formatNumber(amount)}
                                     </button>
@@ -182,129 +193,131 @@ export default function Deposit() {
                             </div>
                         </div>
 
-                        {/* Section 3: Payment Method Dropdown (Custom) */}
-                        <div className="bg-white rounded-[2rem] p-2 shadow-sm mb-4 border border-gray-100 relative z-20">
-                            <label className="block text-sm font-bold text-gray-700 mb-4 ml-1">Payment Method</label>
-
-                            {/* Backdrop for clicking outside */}
-                            {isDropdownOpen && (
-                                <div
-                                    className="fixed inset-0 z-30 bg-black/5 backdrop-blur-[1px]"
-                                    onClick={() => setIsDropdownOpen(false)}
-                                />
-                            )}
-
-                            <div className="relative z-40">
-                                {/* Trigger Button */}
+                        {/* Section 3: Payment Method Dropdown */}
+                        <div className="mb-8">
+                            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Payment Method</label>
+                            <div className="relative z-20">
                                 <button
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className={`w-full bg-slate-50 border-2 rounded-2xl px-5 py-3 flex items-center justify-between transition-all duration-200 group ${isDropdownOpen ? 'border-green-500 ring-4 ring-green-50 bg-white' : 'border-slate-100 hover:border-slate-200'
-                                        }`}
+                                    className={`
+                                        w-full bg-white border rounded-xl px-4 py-3.5 flex items-center justify-between 
+                                        transition-all duration-200 shadow-sm
+                                        ${isDropdownOpen ? 'border-primary-500 ring-2 ring-primary-50' : 'border-gray-200 hover:border-gray-300'}
+                                    `}
                                 >
-                                    <div className="flex items-center gap-4 overflow-hidden">
-                                        <div className={`shrink-0 p-2 rounded-xl transition-colors ${paymentMethod ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-400'
-                                            }`}>
-                                            <HiCreditCard className="text-2xl" />
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg transition-colors ${paymentMethod ? 'bg-primary-50 text-primary-600' : 'bg-gray-100 text-gray-400'}`}>
+                                            <CreditCard size={20} />
                                         </div>
                                         <div className="text-left">
-                                            <span className={`block font-bold text-base truncate ${paymentMethod ? 'text-gray-900' : 'text-gray-400'}`}>
+                                            <span className={`block font-semibold text-sm ${paymentMethod ? 'text-gray-900' : 'text-gray-500'}`}>
                                                 {getSelectedMethodName()}
                                             </span>
-                                            {paymentMethod && <span className="text-xs font-semibold text-gray-400 block mt-0.5">Selected Bank</span>}
                                         </div>
                                     </div>
-                                    <HiChevronDown
-                                        className={`text-2xl text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-green-500' : 'group-hover:text-gray-600'}`}
+                                    <ChevronDown
+                                        className={`text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                        size={20}
                                     />
                                 </button>
 
-                                {/* Dropdown List */}
                                 {isDropdownOpen && (
-                                    <div className="absolute top-full left-0 w-full mt-3 bg-white border border-gray-100 rounded-3xl shadow-2xl shadow-gray-100/50 z-50 overflow-hidden animate-springUp p-2">
-                                        {methods.map((method) => (
-                                            <button
-                                                key={method.id}
-                                                onClick={() => {
-                                                    setPaymentMethod(method.id);
-                                                    setIsDropdownOpen(false);
-                                                }}
-                                                className={`w-full p-3 flex items-center justify-between transition-all rounded-2xl mb-1 last:mb-0 ${paymentMethod === method.id
-                                                    ? 'bg-green-50 text-green-900'
-                                                    : 'hover:bg-gray-50 text-gray-700'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`p-3 rounded-xl ${paymentMethod === method.id ? 'bg-white text-green-600 shadow-sm' : 'bg-gray-100 text-gray-500'
-                                                        }`}>
-                                                        <HiCreditCard className="text-lg" />
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-10"
+                                            onClick={() => setIsDropdownOpen(false)}
+                                        />
+                                        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 overflow-hidden animate-slide-up p-1.5">
+                                            {methods.map((method) => (
+                                                <button
+                                                    key={method.id}
+                                                    onClick={() => {
+                                                        setPaymentMethod(method.id);
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className={`
+                                                        w-full p-3 flex items-center justify-between transition-all rounded-xl mb-1 last:mb-0
+                                                        ${paymentMethod === method.id
+                                                            ? 'bg-primary-50 text-primary-900'
+                                                            : 'hover:bg-gray-50 text-gray-700'
+                                                        }
+                                                    `}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`p-2 rounded-lg ${paymentMethod === method.id ? 'bg-white text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
+                                                            <CreditCard size={18} />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <span className="font-semibold text-sm block">
+                                                                {method.name}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-left">
-                                                        <span className="font-bold text-base block">
-                                                            {method.name}
-                                                        </span>
-                                                        <span className="text-xs text-gray-400 font-medium">Fast Transfer</span>
-                                                    </div>
-                                                </div>
-                                                {paymentMethod === method.id && (
-                                                    <div className="bg-green-500 text-white p-1 rounded-full">
-                                                        <HiCheck className="text-sm" />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                                    {paymentMethod === method.id && (
+                                                        <Check size={16} className="text-primary-600" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
 
-                        <button
+                        <Button
                             onClick={handleCreateDeposit}
+                            loading={submitting}
                             disabled={submitting}
-                            className="btn-primary w-full py-6 rounded-2xl text-base font-bold shadow-xl shadow-green-200 hover:shadow-green-300 hover:scale-[1.02] active:scale-[0.98] transition-all transform disabled:opacity-70 disabled:hover:scale-100 mb-12"
+                            size="lg"
+                            className="w-full mb-10 shadow-lg shadow-primary-200"
                         >
-                            {submitting ? <span className="spinner w-6 h-6 border-2"></span> : 'CONTINUE TO PAYMENT'}
-                        </button>
+                            Continue to Payment
+                        </Button>
 
                         {/* Section 4: History */}
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between px-2">
-                                <h3 className="font-bold text-gray-800 text-sm uppercase tracking-widest">Recent Records</h3>
-                                <div className="h-px flex-1 bg-gray-100 mx-4"></div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <History size={18} className="text-gray-400" />
+                                <h3 className="font-bold text-gray-700 text-sm">Recent Activity</h3>
                             </div>
 
                             {loadingHistory ? (
-                                <div className="text-center py-10">
-                                    <div className="spinner w-6 h-6 border-2 border-green-500 mx-auto"></div>
+                                <div className="text-center py-8">
+                                    <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                 </div>
                             ) : history.length === 0 ? (
-                                <div className="bg-white rounded-3xl p-10 text-center border-2 border-dashed border-gray-100">
-                                    <p className="text-gray-300 font-bold text-xs uppercase tracking-widest">No records found</p>
+                                <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                    <p className="text-xs text-gray-400 font-medium">No records found</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
                                     {history.map((item) => (
-                                        <div key={item._id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-3 rounded-xl ${item.status === 'approved' ? 'bg-green-50 text-green-600' :
-                                                    item.status === 'rejected' ? 'bg-red-50 text-red-600' :
-                                                        'bg-yellow-50 text-yellow-600'
-                                                    }`}>
-                                                    <HiCreditCard className="text-xl" />
+                                        <div key={item._id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`
+                                                    p-2.5 rounded-xl
+                                                    ${item.status === 'approved' ? 'bg-green-50 text-green-600' :
+                                                        item.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                                                            'bg-amber-50 text-amber-600'}
+                                                `}>
+                                                    <CreditCard size={20} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-800 text-sm">{formatNumber(item.amount)} ETB</p>
+                                                    <p className="font-bold text-gray-900 text-sm">{formatNumber(item.amount)} ETB</p>
                                                     <p className="text-[10px] text-gray-400 font-medium">
-                                                        {new Date(item.createdAt).toLocaleDateString()} • {item.transactionFT || 'No FT'}
+                                                        {new Date(item.createdAt).toLocaleDateString()}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter ${item.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                                item.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
-                                                }`}>
+                                            <div className={`
+                                                text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide
+                                                ${item.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                    item.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                        'bg-amber-100 text-amber-700'}
+                                            `}>
                                                 {item.status === 'approved' ? 'Success' :
                                                     item.status === 'rejected' ? 'Failed' :
-                                                        item.status === 'ft_submitted' ? 'Pending Approval' : 'Awaiting Payment'}
+                                                        item.status === 'ft_submitted' ? 'Pending' : 'Unpaid'}
                                             </div>
                                         </div>
                                     ))}
@@ -313,67 +326,81 @@ export default function Deposit() {
                         </div>
                     </>
                 ) : (
-                    <div className="animate-slideUp max-w-xl mx-auto">
-                        <div className="bg-green-50 border border-green-200 rounded-[2rem] p-8 mb-8 text-center relative overflow-hidden">
-                            <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-green-500 text-3xl">
-                                <HiCheck />
+                    <div className="animate-slide-up">
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6 mb-6 text-center">
+                            <div className="bg-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-emerald-500">
+                                <Check size={28} strokeWidth={3} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Request Created!</h3>
-                            <p className="text-green-700 text-base leading-relaxed">
-                                Please transfer exactly <span className="font-black text-green-800 bg-green-100 px-2 py-0.5 rounded-lg">{formatNumber(selectedAmount)} ETB</span> to the account below.
+                            <h3 className="text-lg font-bold text-gray-900 mb-1">Request Created</h3>
+                            <p className="text-emerald-700 text-sm leading-relaxed max-w-xs mx-auto">
+                                Transfer exactly <span className="font-bold bg-white px-1.5 py-0.5 rounded text-emerald-800">{formatNumber(selectedAmount)} ETB</span>
                             </p>
                         </div>
 
-                        <div className="bg-white rounded-[2rem] p-8 shadow-sm mb-8 border border-gray-100">
-                            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6 pb-2 border-b border-gray-50">Payment Details</h4>
-                            <div className="space-y-6">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                                    <p className="text-sm font-medium text-gray-500">Bank Service</p>
-                                    <p className="font-bold text-gray-900 text-lg">{methods.find(m => m.id === paymentMethod)?.name}</p>
+                        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-100">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 pb-2 border-b border-gray-50">
+                                Bank Details
+                            </h4>
+                            <div className="space-y-5">
+                                <div className="flex justify-between items-center group">
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-0.5">Bank Name</p>
+                                        <p className="font-bold text-gray-900">{methods.find(m => m.id === paymentMethod)?.name}</p>
+                                    </div>
+
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                                    <p className="text-sm font-medium text-gray-500">Account Number</p>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-2xl font-mono font-bold text-green-600 tracking-tight select-all">
+                                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                    <div className="overflow-hidden">
+                                        <p className="text-xs text-gray-500 mb-0.5">Account Number</p>
+                                        <p className="font-mono font-bold text-gray-900 text-lg tracking-tight truncate">
                                             {methods.find(m => m.id === paymentMethod)?.account}
                                         </p>
                                     </div>
+                                    <button
+                                        onClick={() => copyToClipboard(methods.find(m => m.id === paymentMethod)?.account)}
+                                        className="p-2 text-primary-600 hover:bg-white rounded-lg transition-colors"
+                                    >
+                                        <Copy size={20} />
+                                    </button>
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                                    <p className="text-sm font-medium text-gray-500">Account Name</p>
-                                    <p className="font-bold text-gray-800 text-lg">{methods.find(m => m.id === paymentMethod)?.holder}</p>
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-0.5">Account Holder</p>
+                                    <p className="font-bold text-gray-900">{methods.find(m => m.id === paymentMethod)?.holder}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mb-10 bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-                            <label className="block text-sm font-bold text-gray-700 mb-4">Enter Transaction FT Number</label>
-                            <input
-                                type="text"
-                                value={ftNumber}
-                                onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
-                                placeholder="FT230104XXXX"
-                                maxLength={12}
-                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl py-5 px-4 font-mono text-center tracking-widest text-lg focus:border-green-500 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-gray-300"
-                            />
-                            <p className="text-xs text-gray-400 mt-3 text-center font-medium">
-                                * The Transaction FT number (12 digits) is required for verification.
-                            </p>
+                        <div className="mb-8">
+                            <Card className="p-5 border-primary-100 shadow-sm">
+                                <label className="block text-sm font-bold text-gray-800 mb-3 text-center">Enter Transaction FT Number</label>
+                                <Input
+                                    value={ftNumber}
+                                    onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
+                                    placeholder="FT230104XXXX"
+                                    maxLength={12}
+                                    className="text-center font-mono tracking-widest text-lg py-3 uppercase placeholder:normal-case placeholder:tracking-normal"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-2 text-center">
+                                    Enter the 12-digit transaction reference number from your bank app.
+                                </p>
+                            </Card>
                         </div>
 
-                        <button
+                        <Button
                             onClick={handleSubmitFT}
+                            loading={submitting}
                             disabled={submitting}
-                            className="btn-primary w-full py-6 rounded-2xl text-base font-bold shadow-xl shadow-green-200 mb-4"
+                            size="lg"
+                            className="w-full mb-3 shadow-lg shadow-primary-200"
                         >
-                            {submitting ? <span className="spinner w-6 h-6 border-2"></span> : 'SUBMIT PAYMENT'}
-                        </button>
+                            Submit Payment
+                        </Button>
 
                         <button
                             onClick={() => setStep(1)}
-                            className="w-full py-4 text-gray-500 font-bold text-sm hover:text-gray-800 transition-colors"
+                            className="w-full py-3 text-gray-500 font-bold text-sm hover:text-gray-800 transition-colors"
                         >
-                            Cancel & Go Back
+                            Cancel
                         </button>
                     </div>
                 )}

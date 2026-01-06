@@ -4,17 +4,22 @@ import { referralAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import {
-    HiChevronLeft,
-    HiUserGroup,
-    HiShare,
-    HiDuplicate,
-    HiArrowSmRight,
-    HiCurrencyDollar,
-    HiChevronDown,
-    HiChevronUp
-} from 'react-icons/hi';
+    ChevronLeft,
+    Users,
+    Share2,
+    Copy,
+    ArrowRight,
+    DollarSign,
+    ChevronDown,
+    ChevronUp,
+    Trophy,
+    Target,
+    Award
+} from 'lucide-react';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
 
 export default function Team() {
     const navigate = useNavigate();
@@ -74,14 +79,14 @@ export default function Team() {
         }
 
         return (
-            <div className="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1">
+            <div className="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                 {users.map((u, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg border border-gray-100">
+                    <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-gray-700">{u.phone.replace(/(\+\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 *** $4')}</span>
                             <span className="text-[10px] text-gray-400">{new Date(u.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <span className="px-2 py-0.5 bg-white border border-gray-200 rounded text-[9px] font-bold text-gray-600 uppercase">
+                        <span className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 uppercase tracking-wider shadow-sm">
                             {u.membershipLevel}
                         </span>
                     </div>
@@ -91,144 +96,145 @@ export default function Team() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 animate-fadeIn">
+        <div className="min-h-screen bg-gray-50 pb-24 animate-fade-in">
             {/* Header */}
-            <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-20 shadow-sm">
-                <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <HiChevronLeft className="text-2xl text-gray-600" />
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                    <ChevronLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-800">My Team</h1>
+                <h1 className="text-xl font-bold text-gray-900">My Team</h1>
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className="px-4 py-6 space-y-6">
                 {/* Invitation Card */}
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
-                    <HiUserGroup className="absolute -bottom-8 -right-8 text-[12rem] text-white/5 rotate-12" />
+                <div className="relative overflow-hidden rounded-3xl bg-gray-900 p-6 text-white shadow-xl">
                     <div className="relative z-10">
-                        <p className="text-xs text-white/50 font-bold uppercase mb-1 tracking-widest">Your Rewards</p>
-                        <h2 className="text-3xl font-black mb-6">{formatNumber(commissionTotals.total)} <span className="text-sm font-bold opacity-60">ETB</span></h2>
+                        <p className="text-xs text-indigo-200 font-bold uppercase mb-1 tracking-widest flex items-center gap-2">
+                            <Trophy size={14} className="text-yellow-400" />
+                            Your Rewards
+                        </p>
+                        <h2 className="text-4xl font-black mb-8 tracking-tight">
+                            {formatNumber(commissionTotals.total)}
+                            <span className="text-lg font-bold text-indigo-200 ml-2">ETB</span>
+                        </h2>
 
                         <div className="space-y-3">
                             <div className="flex gap-2">
-                                <div className="flex-1 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 flex justify-between items-center">
-                                    <div className="overflow-hidden">
-                                        <p className="text-[8px] text-white/40 font-bold uppercase mb-0.5">Invitation Link</p>
-                                        <p className="font-bold text-[10px] tracking-tight truncate opacity-90">
+                                <div className="flex-1 bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 flex justify-between items-center overflow-hidden">
+                                    <div className="truncate mr-2">
+                                        <p className="text-[9px] text-indigo-200 font-bold uppercase mb-0.5">Invitation Link</p>
+                                        <p className="font-mono text-xs truncate opacity-90">
                                             {window.location.origin}/register?ref={user?.invitationCode}
                                         </p>
                                     </div>
                                 </div>
-                                <button
+                                <Button
                                     onClick={handleCopyLink}
-                                    className="px-5 bg-green-500 rounded-2xl font-bold flex items-center justify-center gap-1 hover:bg-green-600 transition-all active:scale-95 shrink-0"
+                                    className="bg-primary-500 hover:bg-primary-600 text-white min-w-[100px] shadow-lg shadow-primary-500/30 border-none"
                                 >
-                                    <HiDuplicate className="text-lg" />
-                                    <span className="text-xs uppercase tracking-widest text-white">Invite</span>
-                                </button>
+                                    <Share2 size={16} className="mr-2" />
+                                    Invite
+                                </Button>
                             </div>
                         </div>
                     </div>
+
+                    {/* Background Decorative */}
+                    <Users className="absolute -bottom-8 -right-8 text-white/5 rotate-12" size={200} />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                 </div>
 
                 {/* Team Stats Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Total Team</p>
-                        <p className="text-2xl font-black text-gray-800">{downline?.total || 0}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">A-Level</p>
-                        <p className="text-2xl font-black text-blue-600">{downline?.aLevel.count || 0}</p>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <Card className="p-4 border-gray-100">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-3">
+                            <Users size={20} />
+                        </div>
+                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wide">Total Team</p>
+                        <p className="text-2xl font-black text-gray-900">{downline?.total || 0}</p>
+                    </Card>
+                    <Card className="p-4 border-gray-100">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 mb-3">
+                            <Award size={20} />
+                        </div>
+                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wide">A-Level</p>
+                        <p className="text-2xl font-black text-emerald-600">{downline?.aLevel.count || 0}</p>
+                    </Card>
                 </div>
 
                 {/* Salary Status */}
-                <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-start mb-6">
+                <Card className="p-6 border-gray-100 overflow-hidden relative">
+                    <div className="flex justify-between items-start mb-6 relative z-10">
                         <div>
-                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-widest">Monthly Salary Status</p>
-                            <h3 className="text-xl font-black text-gray-800">
+                            <p className="text-xs uppercase font-bold text-gray-400 mb-1 tracking-widest flex items-center gap-1.5">
+                                <Target size={14} />
+                                Salary Status
+                            </p>
+                            <h3 className="text-2xl font-black text-gray-900">
                                 {salaryData?.salary > 0 ? formatNumber(salaryData.salary) : '0'}
-                                <span className="text-xs font-bold text-gray-400 ml-1">ETB / Month</span>
+                                <span className="text-sm font-bold text-gray-400 ml-1">ETB / Month</span>
                             </h3>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${salaryData?.salary > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${salaryData?.salary > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
                             }`}>
                             {salaryData?.salary > 0 ? 'Eligible' : 'Ineligible'}
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-500 font-medium italic">Requirement Progress</span>
-                        </div>
-
+                    <div className="space-y-4 relative z-10">
                         {/* Rule 1 Progress */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.direct15?.threshold || 15} Direct Invites</span>
-                                <span className="text-[10px] font-black text-blue-600">{downline?.aLevel.count || 0}/{salaryData?.breakdown?.settings?.direct15?.threshold || 15}</span>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-end text-xs">
+                                <span className="font-bold text-gray-700">{salaryData?.breakdown?.settings?.direct15?.threshold || 15} Direct Invites</span>
+                                <span className="font-bold text-blue-600">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct15?.threshold || 15}</span>
                             </div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct15?.threshold || 15)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.direct15?.threshold || 15} direct invites for {formatNumber(salaryData?.breakdown?.settings?.direct15?.amount || 15000)} ETB/month</p>
+                            <p className="text-[10px] text-gray-400 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct15?.amount || 15000)} ETB/month</p>
                         </div>
 
                         {/* Rule 2 Progress */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
-                                <span className="text-[10px] font-black text-indigo-600">{downline?.aLevel.count || 0}/{salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-end text-xs">
+                                <span className="font-bold text-gray-700">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
+                                <span className="font-bold text-indigo-600">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
                             </div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct20?.threshold || 20)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.direct20?.threshold || 20} direct invites for {formatNumber(salaryData?.breakdown?.settings?.direct20?.amount || 20000)} ETB/month</p>
+                            <p className="text-[10px] text-gray-400 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct20?.amount || 20000)} ETB/month</p>
                         </div>
 
                         {/* Rule 3 Progress */}
-                        <div className="space-y-1.5 pt-1 border-t border-gray-50 mt-2">
-                            <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase">{salaryData?.breakdown?.settings?.network40?.threshold || 40} Total Team (A+B+C)</span>
-                                <span className="text-[10px] font-black text-purple-600">{downline?.total || 0}/{salaryData?.breakdown?.settings?.network40?.threshold || 40}</span>
+                        <div className="space-y-2 pt-2 border-t border-gray-50">
+                            <div className="flex justify-between items-end text-xs">
+                                <span className="font-bold text-gray-700">{salaryData?.breakdown?.settings?.network40?.threshold || 40} Total Team</span>
+                                <span className="font-bold text-purple-600">{downline?.total || 0} / {salaryData?.breakdown?.settings?.network40?.threshold || 40}</span>
                             </div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-purple-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out"
                                     style={{ width: `${Math.min(((downline?.total || 0) / (salaryData?.breakdown?.settings?.network40?.threshold || 40)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[9px] text-gray-400 italic">Reach {salaryData?.breakdown?.settings?.network40?.threshold || 40} total network users for {formatNumber(salaryData?.breakdown?.settings?.network40?.amount || 48000)} ETB/month</p>
+                            <p className="text-[10px] text-gray-400 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.network40?.amount || 48000)} ETB/month</p>
                         </div>
                     </div>
-
-                    {salaryData?.salary > 0 && (
-                        <div className="mt-4 p-4 bg-green-50/50 border border-green-100 rounded-2xl">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] text-green-600 font-bold uppercase">Current Eligibility</span>
-                                <span className="text-lg font-black text-green-600">{formatNumber(salaryData.salary)} ETB</span>
-                            </div>
-                            <p className="text-[9px] text-green-600/60 mt-0.5 italic">Applied: {salaryData.breakdown.salaryComponents[0].rule}</p>
-                        </div>
-                    )}
-
-                    <div className="mt-6 p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                        <p className="text-[9px] text-blue-600 font-bold leading-relaxed italic">
-                            * Salaries are processed monthly by administrators. Ensure your team counts are met before the payout date.
-                        </p>
-                    </div>
-                </div>
+                </Card>
 
                 {/* Level Breakdown */}
-                <div className="space-y-3">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Team Levels</h3>
+                <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">Team Levels</h3>
 
                     {['a', 'b', 'c'].map((lvl) => {
                         const levelData = downline ? downline[`${lvl}Level`] : null;
@@ -237,83 +243,87 @@ export default function Team() {
                         const percent = lvl === 'a' ? '10%' : lvl === 'b' ? '5%' : '2%';
 
                         return (
-                            <div key={lvl} className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                            <Card key={lvl} className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary-500/10' : ''}`}>
                                 <div
-                                    className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${isExpanded ? 'bg-gray-50' : ''}`}
+                                    className={`p-4 flex items-center justify-between cursor-pointer ${isExpanded ? 'bg-gray-50' : 'bg-white'}`}
                                     onClick={() => setExpandedLevel(isExpanded ? null : lvl)}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${levelColors[lvl]} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
+                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${levelColors[lvl]} flex items-center justify-center text-white font-black text-xl shadow-md`}>
                                             {lvl.toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-800 text-sm italic">{label}</p>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Earnings: {percent}</p>
+                                            <p className="font-bold text-gray-800 text-sm">{label}</p>
+                                            <div className="inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded text-[10px] font-bold text-gray-500 uppercase mt-1">
+                                                <span>Commission:</span>
+                                                <span className="text-gray-900">{percent}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         <div className="text-right">
-                                            <p className="text-sm font-black text-gray-800">{levelData?.count || 0}</p>
-                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{formatNumber(commissionTotals[lvl.toUpperCase()])} ETB</p>
+                                            <p className="text-lg font-black text-gray-900">{levelData?.count || 0}</p>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Members</p>
                                         </div>
-                                        {isExpanded ? <HiChevronUp className="text-gray-400" /> : <HiChevronDown className="text-gray-400" />}
+                                        {isExpanded ? <ChevronUp className="text-gray-400" size={20} /> : <ChevronDown className="text-gray-400" size={20} />}
                                     </div>
                                 </div>
                                 {isExpanded && (
-                                    <div className="px-4 pb-4 animate-slideDown">
+                                    <div className="px-4 pb-4 animate-slide-up">
                                         <div className="border-t border-gray-100 pt-3">
                                             {renderUserList(levelData?.users)}
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </Card>
                         );
                     })}
                 </div>
 
                 {/* Recent Commissions */}
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="p-4 border-b border-gray-50 flex justify-between items-center">
+                <Card className="overflow-hidden">
+                    <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                            <HiCurrencyDollar className="text-yellow-500 text-lg" />
+                            <DollarSign className="text-yellow-500" size={18} />
                             Recent Income
                         </h3>
-                        {/* <span className="text-[9px] font-bold text-blue-600 uppercase underline">View All</span> */}
                     </div>
                     <div className="p-2">
                         {commissions.length === 0 ? (
-                            <div className="py-10 text-center">
-                                <HiCurrencyDollar className="text-4xl text-gray-100 mx-auto mb-2" />
+                            <div className="py-12 text-center">
+                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <DollarSign className="text-gray-300" size={24} />
+                                </div>
                                 <p className="text-xs text-gray-400 font-medium">No commissions earned yet</p>
                             </div>
                         ) : (
                             <div className="space-y-1">
                                 {commissions.slice(0, 10).map((comm, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-2xl transition-colors">
+                                    <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-xs ${comm.level === 'A' ? 'text-blue-600' : comm.level === 'B' ? 'text-emerald-600' : 'text-purple-600'
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm text-white ${comm.level === 'A' ? 'bg-blue-500' : comm.level === 'B' ? 'bg-emerald-500' : 'bg-purple-500'
                                                 }`}>
                                                 {comm.level}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-gray-800 leading-none mb-1">
+                                                <p className="text-xs font-bold text-gray-900 leading-none mb-1">
                                                     {comm.downlineUser ? comm.downlineUser.phone.slice(-4) : 'User'} Upgrade
                                                 </p>
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">
+                                                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
                                                     {new Date(comm.createdAt).toLocaleString()}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-black text-green-600">+{formatNumber(comm.amountEarned)}</p>
-                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.1em]">ETB</p>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase">ETB</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
-                </div>
+                </Card>
             </div>
         </div>
     );

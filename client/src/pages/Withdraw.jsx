@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { userAPI, withdrawalAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiCash, HiEye, HiEyeOff, HiLibrary } from 'react-icons/hi';
+import { ArrowLeft, Wallet, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
 import { formatNumber } from '../utils/formatNumber';
 
 export default function Withdraw() {
@@ -62,7 +65,7 @@ export default function Withdraw() {
                 walletType,
                 transactionPassword
             });
-            toast.success('Withdrawal request submitted! 10% tax applied. Awaiting admin approval.');
+            toast.success('Withdrawal request submitted!');
             navigate('/');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Withdrawal failed');
@@ -77,37 +80,70 @@ export default function Withdraw() {
     if (loading) return <Loading />;
 
     return (
-        <div className="animate-fadeIn">
+        <div className="min-h-screen bg-gray-50 pb-8 animate-fade-in">
             {/* Header */}
-            <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
-                <button onClick={() => navigate(-1)} className="text-2xl text-gray-800">
-                    <HiArrowLeft />
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                    <ArrowLeft size={24} />
                 </button>
                 <h1 className="text-xl font-bold text-gray-900">Withdraw</h1>
             </div>
 
-            <div className="px-4 py-6">
+            <div className="max-w-md mx-auto px-4 py-6">
                 {/* Wallet Balances Summary */}
-                <div className="bg-white rounded-3xl p-5 shadow-sm mb-6 border border-gray-50 flex justify-between items-center">
-                    <div>
-                        <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Income Balance</p>
-                        <p className="text-lg font-bold text-gray-900">{formatNumber(wallets.incomeWallet)} <span className="text-[10px] text-gray-400">ETB</span></p>
-                    </div>
-                    <div className="h-8 w-px bg-gray-100"></div>
-                    <div className="text-right">
-                        <p className="text-[10px] text-gray-400 uppercase font-black mb-1 tracking-tighter">Personal Balance</p>
-                        <p className="text-lg font-bold text-gray-900">{formatNumber(wallets.personalWallet)} <span className="text-[10px] text-gray-400">ETB</span></p>
+                <div className="bg-white rounded-2xl p-5 shadow-sm mb-6 border border-gray-100">
+                    <div className="flex justify-between items-stretch">
+                        <div className="flex-1">
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Income Balance</p>
+                            <p className="text-xl font-bold text-gray-900">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-gray-400 font-medium">ETB</span></p>
+                        </div>
+                        <div className="w-px bg-gray-100 mx-4"></div>
+                        <div className="flex-1 text-right">
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Personal Balance</p>
+                            <p className="text-xl font-bold text-gray-900">{formatNumber(wallets.personalWallet)} <span className="text-xs text-gray-400 font-medium">ETB</span></p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-gray-800 uppercase text-[10px] tracking-wider">Withdrawal Amount</h3>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-black text-green-600">
+                {/* Wallet Selector */}
+                <div className="mb-6">
+                    <label className="block text-sm font-bold text-gray-700 mb-3 ml-1">Withdraw From</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={() => setWalletType('income')}
+                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${walletType === 'income'
+                                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                                    : 'border-gray-200 bg-white text-gray-400'
+                                }`}
+                        >
+                            <Wallet size={24} strokeWidth={walletType === 'income' ? 2 : 1.5} />
+                            <span className="text-xs font-bold uppercase">Income Wallet</span>
+                        </button>
+                        <button
+                            onClick={() => setWalletType('personal')}
+                            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${walletType === 'personal'
+                                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                                    : 'border-gray-200 bg-white text-gray-400'
+                                }`}
+                        >
+                            <Wallet size={24} strokeWidth={walletType === 'personal' ? 2 : 1.5} />
+                            <span className="text-xs font-bold uppercase">Personal Wallet</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Amount Selection */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+                    <div className="flex justify-between items-end mb-4">
+                        <h3 className="font-bold text-gray-900 text-sm">Withdraw Amount</h3>
+                        <div className="text-right">
+                            <span className="text-xl font-bold text-primary-600">
                                 {selectedAmount ? formatNumber(selectedAmount) : '0'}
                             </span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">ETB</span>
+                            <span className="text-xs font-medium text-gray-400 ml-1">ETB</span>
                         </div>
                     </div>
 
@@ -116,10 +152,13 @@ export default function Withdraw() {
                             <button
                                 key={amount}
                                 onClick={() => setSelectedAmount(amount)}
-                                className={`py-3 rounded-xl font-bold text-xs transition-all border-2 ${selectedAmount === amount
-                                    ? 'border-green-500 bg-green-50 text-green-600'
-                                    : 'border-gray-100 bg-white text-gray-600'
-                                    }`}
+                                className={`
+                                    py-2.5 rounded-lg font-bold text-xs transition-all border
+                                    ${selectedAmount === amount
+                                        ? 'border-primary-500 bg-primary-50 text-primary-600 shadow-inner'
+                                        : 'border-gray-100 bg-white text-gray-500 hover:bg-gray-50 hover:border-gray-200'
+                                    }
+                                `}
                             >
                                 {formatNumber(amount)}
                             </button>
@@ -127,84 +166,63 @@ export default function Withdraw() {
                     </div>
                 </div>
 
-                {/* Wallet Selector Section */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50">
-                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Withdraw From</label>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            onClick={() => setWalletType('income')}
-                            className={`py-4 rounded-2xl font-bold text-xs transition-all border-2 flex flex-col items-center gap-2 ${walletType === 'income'
-                                ? 'border-green-500 bg-green-50 text-green-600'
-                                : 'border-gray-100 bg-white text-gray-400 opacity-60'
-                                }`}
-                        >
-                            <span className="uppercase tracking-tighter">Income Balance</span>
-                        </button>
-                        <button
-                            onClick={() => setWalletType('personal')}
-                            className={`py-4 rounded-2xl font-bold text-xs transition-all border-2 flex flex-col items-center gap-2 ${walletType === 'personal'
-                                ? 'border-green-500 bg-green-50 text-green-600'
-                                : 'border-gray-100 bg-white text-gray-400 opacity-60'
-                                }`}
-                        >
-                            <span className="uppercase tracking-tighter">Personal Balance</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Tax Info Card */}
+                {/* Tax Info */}
                 {selectedAmount && (
-                    <div className="bg-blue-50 rounded-3xl p-6 mb-8 border border-blue-100 animate-slideUp">
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="text-sm text-blue-600 font-semibold">Withdrawal Summary</span>
-                            <HiCash className="text-blue-500 text-2xl" />
+                    <div className="bg-amber-50 rounded-2xl p-5 mb-6 border border-amber-100 animate-slide-up">
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs font-bold text-amber-600 uppercase tracking-wide">Summary</span>
+                            <ShieldCheck size={18} className="text-amber-500" />
                         </div>
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-blue-500">Gross Amount</span>
-                                <span className="font-bold">{formatNumber(selectedAmount)} ETB</span>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between text-amber-800/70">
+                                <span>Gross Amount</span>
+                                <span className="font-medium">{formatNumber(selectedAmount)} ETB</span>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-blue-500">Tax (10%)</span>
-                                <span className="font-bold text-red-500">-{formatNumber(taxAmount)} ETB</span>
+                            <div className="flex justify-between text-amber-800/70">
+                                <span>Tax (10%)</span>
+                                <span className="font-medium text-red-500">-{formatNumber(taxAmount)} ETB</span>
                             </div>
-                            <div className="pt-2 border-t border-blue-100 flex justify-between">
-                                <span className="font-bold text-blue-800">Net Arrival</span>
-                                <span className="font-bold text-xl text-green-600">{formatNumber(netAmount)} ETB</span>
+                            <div className="pt-2 border-t border-amber-200/50 flex justify-between items-center mt-1">
+                                <span className="font-bold text-amber-900">Net Arrival</span>
+                                <span className="font-bold text-lg text-emerald-600">{formatNumber(netAmount)} ETB</span>
                             </div>
                         </div>
                     </div>
                 )}
 
-                <div className="mb-8">
-                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Transaction Password</label>
-                    <div className="relative">
+                {/* Transaction Password */}
+                <Card className="p-6 mb-8 border-gray-200">
+                    <label className="block text-sm font-bold text-gray-800 mb-4 text-center">Transaction Password</label>
+                    <div className="relative max-w-[200px] mx-auto">
                         <input
                             type={showPassword ? 'text' : 'password'}
                             value={transactionPassword}
                             onChange={(e) => setTransactionPassword(e.target.value)}
-                            placeholder="Enter 6-digit password"
-                            className="input-field py-4 tracking-widest text-center"
+                            placeholder="••••••"
                             maxLength={6}
+                            className="w-full text-center text-2xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                            className="absolute -right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                         >
-                            {showPassword ? <HiEyeOff /> : <HiEye />}
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                    <p className="text-[10px] text-gray-400 mt-2 text-center uppercase font-bold tracking-tighter">Required to authorize fund transfer</p>
-                </div>
+                    <p className="text-xs text-center text-gray-400 mt-4">Enter your 6-digit pin to confirm</p>
+                </Card>
 
-                <button
+                <Button
                     onClick={handleWithdraw}
+                    loading={submitting}
                     disabled={submitting}
-                    className="btn-primary w-full py-4 uppercase tracking-widest text-sm"
+                    size="lg"
+                    className="w-full shadow-lg shadow-primary-200"
                 >
-                    {submitting ? <span className="spinner"></span> : 'Submit Request'}
-                </button>
+                    Submit Request
+                </Button>
+
             </div>
         </div>
     );

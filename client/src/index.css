@@ -2,49 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #10b981;
-  --primary-dark: #059669;
-  --secondary: #3b82f6;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #22c55e;
-  --background: #f9fafb;
-  --surface: #ffffff;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border: #e5e7eb;
+@layer base {
+  :root {
+    --primary: 16 185 129;
+    /* Emerald 500 */
+    --secondary: 59 130 246;
+    /* Blue 500 */
+    --background: 249 250 251;
+    /* Gray 50 */
+    --foreground: 17 24 39;
+    /* Gray 900 */
+
+    --radius: 1rem;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+  }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background);
-  color: var(--text-primary);
-  overflow-x: hidden;
-}
-
-/* Mobile-first responsive container */
-.container-app {
+/* Mobile App Container */
+.app-container {
+  @apply mx-auto min-h-screen bg-gray-50 relative overflow-hidden shadow-2xl;
   max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background-color: var(--background);
-  position: relative;
 }
 
-/* Bottom navigation spacing */
-.main-content {
-  padding-bottom: 80px;
-  min-height: 100vh;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
 }
 
 /* Premium button styles */

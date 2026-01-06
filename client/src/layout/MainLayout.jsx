@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import BottomNav from './BottomNav';
 import FloatingMail from '../components/FloatingMail';
 import { useEffect } from 'react';
@@ -11,6 +11,10 @@ import FirstEntryPopup from '../components/FirstEntryPopup';
 export default function MainLayout() {
     const { user } = useAuthStore();
     const { setUnreadMessages, showFirstEntryPopup, setShowFirstEntryPopup } = useAppStore();
+    const location = useLocation();
+
+    // Hide bottom nav on specific pages if needed (e.g., login/register usually not here, but maybe others)
+    const showBottomNav = !['/login', '/register'].includes(location.pathname);
 
     useEffect(() => {
         // Fetch unread messages count
@@ -26,7 +30,7 @@ export default function MainLayout() {
                     sessionStorage.setItem('foxriver_popup_shown', 'true');
                 }
             } catch (error) {
-                toast.error('Failed to sync messages');
+                // Silent fail for UX unless critical
                 console.error('Error fetching messages:', error);
             }
         };
@@ -37,12 +41,15 @@ export default function MainLayout() {
     }, [user, setUnreadMessages, setShowFirstEntryPopup]);
 
     return (
-        <div className="container-app">
-            <div className="main-content">
+        <div className="app-container flex flex-col">
+            <main className="flex-1 pb-24 relative overflow-y-auto overflow-x-hidden scrollbar-hide">
                 <Outlet />
-            </div>
+            </main>
+
             <FloatingMail />
-            <BottomNav />
+
+            {showBottomNav && <BottomNav />}
+
             {showFirstEntryPopup && <FirstEntryPopup />}
         </div>
     );

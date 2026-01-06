@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { membershipAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { HiChevronLeft, HiFire, HiCheckCircle } from 'react-icons/hi';
+import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star } from 'lucide-react';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Modal from '../components/Modal';
 
 export default function TierList() {
     const navigate = useNavigate();
@@ -39,10 +42,6 @@ export default function TierList() {
         return tierIdx > currentIdx;
     };
 
-    const canShowJoinButton = (tierLevel) => {
-        return isHigherLevel(tierLevel);
-    };
-
     const handleJoinClick = (tier) => {
         setSelectedTier(tier);
         setPaymentMethod('personal');
@@ -73,170 +72,197 @@ export default function TierList() {
     if (loading) return <Loading />;
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 animate-fadeIn">
+        <div className="min-h-screen bg-gray-50 pb-20 animate-fade-in">
             {/* Header */}
-            <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
-                <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <HiChevronLeft className="text-2xl text-gray-600" />
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                    <ChevronLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-800">Membership Tiers</h1>
+                <h1 className="text-xl font-bold text-gray-900">Membership Tiers</h1>
             </div>
 
-            <div className="px-3 py-3 space-y-2">
+            <div className="px-4 py-6 space-y-4">
                 {tiers.map((tier, index) => {
                     const isCurrent = user?.membershipLevel === tier.level;
-                    const showJoin = canShowJoinButton(tier.level);
+                    const canUpgrade = isHigherLevel(tier.level);
+
+                    // Determine styling based on tier (just simple alteration for visual variety)
+                    const isPremium = index >= 4;
 
                     return (
-                        <div
+                        <Card
                             key={index}
-                            className={`relative overflow-hidden bg-white rounded-xl shadow-sm border transition-all ${isCurrent ? 'border-green-500 ring-2 ring-green-50' : 'border-gray-100'
+                            className={`relative overflow-hidden transition-all duration-300 ${isCurrent
+                                    ? 'border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500'
+                                    : canUpgrade
+                                        ? 'border-gray-100 hover:shadow-md'
+                                        : 'border-gray-100 opacity-80 grayscale-[0.5]'
                                 }`}
                         >
-                            <div className="p-3 relative z-10">
-                                <div className="flex justify-between items-center mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider ${isCurrent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                            {/* Background decoration */}
+                            {isCurrent && <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-10 -mt-10 pointer-events-none" />}
+
+                            <div className="p-5 relative z-10">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shadow-sm ${isCurrent ? 'bg-gradient-to-br from-emerald-400 to-green-600 text-white' :
+                                                canUpgrade ? 'bg-gradient-to-br from-gray-800 to-black text-white' :
+                                                    'bg-gray-100 text-gray-400'
                                             }`}>
                                             {tier.level}
-                                        </span>
-                                        <h3 className="text-lg font-black text-gray-800">
-                                            {formatNumber(tier.price)} <span className="text-[10px] font-medium text-gray-400">ETB</span>
-                                        </h3>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-black text-gray-900 leading-none mb-1">
+                                                {formatNumber(tier.price)} <span className="text-xs font-bold text-gray-400">ETB</span>
+                                            </h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{tier.level} Membership</p>
+                                        </div>
                                     </div>
-                                    {isCurrent && (
-                                        <span className="flex items-center gap-1 text-[9px] font-bold text-green-600 uppercase">
-                                            <HiCheckCircle /> Active
+
+                                    {isCurrent ? (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
+                                            <CheckCircle size={12} /> Active
                                         </span>
-                                    )}
+                                    ) : !canUpgrade ? (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-1 rounded-lg border border-gray-100">
+                                            <Lock size={12} /> Locked
+                                        </span>
+                                    ) : null}
                                 </div>
 
-                                <div className="grid grid-cols-4 gap-1 mb-2">
-                                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
-                                        <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">Tasks</p>
-                                        <p className="font-bold text-gray-700 text-[10px] leading-none">{tier.dailyTasks}</p>
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-3 gap-2 mb-5">
+                                    <div className="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                                        <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Daily Limit</p>
+                                        <p className="font-black text-gray-800 text-sm">{tier.dailyTasks} <span className="text-[9px] font-medium text-gray-400">Tasks</span></p>
                                     </div>
-                                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
-                                        <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">Price</p>
-                                        <p className="font-bold text-emerald-600 text-[10px] leading-none">{formatNumber(tier.perVideoIncome.toFixed(0))}</p>
+                                    <div className="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                                        <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Per Video</p>
+                                        <p className="font-black text-indigo-600 text-sm">{formatNumber(tier.perVideoIncome.toFixed(0))}</p>
                                     </div>
-                                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
-                                        <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">Daily</p>
-                                        <p className="font-bold text-blue-600 text-[10px] leading-none">{formatNumber(tier.dailyIncome.toFixed(0))}</p>
-                                    </div>
-                                    <div className="bg-gray-50/50 p-1.5 rounded-lg border border-gray-50 text-center">
-                                        <p className="text-[7px] text-gray-400 uppercase font-bold leading-none mb-0.5">4-Day</p>
-                                        <p className="font-bold text-purple-600 text-[10px] leading-none">{formatNumber(tier.fourDayIncome.toFixed(0))}</p>
+                                    <div className="bg-gray-50 rounded-xl p-2 text-center border border-gray-100">
+                                        <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Daily Income</p>
+                                        <p className="font-black text-emerald-600 text-sm">{formatNumber(tier.dailyIncome.toFixed(0))}</p>
                                     </div>
                                 </div>
 
-                                {showJoin ? (
-                                    <button
+                                {canUpgrade ? (
+                                    <Button
                                         onClick={() => handleJoinClick(tier)}
-                                        className="w-full py-1.5 bg-gray-900 text-white rounded-lg font-bold shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-[10px]"
+                                        className="w-full shadow-lg shadow-gray-900/10"
                                     >
-                                        <HiFire className="text-orange-400 text-xs" />
-                                        Join Now
-                                    </button>
+                                        <Zap size={16} className="mr-2 fill-yellow-400 text-yellow-400" />
+                                        Upgrade Now
+                                    </Button>
                                 ) : isCurrent ? (
-                                    <div className="w-full py-1.5 bg-green-50 text-green-700 rounded-lg font-bold text-center border border-green-100 text-[10px]">
-                                        Current Plan
+                                    <div className="w-full py-3 bg-emerald-50/50 text-emerald-600 rounded-xl font-bold text-center border border-emerald-100 text-xs flex items-center justify-center gap-2">
+                                        <CheckCircle size={14} />
+                                        Current Active Plan
                                     </div>
                                 ) : (
-                                    <div className="hidden"></div>
+                                    <Button
+                                        disabled
+                                        variant="secondary"
+                                        className="w-full opacity-50"
+                                    >
+                                        Combined with Lower Tier
+                                    </Button>
                                 )}
                             </div>
-                        </div>
+                        </Card>
                     );
                 })}
             </div>
 
             {/* Upgrade Modal */}
-            {showModal && selectedTier && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-                    <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl animate-scaleIn">
-                        <div className="p-4 border-b border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-800 text-center">Confirm Upgrade</h3>
-                            <p className="text-xs text-center text-gray-500">Upgrade to {selectedTier.level}</p>
-                        </div>
-
-                        <div className="p-4 space-y-4">
-                            {/* Balances Row */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-2.5 bg-yellow-50 rounded-xl border border-yellow-100 flex flex-col items-center">
-                                    <span className="text-[10px] uppercase font-bold text-yellow-600 tracking-wide">Income Wallet</span>
-                                    <span className="text-sm font-black text-gray-800">{formatNumber(user?.incomeWallet || 0)}</span>
-                                </div>
-                                <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-100 flex flex-col items-center">
-                                    <span className="text-[10px] uppercase font-bold text-blue-600 tracking-wide">Personal Wallet</span>
-                                    <span className="text-sm font-black text-gray-800">{formatNumber(user?.personalWallet || 0)}</span>
-                                </div>
+            <Modal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={selectedTier ? `Upgrade to ${selectedTier.level}` : 'Confirm Upgrade'}
+            >
+                {selectedTier && (
+                    <div className="space-y-5">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex flex-col items-center text-center">
+                                <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wide mb-1">Income Wallet</span>
+                                <span className="text-sm font-black text-indigo-700">{formatNumber(user?.incomeWallet || 0)} ETB</span>
                             </div>
-
-                            {/* Cost */}
-                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-600">Cost</span>
-                                <span className="text-lg font-black text-gray-800">{formatNumber(selectedTier.price)} ETB</span>
-                            </div>
-
-                            {/* Wallet Selection */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Pay From</label>
-
-                                {/* Personal Wallet Option */}
-                                <div
-                                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'personal'
-                                        ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                                        : 'border-gray-200 hover:border-gray-50'
-                                        }`}
-                                    onClick={() => setPaymentMethod('personal')}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'personal' ? 'border-blue-500' : 'border-gray-400'
-                                            }`}>
-                                            {paymentMethod === 'personal' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                                        </div>
-                                        <span className="text-sm font-bold text-gray-700">Personal Wallet</span>
-                                    </div>
-                                </div>
-
-                                {/* Income Wallet Option */}
-                                <div
-                                    className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'income'
-                                        ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                                        : 'border-gray-200 hover:border-gray-50'
-                                        }`}
-                                    onClick={() => setPaymentMethod('income')}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethod === 'income' ? 'border-blue-500' : 'border-gray-400'
-                                            }`}>
-                                            {paymentMethod === 'income' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                                        </div>
-                                        <span className="text-sm font-bold text-gray-700">Income Wallet</span>
-                                    </div>
-                                </div>
+                            <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 flex flex-col items-center text-center">
+                                <span className="text-[10px] uppercase font-bold text-purple-400 tracking-wide mb-1">Personal Wallet</span>
+                                <span className="text-sm font-black text-purple-700">{formatNumber(user?.personalWallet || 0)} ETB</span>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-gray-50 grid grid-cols-2 gap-3">
-                            <button
+                        <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-400">Upgrade Cost</span>
+                            <span className="text-xl font-black">{formatNumber(selectedTier.price)} ETB</span>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Payment Source</label>
+
+                            <div
+                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'personal'
+                                    ? 'border-primary-500 bg-primary-50/50'
+                                    : 'border-gray-100 hover:border-gray-200'
+                                    }`}
+                                onClick={() => setPaymentMethod('personal')}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'personal' ? 'border-primary-500' : 'border-gray-300'
+                                        }`}>
+                                        {paymentMethod === 'personal' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Personal Wallet</span>
+                                        <span className="text-[10px] text-gray-500">Use your deposited funds</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'income'
+                                    ? 'border-primary-500 bg-primary-50/50'
+                                    : 'border-gray-100 hover:border-gray-200'
+                                    }`}
+                                onClick={() => setPaymentMethod('income')}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'income' ? 'border-primary-500' : 'border-gray-300'
+                                        }`}>
+                                        {paymentMethod === 'income' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">Income Wallet</span>
+                                        <span className="text-[10px] text-gray-500">Use your earnings</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <Button
+                                variant="outline"
                                 onClick={() => setShowModal(false)}
-                                className="py-2.5 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition-all"
+                                className="flex-1"
                             >
                                 Cancel
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={handleConfirmUpgrade}
+                                loading={confirmLoading}
                                 disabled={confirmLoading}
-                                className="py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-[2]"
                             >
-                                {confirmLoading ? <Loading className="w-4 h-4" /> : 'Confirm Payment'}
-                            </button>
+                                Confirm Payment
+                            </Button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
         </div>
     );
 }

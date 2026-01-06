@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiLibrary, HiLockClosed, HiShieldCheck, HiLogout, HiIdentification } from 'react-icons/hi';
+import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, Fingerprint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import Loading from '../components/Loading';
 import Modal from '../components/Modal';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 export default function Settings() {
     const navigate = useNavigate();
@@ -109,163 +111,215 @@ export default function Settings() {
     const settingsItems = [
         {
             label: 'Bank Account',
-            icon: HiLibrary,
+            icon: Landmark,
             desc: profile.bankAccount?.isSet ? `${profile.bankAccount.bankName} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked',
             action: () => {
                 setModalType('bank');
-            }
+            },
+            color: 'text-blue-600 bg-blue-50'
         },
         {
             label: 'Transaction Password',
-            icon: HiShieldCheck,
+            icon: ShieldCheck,
             desc: 'Verify withdrawals securely',
-            action: () => setModalType('transPass')
+            action: () => setModalType('transPass'),
+            color: 'text-emerald-600 bg-emerald-50'
         },
         {
             label: 'Login Password',
-            icon: HiLockClosed,
-            desc: 'Last changed: Recently',
-            action: () => setModalType('loginPass')
+            icon: Lock,
+            desc: 'Secure your account access',
+            action: () => setModalType('loginPass'),
+            color: 'text-purple-600 bg-purple-50'
         }
     ];
 
     return (
-        <div className="animate-fadeIn">
+        <div className="animate-fade-in min-h-screen bg-gray-50 pb-8">
             {/* Header */}
-            <div className="bg-white px-4 py-4 flex items-center gap-4 sticky top-0 z-10 shadow-sm border-b border-gray-100">
-                <button onClick={() => navigate(-1)} className="text-2xl text-gray-800">
-                    <HiArrowLeft />
+            <div className="bg-white/80 backdrop-blur-md px-4 py-3 flex items-center gap-4 sticky top-0 z-30 border-b border-gray-100">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 -ml-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                    <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900">Security Settings</h1>
+                <h1 className="text-xl font-bold text-gray-900">Settings</h1>
             </div>
 
-            <div className="px-4 py-6">
+            <div className="max-w-md mx-auto px-4 py-6">
                 {/* User Card */}
-                <div className="bg-white rounded-3xl p-6 shadow-sm mb-8 flex items-center gap-4 border border-gray-50">
-                    <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center text-green-600 text-3xl font-bold">
-                        <HiIdentification />
+                <div className="bg-white rounded-2xl p-5 shadow-sm mb-8 flex items-center gap-4 border border-gray-100">
+                    <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                        <User size={28} />
                     </div>
                     <div>
                         <p className="font-bold text-gray-900 text-lg">{profile.phone}</p>
-                        <span className="bg-green-100 text-green-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                            Level {profile.membershipLevel}
-                        </span>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wide">
+                            {/* <User size={10} strokeWidth={3} /> */}
+                            <span>Level {profile.membershipLevel}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-4 mb-10">
+                <div className="space-y-3 mb-10">
                     {settingsItems.map((item, idx) => (
                         <div
                             key={idx}
                             onClick={item.action}
-                            className="card flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="bg-white rounded-2xl p-4 flex items-center gap-4 cursor-pointer border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-[0.98]"
                         >
-                            <div className="p-3 bg-gray-50 rounded-xl text-gray-500">
-                                <item.icon className="text-xl" />
+                            <div className={`p-3 rounded-xl ${item.color}`}>
+                                <item.icon size={22} />
                             </div>
                             <div className="flex-1">
-                                <p className="font-bold text-gray-800 text-sm">{item.label}</p>
-                                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">{item.desc}</p>
+                                <p className="font-bold text-gray-900 text-sm">{item.label}</p>
+                                <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
                             </div>
-                            <div className="w-2 h-2 rounded-full bg-gray-200"></div>
                         </div>
                     ))}
                 </div>
 
-                <button
+                <Button
                     onClick={logout}
-                    className="btn-outline w-full border-red-500 text-red-500 hover:bg-red-50 flex items-center justify-center gap-2 py-4 uppercase text-xs font-bold tracking-widest"
+                    variant="danger"
+                    size="lg"
+                    className="w-full flex items-center justify-center gap-2"
                 >
-                    <HiLogout className="text-xl" />
+                    <LogOut size={20} />
                     Log Out
-                </button>
+                </Button>
             </div>
 
             {/* Bank Modal */}
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
                     {profile.bankChangeStatus === 'pending' && (
-                        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mb-4">
-                            <p className="text-yellow-700 font-bold text-xs uppercase tracking-wide mb-1">
-                                Pending Change Request
+                        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 mb-2">
+                            <p className="text-amber-800 font-bold text-xs uppercase tracking-wide mb-1">
+                                Change Pending
                             </p>
-                            <p className="text-yellow-600 text-xs">
-                                Requested on: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
-                                Will be updated on: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                            <p className="text-amber-700 text-xs leading-relaxed">
+                                Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
+                                Effective: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                             </p>
                         </div>
                     )}
 
                     {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && (
-                        <p className="text-[10px] text-blue-400 bg-blue-50 p-3 rounded-xl font-bold uppercase mb-2">
-                            You can request to change your bank details. Changes will accept after 3 days.
+                        <p className="text-xs text-blue-600 bg-blue-50 p-3 rounded-xl font-medium mb-2 border border-blue-100">
+                            Changes to bank details will take 3 days to verify.
                         </p>
                     )}
 
-                    <input
-                        type="text" placeholder="Bank Name (e.g. CBE)" className="input-field"
-                        value={formData.bankName} onChange={e => setFormData({ ...formData, bankName: e.target.value })}
+                    <Input
+                        label="Bank Name"
+                        placeholder="e.g. CBE, Dashen"
+                        value={formData.bankName}
+                        onChange={e => setFormData({ ...formData, bankName: e.target.value })}
                         disabled={profile.bankChangeStatus === 'pending'}
                     />
-                    <input
-                        type="text" placeholder="Account Number" className="input-field"
-                        value={formData.accountNumber} onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
+                    <Input
+                        label="Account Number"
+                        placeholder="1000..."
+                        value={formData.accountNumber}
+                        onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
                         disabled={profile.bankChangeStatus === 'pending'}
                     />
-                    <input
-                        type="text" placeholder="Account Holder Name" className="input-field"
-                        value={formData.accountName} onChange={e => setFormData({ ...formData, accountName: e.target.value })}
+                    <Input
+                        label="Account Holder Name"
+                        placeholder="Full Name"
+                        value={formData.accountName}
+                        onChange={e => setFormData({ ...formData, accountName: e.target.value })}
                         disabled={profile.bankChangeStatus === 'pending'}
                     />
-                    <input
-                        type="tel" placeholder="Phone Number" className="input-field"
-                        value={formData.bankPhone} onChange={e => setFormData({ ...formData, bankPhone: e.target.value })}
+                    <Input
+                        label="Phone Number"
+                        placeholder="09..."
+                        value={formData.bankPhone}
+                        onChange={e => setFormData({ ...formData, bankPhone: e.target.value })}
                         disabled={profile.bankChangeStatus === 'pending'}
                     />
 
                     {profile.bankChangeStatus !== 'pending' && (
-                        <button onClick={handleUpdateBank} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">
-                            {profile.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
-                        </button>
+                        <div className="pt-2">
+                            <Button onClick={handleUpdateBank} fullWidth>
+                                {profile.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
+                            </Button>
+                        </div>
                     )}
                 </div>
             </Modal>
 
             {/* Login Password Modal */}
-            <Modal isOpen={modalType === 'loginPass'} onClose={() => setModalType(null)} title="Change Login Password">
+            <Modal isOpen={modalType === 'loginPass'} onClose={() => setModalType(null)} title="Change Password">
                 <div className="space-y-4">
-                    <input type="password" placeholder="Old Password" className="input-field"
+                    <Input
+                        label="Old Password"
+                        type="password"
                         value={formData.oldPassword}
-                        onChange={e => setFormData({ ...formData, oldPassword: e.target.value })} />
-                    <input type="password" placeholder="New Password" className="input-field"
+                        onChange={e => setFormData({ ...formData, oldPassword: e.target.value })}
+                    />
+                    <Input
+                        label="New Password"
+                        type="password"
                         value={formData.newPassword}
-                        onChange={e => setFormData({ ...formData, newPassword: e.target.value })} />
-                    <input type="password" placeholder="Confirm New Password" className="input-field"
+                        onChange={e => setFormData({ ...formData, newPassword: e.target.value })}
+                    />
+                    <Input
+                        label="Confirm New Password"
+                        type="password"
                         value={formData.confirmPassword}
-                        onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} />
-                    <button onClick={handleChangeLoginPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">Update Password</button>
+                        onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    />
+                    <div className="pt-2">
+                        <Button onClick={handleChangeLoginPass} fullWidth>
+                            Update Password
+                        </Button>
+                    </div>
                 </div>
             </Modal>
 
             {/* Transaction Password Modal */}
-            <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title={profile.hasTransactionPassword ? "Change Transaction Password" : "Set Transaction Password"}>
-                <div className="space-y-4">
-                    <p className="text-xs text-gray-500 mb-4">
+            <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title={profile.hasTransactionPassword ? "Change PIN" : "Set PIN"}>
+                <div className="space-y-5">
+                    <p className="text-sm text-gray-500 mb-2 leading-relaxed">
                         {profile.hasTransactionPassword
-                            ? "Enter your current 6-digit password and the new one to change it."
-                            : "Set a 6-digit numeric password for withdrawal authorization."}
+                            ? "Enter your current 6-digit PIN and the new one to change it."
+                            : "Set a 6-digit numeric PIN for withdrawal authorization."}
                     </p>
+
                     {profile.hasTransactionPassword && (
-                        <input type="password" placeholder="Current 6-digit Password" maxLength={6} className="input-field text-center tracking-widest"
-                            value={formData.oldPassword}
-                            onChange={e => setFormData({ ...formData, oldPassword: e.target.value })} />
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2 text-center uppercase">Current PIN</label>
+                            <input
+                                type="password"
+                                maxLength={6}
+                                className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
+                                value={formData.oldPassword}
+                                onChange={e => setFormData({ ...formData, oldPassword: e.target.value })}
+                            />
+                        </div>
                     )}
-                    <input type="password" placeholder={profile.hasTransactionPassword ? "New 6-digit Password" : "6-digit Password"} maxLength={6} className="input-field text-center tracking-widest"
-                        value={formData.transactionPassword}
-                        onChange={e => setFormData({ ...formData, transactionPassword: e.target.value })} />
-                    <button onClick={handleSetTransactionPass} className="btn-primary w-full py-4 tracking-widest text-xs font-bold uppercase">
-                        {profile.hasTransactionPassword ? "Update Secure Password" : "Confirm Secure Password"}
-                    </button>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-2 text-center uppercase">
+                            {profile.hasTransactionPassword ? "New PIN" : "6-Digit PIN"}
+                        </label>
+                        <input
+                            type="password"
+                            maxLength={6}
+                            className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-gray-200 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono"
+                            value={formData.transactionPassword}
+                            onChange={e => setFormData({ ...formData, transactionPassword: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="pt-4">
+                        <Button onClick={handleSetTransactionPass} fullWidth>
+                            {profile.hasTransactionPassword ? "Update PIN" : "Set PIN"}
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </div >

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { userAPI, membershipAPI } from '../services/api';
+import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiArrowLeft, HiCurrencyDollar, HiBriefcase, HiLightningBolt } from 'react-icons/hi';
+import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
+import Card from '../components/ui/Card';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function Mine() {
     const navigate = useNavigate();
@@ -33,81 +35,122 @@ export default function Mine() {
 
     if (loading) return <Loading />;
 
+    const quickStats = [
+        {
+            label: 'Total Assets',
+            value: formatNumber(wallet.personalWallet + wallet.incomeWallet),
+            unit: 'ETB',
+            color: 'text-gray-900',
+        }
+    ];
+
     return (
-        <div className="animate-fadeIn px-4 py-8">
-            {/* User Header */}
-            <div className="flex flex-col items-center mb-10">
-                <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl mb-4 border-4 border-white">
-                    {profile.phone.slice(-1)}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">{profile.phone}</h2>
-                <div className="bg-green-100 text-green-700 text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest">
-                    {profile.membershipLevel} MEMBER
-                </div>
+        <div className="animate-fade-in min-h-screen bg-gray-50 pb-24">
+            {/* Top User Header */}
+            <div className="bg-white/80 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-100 px-5 py-4 flex justify-between items-center">
+                <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+                <button onClick={() => navigate('/settings')} className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all">
+                    <Settings size={24} />
+                </button>
             </div>
 
-            {/* Asset Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50">
-                    <div className="flex justify-between items-center mb-4">
-                        <HiCurrencyDollar className="text-2xl text-green-500" />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">Available</span>
+            <div className="px-5 pt-6 pb-2">
+                {/* User Info Card */}
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-emerald-500/20">
+                        {profile.phone.slice(-1)}
                     </div>
-                    <p className="text-xl font-bold text-gray-900">{wallet.incomeWallet} ETB</p>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Income Balance</p>
-                </div>
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-50">
-                    <div className="flex justify-between items-center mb-4">
-                        <HiBriefcase className="text-2xl text-blue-500" />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">Settled</span>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 mb-1">{profile.phone}</h2>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wider border border-primary-100">
+                            <User size={12} fill="currentColor" />
+                            <span>{profile.membershipLevel} Member</span>
+                        </div>
                     </div>
-                    <p className="text-xl font-bold text-gray-900">{wallet.personalWallet} ETB</p>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Personal Balance</p>
                 </div>
-            </div>
 
-            {/* Action List */}
-            <div className="space-y-4">
-                <h3 className="font-bold text-gray-800 text-sm uppercase tracking-widest mb-4">Financial Records</h3>
-                <div
-                    onClick={() => navigate('/deposit')}
-                    className="card flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                    <div className="p-3 bg-green-50 rounded-xl text-green-600">
-                        <HiLightningBolt className="text-xl" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="font-bold text-gray-800 text-sm">Deposit History</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">View all top-up requests</p>
-                    </div>
-                </div>
-                <div
-                    onClick={() => navigate('/withdraw')}
-                    className="card flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                    <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
-                        <HiBriefcase className="text-xl" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="font-bold text-gray-800 text-sm">Withdrawal History</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Track your payouts</p>
-                    </div>
-                </div>
-            </div>
+                {/* Wallets */}
+                <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">My Assets</h3>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    <Card className="p-4 border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-2">
+                            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                                <Wallet size={20} />
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Available</span>
+                        </div>
+                        <p className="text-xl font-bold text-emerald-600">{formatNumber(wallet.incomeWallet)}</p>
+                        <p className="text-xs text-gray-400">Income Balance</p>
+                    </Card>
 
-            {/* Statistics Teaser */}
-            <div className="mt-8 bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
-                <div className="relative z-10">
-                    <p className="text-xs text-white/50 font-bold uppercase mb-1">Referral Team</p>
-                    <h4 className="text-2xl font-bold mb-4">Commission Center</h4>
-                    <button
-                        onClick={() => navigate('/team')} // Updated from /mine
-                        className="bg-white text-gray-900 text-[10px] font-bold px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-green-50 transition-all"
+                    <Card className="p-4 border-gray-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-2">
+                            <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                                <Briefcase size={20} />
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fixed</span>
+                        </div>
+                        <p className="text-xl font-bold text-blue-600">{formatNumber(wallet.personalWallet)}</p>
+                        <p className="text-xs text-gray-400">Personal Balance</p>
+                    </Card>
+                </div>
+
+                {/* Quick Actions */}
+                <h3 className="text-sm font-bold text-gray-900 mb-4 px-1">Financial Management</h3>
+                <div className="space-y-3 mb-8">
+                    <div
+                        onClick={() => navigate('/deposit')}
+                        className="group bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
                     >
-                        Check Rewards
-                    </button>
+                        <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
+                            <ArrowDownLeft size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-gray-900 text-sm">Deposit History</p>
+                            <p className="text-xs text-gray-500">View all your top-up records</p>
+                        </div>
+                        <ChevronRight className="text-gray-300" size={20} />
+                    </div>
+
+                    <div
+                        onClick={() => navigate('/withdraw')}
+                        className="group bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                            <ArrowUpRight size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-gray-900 text-sm">Withdrawal History</p>
+                            <p className="text-xs text-gray-500">Track payout status</p>
+                        </div>
+                        <ChevronRight className="text-gray-300" size={20} />
+                    </div>
                 </div>
-                <HiCurrencyDollar className="absolute -bottom-6 -right-6 text-9xl text-white/5 rotate-12" />
+
+                {/* Team Banner */}
+                <div
+                    onClick={() => navigate('/team')}
+                    className="relative overflow-hidden rounded-3xl bg-gray-900 p-6 text-white shadow-xl cursor-pointer group"
+                >
+                    <div className="relative z-10 flex items-center justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider mb-2">
+                                <Users size={12} />
+                                <span>Team Center</span>
+                            </div>
+                            <h4 className="text-2xl font-bold mb-1">My Referral Team</h4>
+                            <p className="text-gray-400 text-sm">Check commissions & members</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                            <ChevronRight size={24} />
+                        </div>
+                    </div>
+
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500 rounded-full blur-3xl opacity-20 -mr-10 -mt-10" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500 rounded-full blur-2xl opacity-20 -ml-10 -mb-10" />
+                </div>
+
             </div>
         </div>
     );
