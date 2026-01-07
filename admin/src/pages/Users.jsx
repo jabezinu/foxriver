@@ -6,6 +6,7 @@ import Loading from '../components/Loading';
 
 import ConfirmModal from '../components/ConfirmModal';
 import UserHistoryModal from '../components/UserHistoryModal';
+import { formatNumber } from '../utils/formatNumber';
 
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
@@ -217,8 +218,8 @@ export default function UserManagement() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-bold text-green-600">{user.incomeWallet} ETB</td>
-                                        <td className="px-6 py-4 text-sm font-bold text-blue-600">{user.personalWallet} ETB</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-green-600">{formatNumber(user.incomeWallet)} ETB</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-blue-600">{formatNumber(user.personalWallet)} ETB</td>
                                         <td className="px-6 py-4 text-xs text-gray-500 font-medium">
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
