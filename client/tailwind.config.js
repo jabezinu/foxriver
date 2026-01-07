@@ -8,20 +8,20 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#F59E0B', // Amber 500
-          dark: '#D97706',    // Amber 600
-          light: '#FBBF24',   // Amber 400
-          50: '#FFFBEB',
-          100: '#FEF3C7',
-          200: '#FDE68A',
-          300: '#FCD34D',
-          400: '#FBBF24',
-          500: '#F59E0B',
-          600: '#D97706',
-          700: '#B45309',
-          800: '#92400E',
-          900: '#78350F',
-          950: '#451a03',
+          DEFAULT: '#8b5cf6', // Violet 500
+          dark: '#7c3aed',    // Violet 600
+          light: '#a78bfa',   // Violet 400
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+          950: '#2e1065',
         },
         secondary: {
           DEFAULT: '#3b82f6', // Blue 500
@@ -29,23 +29,23 @@ export default {
           light: '#60a5fa',   // Blue 400
         },
         background: {
-          DEFAULT: '#09090b', // Zinc 950
-          lighter: '#18181b', // Zinc 900
-          darker: '#000000',  // Black
+          DEFAULT: '#ffffff', // White
+          lighter: '#f9fafb', // Gray 50
+          darker: '#e5e7eb',  // Gray 200
         },
         surface: {
-          DEFAULT: '#18181b', // Zinc 900
-          lighter: '#27272a', // Zinc 800
-          border: '#27272a',  // Zinc 800
+          DEFAULT: '#f9fafb', // Gray 50
+          lighter: '#ffffff', // White
+          border: '#d1d5db',  // Gray 300
         },
         dark: {
-          DEFAULT: '#1f2937', // Gray 800
-          lighter: '#374151', // Gray 700
-          darker: '#111827',  // Gray 900
+          DEFAULT: '#f9fafb', // Gray 50
+          lighter: '#ffffff', // White
+          darker: '#e5e7eb',  // Gray 200
         },
         light: {
-          DEFAULT: '#f9fafb', // Gray 50
-          darker: '#f3f4f6',  // Gray 100
+          DEFAULT: '#1f2937', // Gray 800
+          darker: '#374151',  // Gray 700
         }
       },
       fontFamily: {
@@ -55,8 +55,8 @@ export default {
       boxShadow: {
         'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
         'medium': '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
-        'glow': '0 0 15px rgba(245, 158, 11, 0.3)', // Gold glow
-        'glow-strong': '0 0 25px rgba(245, 158, 11, 0.5)', // Stronger gold glow
+        'glow': '0 0 15px rgba(139, 92, 246, 0.3)', // Violet glow
+        'glow-strong': '0 0 25px rgba(139, 92, 246, 0.5)', // Stronger violet glow
         'card': '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2)',
       },
       animation: {
@@ -90,8 +90,8 @@ export default {
         }
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(to right, #F59E0B, #FBBF24, #F59E0B)',
-        'dark-gradient': 'linear-gradient(to bottom, #18181b, #09090b)',
+        'gold-gradient': 'linear-gradient(to right, #8b5cf6, #a78bfa, #8b5cf6)',
+        'dark-gradient': 'linear-gradient(to bottom, #f9fafb, #ffffff)',
       }
     },
   },

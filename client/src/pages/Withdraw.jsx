@@ -168,22 +168,22 @@ export default function Withdraw() {
 
                 {/* Tax Info */}
                 {selectedAmount && (
-                    <div className="bg-amber-500/10 rounded-2xl p-5 mb-6 border border-amber-500/20 animate-slide-up">
+                    <div className="bg-violet-500/10 rounded-2xl p-5 mb-6 border border-violet-500/20 animate-slide-up">
                         <div className="flex justify-between items-center mb-3">
-                            <span className="text-xs font-bold text-amber-500 uppercase tracking-wide">Summary</span>
-                            <ShieldCheck size={18} className="text-amber-500" />
+                            <span className="text-xs font-bold text-violet-500 uppercase tracking-wide">Summary</span>
+                            <ShieldCheck size={18} className="text-violet-500" />
                         </div>
                         <div className="space-y-2 text-sm">
-                            <div className="flex justify-between text-amber-200/70">
+                            <div className="flex justify-between text-violet-200/70">
                                 <span>Gross Amount</span>
                                 <span className="font-medium">{formatNumber(selectedAmount)} ETB</span>
                             </div>
-                            <div className="flex justify-between text-amber-200/70">
+                            <div className="flex justify-between text-violet-200/70">
                                 <span>Tax (10%)</span>
                                 <span className="font-medium text-red-400">-{formatNumber(taxAmount)} ETB</span>
                             </div>
-                            <div className="pt-2 border-t border-amber-500/20 flex justify-between items-center mt-1">
-                                <span className="font-bold text-amber-200">Net Arrival</span>
+                            <div className="pt-2 border-t border-violet-500/20 flex justify-between items-center mt-1">
+                                <span className="font-bold text-violet-200">Net Arrival</span>
                                 <span className="font-bold text-lg text-emerald-400">{formatNumber(netAmount)} ETB</span>
                             </div>
                         </div>

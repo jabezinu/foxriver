@@ -12,7 +12,7 @@ export const Button = ({
     const baseStyles = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900';
 
     const variants = {
-        primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-black shadow-glow hover:shadow-glow-strong hover:from-primary-400 hover:to-primary-500 focus:ring-primary-500',
+        primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-glow hover:shadow-glow-strong hover:from-primary-400 hover:to-primary-500 focus:ring-primary-500',
         secondary: 'bg-zinc-800 text-white shadow-md border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 focus:ring-zinc-600',
         outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-500/10 focus:ring-primary-500',
         ghost: 'text-zinc-400 hover:bg-zinc-800 hover:text-white focus:ring-zinc-700',

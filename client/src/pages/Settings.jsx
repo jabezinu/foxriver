@@ -195,11 +195,11 @@ export default function Settings() {
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
                     {profile.bankChangeStatus === 'pending' && (
-                        <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 mb-2">
-                            <p className="text-amber-500 font-bold text-xs uppercase tracking-wide mb-1">
+                        <div className="bg-violet-500/10 p-4 rounded-xl border border-violet-500/20 mb-2">
+                            <p className="text-violet-500 font-bold text-xs uppercase tracking-wide mb-1">
                                 Change Pending
                             </p>
-                            <p className="text-amber-200/80 text-xs leading-relaxed">
+                            <p className="text-violet-200/80 text-xs leading-relaxed">
                                 Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
                                 Effective: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                             </p>

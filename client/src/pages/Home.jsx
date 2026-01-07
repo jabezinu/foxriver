@@ -100,10 +100,10 @@ export default function Home() {
         { icon: Download, label: 'Deposit', color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
         { icon: Upload, label: 'Withdraw', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
         { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
-        { icon: Zap, label: 'Wealth', color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/wealth' },
+        { icon: Zap, label: 'Wealth', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
         { icon: Globe, label: 'Spin', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', action: () => toast('Lucky Wheel coming soon!') },
         { icon: Info, label: 'About', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', action: () => toast.success('Foxriver: Digital Earning Platform') },
-        { icon: Newspaper, label: 'News', color: 'bg-orange-500/10 text-orange-400 border border-orange-500/20', path: '/news' },
+        { icon: Newspaper, label: 'News', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/news' },
         { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
         {
             icon: Share2,
@@ -128,7 +128,7 @@ export default function Home() {
             {/* Top Bar */}
             <div className="bg-zinc-900/80 backdrop-blur-md px-5 py-4 flex justify-between items-center sticky top-0 z-30 border-b border-zinc-800">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-black font-black text-sm shadow-glow">F</div>
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-black text-sm shadow-glow">F</div>
                     <span className="font-bold text-white text-lg tracking-tight">Foxriver</span>
                 </div>
                 <div className="flex gap-3">
@@ -143,9 +143,9 @@ export default function Home() {
 
             {/* Hero Section */}
             <div className="px-5 pt-6 pb-2">
-                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-amber-400 rounded-[2rem] p-6 text-black shadow-lg shadow-primary-500/20 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-violet-400 rounded-[2rem] p-6 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
 
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-2 opacity-80">
@@ -157,11 +157,11 @@ export default function Home() {
                         </h2>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-black/30 transition-colors">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
                                 <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Income Wallet</p>
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.incomeWallet)}</p>
                             </div>
-                            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-black/30 transition-colors">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
                                 <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Asset Wallet</p>
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.personalWallet)}</p>
                             </div>
@@ -219,7 +219,7 @@ export default function Home() {
                     <p className="text-zinc-400 mb-6 text-sm">
                         Share your unique link. Earn commisions when your friends join and deposit!
                     </p>
-                    <div className="bg-black/30 p-4 rounded-xl break-all mb-6 text-xs font-mono text-primary-500 border border-zinc-800 selection:bg-primary-500 selection:text-black">
+                    <div className="bg-white/30 p-4 rounded-xl break-all mb-6 text-xs font-mono text-primary-500 border border-zinc-800 selection:bg-primary-500 selection:text-white">
                         {referralLink}
                     </div>
                     <Button onClick={handleCopyLink} fullWidth>
@@ -235,7 +235,7 @@ export default function Home() {
                     title={messageQueue[0].title}
                 >
                     <div className="space-y-6">
-                        <div className="bg-black/30 rounded-2xl p-4 max-h-60 overflow-y-auto border border-zinc-800">
+                        <div className="bg-white/30 rounded-2xl p-4 max-h-60 overflow-y-auto border border-zinc-800">
                             <p className="text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{messageQueue[0].content}</p>
                         </div>
                         <Button onClick={handleNextMessage} fullWidth>

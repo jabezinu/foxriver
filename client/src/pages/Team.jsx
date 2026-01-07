@@ -68,7 +68,7 @@ export default function Team() {
     if (loading) return <Loading />;
 
     const levelColors = {
-        a: 'from-primary-600 to-amber-600',
+        a: 'from-primary-600 to-violet-600',
         b: 'from-emerald-600 to-green-600',
         c: 'from-blue-600 to-indigo-600'
     };
@@ -204,11 +204,11 @@ export default function Team() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-end text-xs">
                                 <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
-                                <span className="font-bold text-amber-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
+                                <span className="font-bold text-violet-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
                             </div>
                             <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                                    className="h-full bg-violet-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct20?.threshold || 20)) * 100, 100)}%` }}
                                 />
                             </div>

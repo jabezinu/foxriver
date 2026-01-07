@@ -48,7 +48,7 @@ export default function Mine() {
             <div className="px-5 pt-6 pb-2">
                 {/* User Info Card */}
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-amber-600 flex items-center justify-center text-black text-3xl font-black shadow-glow">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white text-3xl font-black shadow-glow">
                         {profile.phone.slice(-1)}
                     </div>
                     <div>
@@ -107,7 +107,7 @@ export default function Mine() {
                         onClick={() => navigate('/withdraw')}
                         className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform border border-orange-500/20">
+                        <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 group-hover:scale-110 transition-transform border border-violet-500/20">
                             <ArrowUpRight size={24} />
                         </div>
                         <div className="flex-1">

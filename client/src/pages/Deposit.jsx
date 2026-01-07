@@ -150,10 +150,10 @@ export default function Deposit() {
                 {step === 1 ? (
                     <>
                         {/* Section 1: Account Balance */}
-                        <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-amber-500 rounded-2xl p-6 text-black shadow-lg shadow-primary-500/20 mb-6 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-violet-500 rounded-2xl p-6 text-white shadow-lg shadow-primary-500/20 mb-6 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10 blur-2xl pointer-events-none" />
                             <div className="relative z-10">
-                                <p className="text-black/70 text-xs font-bold uppercase tracking-wider mb-2">Personal Wallet</p>
+                                <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-2">Personal Wallet</p>
                                 <div className="flex items-baseline gap-1">
                                     <h2 className="text-3xl font-black tracking-tight">{formatNumber(balance)}</h2>
                                     <span className="text-sm font-bold opacity-80">ETB</span>
@@ -298,7 +298,7 @@ export default function Deposit() {
                                                     p-2.5 rounded-xl
                                                     ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
                                                         item.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
-                                                            'bg-amber-500/10 text-amber-500'}
+                                                            'bg-violet-500/10 text-violet-500'}
                                                 `}>
                                                     <CreditCard size={20} />
                                                 </div>
@@ -313,7 +313,7 @@ export default function Deposit() {
                                                 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide
                                                 ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
                                                     item.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                                                        'bg-amber-500/10 text-amber-500 border border-amber-500/20'}
+                                                        'bg-violet-500/10 text-violet-500 border border-violet-500/20'}
                                             `}>
                                                 {item.status === 'approved' ? 'Success' :
                                                     item.status === 'rejected' ? 'Failed' :
@@ -372,7 +372,7 @@ export default function Deposit() {
 
                         <div className="mb-8">
                             <Card className="p-5 border-zinc-800 shadow-sm bg-zinc-900">
-                                <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Enter Transaction FT Number</label>
+                                <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Enter Transaction ID</label>
                                 <Input
                                     value={ftNumber}
                                     onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
