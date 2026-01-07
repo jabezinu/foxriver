@@ -4,6 +4,7 @@ export const useAppStore = create((set) => ({
     language: localStorage.getItem('foxriver_language') || 'en',
     unreadMessages: 0,
     showFirstEntryPopup: false,
+    messageQueue: [],
 
     setLanguage: (lang) => {
         localStorage.setItem('foxriver_language', lang);
@@ -13,4 +14,8 @@ export const useAppStore = create((set) => ({
     setUnreadMessages: (count) => set({ unreadMessages: count }),
 
     setShowFirstEntryPopup: (show) => set({ showFirstEntryPopup: show }),
+
+    setMessageQueue: (queue) => set({ messageQueue: queue }),
+
+    nextMessage: () => set((state) => ({ messageQueue: state.messageQueue.slice(1) })),
 }));

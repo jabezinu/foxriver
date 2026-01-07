@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { useAppStore } from '../store/appStore';
-import { userAPI, messageAPI } from '../services/api';
+import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { formatNumber } from '../utils/formatNumber';
 import {
@@ -46,36 +44,16 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
 
 export default function Home() {
     const navigate = useNavigate();
-    const { user } = useAuthStore();
-    const { unreadMessages } = useAppStore();
     const [loading, setLoading] = useState(true);
     const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
     const [showInvitation, setShowInvitation] = useState(false);
     const [referralLink, setReferralLink] = useState('');
 
-    // Message Popup State
-    const [messageQueue, setMessageQueue] = useState([]);
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const shouldShowWelcome = sessionStorage.getItem('showWelcome');
-                const promises = [userAPI.getWallet()];
-                if (shouldShowWelcome === 'true') {
-                    promises.push(messageAPI.getUserMessages());
-                }
-
-                const results = await Promise.all(promises);
-                const walletRes = results[0];
-
+                const walletRes = await userAPI.getWallet();
                 setWallet(walletRes.data.wallet);
-
-                if (shouldShowWelcome === 'true' && results[1]) {
-                    const messagesRes = results[1];
-                    setMessageQueue(messagesRes.data.messages);
-                    sessionStorage.removeItem('showWelcome');
-                }
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -88,12 +66,6 @@ export default function Home() {
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
         toast.success('Link copied to clipboard');
-    };
-
-    const handleNextMessage = () => {
-        if (messageQueue.length > 0) {
-            setMessageQueue(prev => prev.slice(1));
-        }
     };
 
     const menuItems = [
@@ -227,23 +199,6 @@ export default function Home() {
                     </Button>
                 </div>
             </Modal>
-
-            {messageQueue.length > 0 && (
-                <Modal
-                    isOpen={true}
-                    onClose={handleNextMessage}
-                    title={messageQueue[0].title}
-                >
-                    <div className="space-y-6">
-                        <div className="bg-white/30 rounded-2xl p-4 max-h-60 overflow-y-auto border border-zinc-800">
-                            <p className="text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{messageQueue[0].content}</p>
-                        </div>
-                        <Button onClick={handleNextMessage} fullWidth>
-                            Got it
-                        </Button>
-                    </div>
-                </Modal>
-            )}
         </div>
     );
 }
