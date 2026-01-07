@@ -98,7 +98,7 @@ exports.submitTransactionFT = async (req, res) => {
         if (existingDeposit) {
             return res.status(400).json({
                 success: false,
-                message: 'This Transaction FT code has already been used'
+                message: "This Transaction ID isn't valid"
             });
         }
 
