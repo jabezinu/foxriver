@@ -82,8 +82,9 @@ exports.upgradeMembership = async (req, res) => {
         // Deduct funds
         user[walletField] -= newMembership.price;
 
-        // Update Level
+        // Update Level and reset activation date
         user.membershipLevel = newLevel;
+        user.membershipActivatedAt = new Date(); // Reset activation date for new membership
         await user.save();
 
         // Calculate and credit membership commissions

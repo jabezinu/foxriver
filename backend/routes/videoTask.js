@@ -6,7 +6,7 @@ const {
     completeVideoTask,
     getVideoTaskStats
 } = require('../controllers/videoTaskController');
-const { protect } = require('../middlewares/auth');
+const { protect, checkInternEarningRestriction } = require('../middlewares/auth');
 
 // Get daily video tasks
 router.get('/daily', protect, getDailyVideoTasks);
@@ -15,7 +15,7 @@ router.get('/daily', protect, getDailyVideoTasks);
 router.post('/:videoAssignmentId/progress', protect, updateVideoProgress);
 
 // Complete video task
-router.post('/:videoAssignmentId/complete', protect, completeVideoTask);
+router.post('/:videoAssignmentId/complete', protect, checkInternEarningRestriction, completeVideoTask);
 
 // Get video task statistics
 router.get('/stats', protect, getVideoTaskStats);

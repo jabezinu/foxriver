@@ -1,17 +1,39 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
 import { formatNumber } from '../utils/formatNumber';
+import { useAuthStore } from '../store/authStore';
 
 export default function Mine() {
     const navigate = useNavigate();
+    const { user } = useAuthStore();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
+
+    // Calculate Intern restriction info
+    const getInternRestrictionInfo = () => {
+        if (!user || user.membershipLevel !== 'Intern') return null;
+        
+        const now = new Date();
+        const activationDate = new Date(user.membershipActivatedAt || user.createdAt);
+        const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.max(0, 4 - daysSinceActivation);
+        const canEarn = daysSinceActivation < 4;
+        
+        return {
+            canEarn,
+            daysRemaining,
+            daysSinceActivation,
+            activationDate
+        };
+    };
+
+    const internInfo = getInternRestrictionInfo();
 
     useEffect(() => {
         fetchData();
@@ -59,6 +81,57 @@ export default function Mine() {
                         </div>
                     </div>
                 </div>
+
+                {/* Intern Restriction Info */}
+                {internInfo && (
+                    <Card className={`p-4 mb-6 border-2 ${
+                        internInfo.canEarn 
+                            ? 'bg-amber-900/20 border-amber-600/50' 
+                            : 'bg-red-900/20 border-red-600/50'
+                    }`}>
+                        <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                internInfo.canEarn 
+                                    ? 'bg-amber-500/20 text-amber-400' 
+                                    : 'bg-red-500/20 text-red-400'
+                            }`}>
+                                {internInfo.canEarn ? <Clock size={16} /> : <AlertTriangle size={16} />}
+                            </div>
+                            <div className="flex-1">
+                                <h3 className={`font-bold text-sm mb-1 ${
+                                    internInfo.canEarn ? 'text-amber-300' : 'text-red-300'
+                                }`}>
+                                    {internInfo.canEarn ? 'Intern Trial Period' : 'Trial Period Ended'}
+                                </h3>
+                                <p className="text-xs text-zinc-300 mb-2">
+                                    {internInfo.canEarn 
+                                        ? `You have ${internInfo.daysRemaining} day${internInfo.daysRemaining !== 1 ? 's' : ''} remaining to earn from tasks.`
+                                        : 'Your 4-day Intern trial period has ended. Task earning is no longer available.'
+                                    }
+                                </p>
+                                <p className="text-xs text-zinc-400">
+                                    {internInfo.canEarn 
+                                        ? 'Upgrade to V1 before your trial ends to continue earning.'
+                                        : 'Upgrade to V1 membership to resume earning from tasks.'
+                                    }
+                                </p>
+                                {internInfo.canEarn && (
+                                    <button
+                                        onClick={() => navigate('/tier-list')}
+                                        className="mt-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-black text-xs font-bold rounded-lg transition-colors"
+                                    >
+                                        Upgrade Now
+                                    </button>
+                                )}
+                                <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                                    <span>Trial started: {internInfo.activationDate.toLocaleDateString()}</span>
+                                    <span>•</span>
+                                    <span>Day {internInfo.daysSinceActivation + 1} of 4</span>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                )}
 
                 {/* Wallets */}
                 <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">My Assets</h3>

@@ -9,6 +9,12 @@ const { calculateAndCreateCommissions } = require('../utils/commission');
 // @access  Private
 exports.getDailyVideoTasks = async (req, res) => {
     try {
+        const user = await User.findById(req.user.id);
+        
+        // Check if Intern user can earn
+        const canInternEarn = user.canInternEarn();
+        const internDaysRemaining = user.getInternDaysRemaining();
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -58,8 +64,13 @@ exports.getDailyVideoTasks = async (req, res) => {
                     message: 'No videos available today',
                     videos: [],
                     totalEarnings: 0,
-                    perVideoEarning: videoPaymentAmount,
-                    watchTimeRequired: videoWatchTimeRequired
+                    perVideoEarning: canInternEarn ? videoPaymentAmount : 0,
+                    watchTimeRequired: videoWatchTimeRequired,
+                    internRestriction: user.membershipLevel === 'Intern' ? {
+                        canEarn: canInternEarn,
+                        daysRemaining: internDaysRemaining,
+                        activatedAt: user.membershipActivatedAt || user.createdAt
+                    } : null
                 });
             }
 
@@ -71,7 +82,7 @@ exports.getDailyVideoTasks = async (req, res) => {
                     video: video._id,
                     watchedSeconds: 0,
                     isCompleted: false,
-                    rewardAmount: videoPaymentAmount
+                    rewardAmount: canInternEarn ? videoPaymentAmount : 0
                 }))
             });
 
@@ -88,21 +99,27 @@ exports.getDailyVideoTasks = async (req, res) => {
             videoUrl: videoAssignment.video.videoUrl,
             watchedSeconds: videoAssignment.watchedSeconds,
             isCompleted: videoAssignment.isCompleted,
-            rewardAmount: videoAssignment.rewardAmount,
-            completedAt: videoAssignment.completedAt
+            rewardAmount: canInternEarn ? videoAssignment.rewardAmount : 0,
+            completedAt: videoAssignment.completedAt,
+            canEarn: canInternEarn
         }));
 
         const completedCount = videos.filter(v => v.isCompleted).length;
-        const totalEarnings = completedCount * videoPaymentAmount;
+        const totalEarnings = completedCount * (canInternEarn ? videoPaymentAmount : 0);
 
         res.status(200).json({
             success: true,
             videos,
             totalEarnings,
-            perVideoEarning: videoPaymentAmount,
+            perVideoEarning: canInternEarn ? videoPaymentAmount : 0,
             watchTimeRequired: videoWatchTimeRequired,
             completedCount,
-            totalVideos: videos.length
+            totalVideos: videos.length,
+            internRestriction: user.membershipLevel === 'Intern' ? {
+                canEarn: canInternEarn,
+                daysRemaining: internDaysRemaining,
+                activatedAt: user.membershipActivatedAt || user.createdAt
+            } : null
         });
 
     } catch (error) {
@@ -189,6 +206,18 @@ exports.completeVideoTask = async (req, res) => {
     try {
         const { videoAssignmentId } = req.params;
         const { watchedSeconds } = req.body;
+
+        // Get user and check Intern restriction
+        const user = await User.findById(req.user.id);
+        
+        // Check if Intern user can earn (within 4-day window)
+        if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your Intern trial period has ended. Video task earning is no longer available. Please upgrade to V1 to continue earning.',
+                code: 'INTERN_TRIAL_EXPIRED'
+            });
+        }
 
         // Get system settings
         const settings = await SystemSetting.findOne() || {};

@@ -21,6 +21,7 @@ export default function Task() {
         remainingTasks: 0,
         totalPossibleEarnings: 0 
     });
+    const [internRestriction, setInternRestriction] = useState(null);
 
     useEffect(() => {
         fetchTasks();
@@ -45,6 +46,9 @@ export default function Task() {
                 dailyIncome: response.data.dailyIncome,
                 perVideoIncome: response.data.perVideoIncome
             });
+            
+            // Set intern restriction info
+            setInternRestriction(response.data.internRestriction);
             
             // Use backend-calculated earnings statistics if available, otherwise calculate locally
             if (response.data.earningsStats) {
@@ -72,6 +76,13 @@ export default function Task() {
 
     const handleViewVideo = (task) => {
         if (task.isCompleted) return;
+        
+        // Check if Intern user can earn
+        if (internRestriction && !internRestriction.canEarn) {
+            toast.error('Your Intern trial period has ended. Please upgrade to V1 to continue earning.');
+            return;
+        }
+        
         setActiveVideo({ url: task.videoUrl, id: task._id });
         setCountdown(10); // Changed to 10 seconds for testing/UX
     };
@@ -102,6 +113,44 @@ export default function Task() {
 
     return (
         <div className="animate-fade-in px-4 py-8 pb-24 bg-zinc-950 min-h-screen">
+            {/* Intern Restriction Warning */}
+            {internRestriction && (
+                <Card className={`p-4 mb-6 border-2 ${
+                    internRestriction.canEarn 
+                        ? 'bg-amber-900/20 border-amber-600/50' 
+                        : 'bg-red-900/20 border-red-600/50'
+                }`}>
+                    <div className="flex items-start gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            internRestriction.canEarn 
+                                ? 'bg-amber-500/20 text-amber-400' 
+                                : 'bg-red-500/20 text-red-400'
+                        }`}>
+                            <Clock size={16} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className={`font-bold text-sm mb-1 ${
+                                internRestriction.canEarn ? 'text-amber-300' : 'text-red-300'
+                            }`}>
+                                {internRestriction.canEarn ? 'Intern Trial Period' : 'Trial Period Ended'}
+                            </h3>
+                            <p className="text-xs text-zinc-300 mb-2">
+                                {internRestriction.canEarn 
+                                    ? `You have ${internRestriction.daysRemaining} day${internRestriction.daysRemaining !== 1 ? 's' : ''} remaining to earn from tasks as an Intern member.`
+                                    : 'Your 4-day Intern trial period has ended. Task earning is no longer available.'
+                                }
+                            </p>
+                            <p className="text-xs text-zinc-400">
+                                {internRestriction.canEarn 
+                                    ? 'Upgrade to V1 before your trial ends to continue earning without interruption.'
+                                    : 'Upgrade to V1 membership to resume earning from tasks.'
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Header Info */}
             <Card className="p-5 flex justify-between items-center bg-zinc-900 border-zinc-800 shadow-lg shadow-black/20 mb-8">
                 <div>
@@ -181,25 +230,61 @@ export default function Task() {
                     </div>
                 ) : (
                     tasks.map((task) => (
-                        <Card key={task._id} className="p-4 flex items-center gap-4 transition-all hover:bg-zinc-800/80 border-zinc-800 bg-zinc-900 group">
+                        <Card key={task._id} className={`p-4 flex items-center gap-4 transition-all border-zinc-800 group ${
+                            internRestriction && !internRestriction.canEarn 
+                                ? 'bg-zinc-900/50 opacity-60' 
+                                : 'hover:bg-zinc-800/80 bg-zinc-900'
+                        }`}>
                             <div className="relative">
-                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted ? 'bg-zinc-950 text-zinc-600 border border-zinc-800' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
-                                    }`}>
-                                    <Video size={32} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
+                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${
+                                    task.isCompleted 
+                                        ? 'bg-zinc-950 text-zinc-600 border border-zinc-800' 
+                                        : internRestriction && !internRestriction.canEarn
+                                            ? 'bg-zinc-950/50 text-zinc-700 border border-zinc-800'
+                                            : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
+                                }`}>
+                                    <Video size={32} strokeWidth={1.5} className={
+                                        internRestriction && !internRestriction.canEarn 
+                                            ? '' 
+                                            : 'group-hover:scale-110 transition-transform'
+                                    } />
                                 </div>
-                                {task.isCompleted && <div className="absolute inset-0 bg-black/40 rounded-2xl" />}
+                                {(task.isCompleted || (internRestriction && !internRestriction.canEarn)) && 
+                                    <div className="absolute inset-0 bg-black/40 rounded-2xl" />
+                                }
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-zinc-200 text-sm leading-tight mb-2 truncate group-hover:text-primary-400 transition-colors">{task.title}</p>
+                                <p className={`font-bold text-sm leading-tight mb-2 truncate transition-colors ${
+                                    internRestriction && !internRestriction.canEarn 
+                                        ? 'text-zinc-500' 
+                                        : 'text-zinc-200 group-hover:text-primary-400'
+                                }`}>
+                                    {task.title}
+                                </p>
                                 <div className="flex items-center gap-2">
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-950 text-zinc-400 text-[10px] font-bold uppercase tracking-wider border border-zinc-800">
-                                        <span>+{formatNumber(task.earnings)} ETB</span>
+                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                                        internRestriction && !internRestriction.canEarn
+                                            ? 'bg-zinc-950/50 text-zinc-600 border-zinc-800'
+                                            : 'bg-zinc-950 text-zinc-400 border-zinc-800'
+                                    }`}>
+                                        <span>
+                                            {internRestriction && !internRestriction.canEarn 
+                                                ? 'No Earnings' 
+                                                : `+${formatNumber(task.earnings)} ETB`
+                                            }
+                                        </span>
                                     </div>
                                     {task.isCompleted && (
                                         <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-900/30 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-800/50">
                                             <CheckCircle size={8} />
                                             <span>Earned</span>
+                                        </div>
+                                    )}
+                                    {internRestriction && !internRestriction.canEarn && (
+                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-900/30 text-red-400 text-[9px] font-bold uppercase tracking-wider border border-red-800/50">
+                                            <X size={8} />
+                                            <span>Disabled</span>
                                         </div>
                                     )}
                                 </div>
@@ -209,6 +294,10 @@ export default function Task() {
                                 {task.isCompleted ? (
                                     <div className="flex flex-col items-center gap-1 text-emerald-500">
                                         <CheckCircle size={28} fill="currentColor" className="text-zinc-950" />
+                                    </div>
+                                ) : internRestriction && !internRestriction.canEarn ? (
+                                    <div className="h-10 w-10 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-600 cursor-not-allowed">
+                                        <X size={18} />
                                     </div>
                                 ) : (
                                     <Button

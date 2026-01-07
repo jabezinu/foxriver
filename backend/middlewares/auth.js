@@ -52,3 +52,16 @@ exports.adminOnly = (req, res, next) => {
 exports.isV1OrHigher = (req, res, next) => {
     next();
 };
+
+// Check if Intern user can earn (within 4-day window)
+exports.checkInternEarningRestriction = (req, res, next) => {
+    if (req.user.membershipLevel === 'Intern' && !req.user.canInternEarn()) {
+        return res.status(403).json({
+            success: false,
+            message: 'Your Intern trial period has ended. Task earning is no longer available. Please upgrade to V1 to continue earning.',
+            code: 'INTERN_TRIAL_EXPIRED',
+            daysRemaining: 0
+        });
+    }
+    next();
+};

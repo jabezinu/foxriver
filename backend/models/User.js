@@ -86,7 +86,11 @@ const userSchema = new mongoose.Schema({
     },
     withdrawalRestrictedUntil: Date,
     lastSalaryDate: Date,
-    lastLogin: Date
+    lastLogin: Date,
+    membershipActivatedAt: {
+        type: Date,
+        default: Date.now
+    }
 }, {
     timestamps: true
 });
@@ -135,6 +139,32 @@ userSchema.methods.matchTransactionPassword = async function (enteredPassword) {
 // Get referral link
 userSchema.methods.getReferralLink = function () {
     return `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${this.invitationCode}`;
+};
+
+// Check if Intern user can earn (within 4 days of membership activation)
+userSchema.methods.canInternEarn = function () {
+    if (this.membershipLevel !== 'Intern') {
+        return true; // Non-interns can always earn
+    }
+    
+    const now = new Date();
+    const activationDate = this.membershipActivatedAt || this.createdAt;
+    const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+    
+    return daysSinceActivation < 4;
+};
+
+// Get days remaining for Intern earning
+userSchema.methods.getInternDaysRemaining = function () {
+    if (this.membershipLevel !== 'Intern') {
+        return null;
+    }
+    
+    const now = new Date();
+    const activationDate = this.membershipActivatedAt || this.createdAt;
+    const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, 4 - daysSinceActivation);
 };
 
 module.exports = mongoose.model('User', userSchema);

@@ -11,10 +11,10 @@ const {
     deletePlaylist,
     syncVideos
 } = require('../controllers/taskController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkInternEarningRestriction } = require('../middlewares/auth');
 
 router.get('/daily', protect, getDailyTasks);
-router.post('/:id/complete', protect, completeTask);
+router.post('/:id/complete', protect, checkInternEarningRestriction, completeTask);
 router.post('/upload', protect, adminOnly, uploadTask);
 router.get('/all', protect, adminOnly, getAllTasks);
 router.delete('/:id', protect, adminOnly, deleteTask);

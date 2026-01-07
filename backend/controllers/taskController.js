@@ -13,6 +13,12 @@ const ytpl = require('ytpl');
 // @access  Private
 exports.getDailyTasks = async (req, res) => {
     try {
+        const user = await User.findById(req.user.id);
+        
+        // Check if Intern user can earn
+        const canInternEarn = user.canInternEarn();
+        const internDaysRemaining = user.getInternDaysRemaining();
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -75,7 +81,6 @@ exports.getDailyTasks = async (req, res) => {
         tasks = tasks.slice(0, 5);
 
         // Get user's membership to calculate earnings
-        const user = await User.findById(req.user.id);
         const membership = await Membership.findOne({ level: user.membershipLevel });
 
         // Check which tasks user has completed
@@ -85,29 +90,36 @@ exports.getDailyTasks = async (req, res) => {
         }).distinct('task');
 
         // Format tasks with earnings and completion status
+        // For Interns who can't earn, set earnings to 0
         const tasksWithDetails = tasks.map(task => ({
             ...task.toObject(),
-            earnings: membership ? membership.getPerVideoIncome() : 0,
-            isCompleted: completedTaskIds.some(id => id.toString() === task._id.toString())
+            earnings: (membership && canInternEarn) ? membership.getPerVideoIncome() : 0,
+            isCompleted: completedTaskIds.some(id => id.toString() === task._id.toString()),
+            canEarn: canInternEarn
         }));
 
         // Calculate earnings summary
         const completedCount = tasksWithDetails.filter(task => task.isCompleted).length;
-        const todayEarnings = completedCount * (membership ? membership.getPerVideoIncome() : 0);
-        const totalPossibleEarnings = tasksWithDetails.length * (membership ? membership.getPerVideoIncome() : 0);
+        const todayEarnings = completedCount * (membership && canInternEarn ? membership.getPerVideoIncome() : 0);
+        const totalPossibleEarnings = tasksWithDetails.length * (membership && canInternEarn ? membership.getPerVideoIncome() : 0);
 
         res.status(200).json({
             success: true,
             count: tasksWithDetails.length,
             tasks: tasksWithDetails,
-            dailyIncome: membership ? membership.getDailyIncome() : 0,
-            perVideoIncome: membership ? membership.getPerVideoIncome() : 0,
+            dailyIncome: membership && canInternEarn ? membership.getDailyIncome() : 0,
+            perVideoIncome: membership && canInternEarn ? membership.getPerVideoIncome() : 0,
             earningsStats: {
                 todayEarnings,
                 completedTasks: completedCount,
                 remainingTasks: tasksWithDetails.length - completedCount,
                 totalPossibleEarnings
-            }
+            },
+            internRestriction: user.membershipLevel === 'Intern' ? {
+                canEarn: canInternEarn,
+                daysRemaining: internDaysRemaining,
+                activatedAt: user.membershipActivatedAt || user.createdAt
+            } : null
         });
     } catch (error) {
         res.status(500).json({
@@ -160,6 +172,15 @@ exports.completeTask = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Membership level not found'
+            });
+        }
+
+        // Check if Intern user can earn (within 4-day window)
+        if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your Intern trial period has ended. Task earning is no longer available. Please upgrade to V1 to continue earning.',
+                code: 'INTERN_TRIAL_EXPIRED'
             });
         }
 
