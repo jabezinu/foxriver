@@ -40,6 +40,18 @@ const systemSettingSchema = new mongoose.Schema({
     salaryNetwork40Amount: {
         type: Number,
         default: 48000
+    },
+    videoPaymentAmount: {
+        type: Number,
+        default: 10 // Default payment per video in ETB
+    },
+    videosPerDay: {
+        type: Number,
+        default: 4 // Number of videos shown per day
+    },
+    videoWatchTimeRequired: {
+        type: Number,
+        default: 15 // Required watch time in seconds
     }
 }, {
     timestamps: true

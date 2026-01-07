@@ -15,6 +15,14 @@ const taskCompletionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    watchedSeconds: {
+        type: Number,
+        default: 0
+    },
+    requiredWatchTime: {
+        type: Number,
+        default: 15
+    },
     completionDate: {
         type: Date,
         default: Date.now

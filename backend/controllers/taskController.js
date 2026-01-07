@@ -91,12 +91,23 @@ exports.getDailyTasks = async (req, res) => {
             isCompleted: completedTaskIds.some(id => id.toString() === task._id.toString())
         }));
 
+        // Calculate earnings summary
+        const completedCount = tasksWithDetails.filter(task => task.isCompleted).length;
+        const todayEarnings = completedCount * (membership ? membership.getPerVideoIncome() : 0);
+        const totalPossibleEarnings = tasksWithDetails.length * (membership ? membership.getPerVideoIncome() : 0);
+
         res.status(200).json({
             success: true,
             count: tasksWithDetails.length,
             tasks: tasksWithDetails,
             dailyIncome: membership ? membership.getDailyIncome() : 0,
-            perVideoIncome: membership ? membership.getPerVideoIncome() : 0
+            perVideoIncome: membership ? membership.getPerVideoIncome() : 0,
+            earningsStats: {
+                todayEarnings,
+                completedTasks: completedCount,
+                remainingTasks: tasksWithDetails.length - completedCount,
+                totalPossibleEarnings
+            }
         });
     } catch (error) {
         res.status(500).json({

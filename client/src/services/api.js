@@ -71,6 +71,14 @@ export const taskAPI = {
     completeTask: (taskId) => api.post(`/tasks/${taskId}/complete`),
 };
 
+// Video Task endpoints
+export const videoTaskAPI = {
+    getDailyVideoTasks: () => api.get('/video-tasks/daily'),
+    updateVideoProgress: (videoAssignmentId, data) => api.post(`/video-tasks/${videoAssignmentId}/progress`, data),
+    completeVideoTask: (videoAssignmentId, data) => api.post(`/video-tasks/${videoAssignmentId}/complete`, data),
+    getVideoTaskStats: () => api.get('/video-tasks/stats'),
+};
+
 // Message endpoints
 export const messageAPI = {
     getUserMessages: () => api.get('/messages/user'),

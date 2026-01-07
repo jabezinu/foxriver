@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { taskAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { Play, CheckCircle, Video, X, Clock } from 'lucide-react';
+import { Play, CheckCircle, Video, X, Clock, TrendingUp, Target } from 'lucide-react';
 import ReactPlayer from 'react-player';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
@@ -15,6 +15,12 @@ export default function Task() {
     const [activeVideo, setActiveVideo] = useState(null);
     const [countdown, setCountdown] = useState(null);
     const [isCompleting, setIsCompleting] = useState(false);
+    const [earningsStats, setEarningsStats] = useState({ 
+        todayEarnings: 0, 
+        completedTasks: 0, 
+        remainingTasks: 0,
+        totalPossibleEarnings: 0 
+    });
 
     useEffect(() => {
         fetchTasks();
@@ -39,6 +45,24 @@ export default function Task() {
                 dailyIncome: response.data.dailyIncome,
                 perVideoIncome: response.data.perVideoIncome
             });
+            
+            // Use backend-calculated earnings statistics if available, otherwise calculate locally
+            if (response.data.earningsStats) {
+                setEarningsStats(response.data.earningsStats);
+            } else {
+                // Fallback to local calculation
+                const completedTasks = response.data.tasks.filter(task => task.isCompleted).length;
+                const remainingTasks = response.data.tasks.length - completedTasks;
+                const todayEarnings = completedTasks * response.data.perVideoIncome;
+                const totalPossibleEarnings = response.data.tasks.length * response.data.perVideoIncome;
+                
+                setEarningsStats({
+                    todayEarnings,
+                    completedTasks,
+                    remainingTasks,
+                    totalPossibleEarnings
+                });
+            }
         } catch (error) {
             console.error('Error fetching tasks:', error);
         } finally {
@@ -59,7 +83,8 @@ export default function Task() {
         try {
             const response = await taskAPI.completeTask(activeVideo.id);
             if (response.data.success) {
-                toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB`);
+                const newEarnings = earningsStats.todayEarnings + response.data.earningsAmount;
+                toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
                 setActiveVideo(null);
                 setCountdown(null);
                 fetchTasks();
@@ -95,6 +120,48 @@ export default function Task() {
                 </div>
             </Card>
 
+            {/* Earnings Progress Card */}
+            <Card className="p-5 bg-gradient-to-r from-emerald-900/20 to-primary-900/20 border-emerald-800/30 shadow-lg shadow-black/20 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                            <TrendingUp size={16} />
+                        </div>
+                        <h3 className="font-bold text-white text-sm uppercase tracking-wide">Today's Progress</h3>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-emerald-400 font-bold text-lg">{formatNumber(earningsStats.todayEarnings)} ETB</p>
+                        <p className="text-xs text-zinc-500">of {formatNumber(earningsStats.totalPossibleEarnings)} ETB</p>
+                    </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-sm mb-3">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5">
+                            <CheckCircle size={14} className="text-emerald-400" />
+                            <span className="text-zinc-300">{earningsStats.completedTasks} completed</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Target size={14} className="text-primary-400" />
+                            <span className="text-zinc-300">{earningsStats.remainingTasks} remaining</span>
+                        </div>
+                    </div>
+                    <div className="text-zinc-400 text-xs">
+                        {tasks.length > 0 ? Math.round((earningsStats.completedTasks / tasks.length) * 100) : 0}% complete
+                    </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-emerald-500 to-primary-500 transition-all duration-500 ease-out"
+                        style={{ 
+                            width: tasks.length > 0 ? `${(earningsStats.completedTasks / tasks.length) * 100}%` : '0%' 
+                        }}
+                    ></div>
+                </div>
+            </Card>
+
             <h3 className="font-bold text-white mb-5 flex items-center gap-2 text-sm uppercase tracking-wide px-1">
                 <div className="w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-500/20">
                     <Video size={16} />
@@ -125,8 +192,16 @@ export default function Task() {
 
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-zinc-200 text-sm leading-tight mb-2 truncate group-hover:text-primary-400 transition-colors">{task.title}</p>
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-950 text-zinc-400 text-[10px] font-bold uppercase tracking-wider border border-zinc-800">
-                                    <span>+{formatNumber(task.earnings)} ETB</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-950 text-zinc-400 text-[10px] font-bold uppercase tracking-wider border border-zinc-800">
+                                        <span>+{formatNumber(task.earnings)} ETB</span>
+                                    </div>
+                                    {task.isCompleted && (
+                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-900/30 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-800/50">
+                                            <CheckCircle size={8} />
+                                            <span>Earned</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -164,6 +239,7 @@ export default function Task() {
                             <div>
                                 <p className="text-white font-bold uppercase tracking-widest text-sm mb-0.5">Watching Ad</p>
                                 <p className="text-primary-400 text-xs font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
+                                <p className="text-zinc-500 text-[10px] mt-1">Total Today: {formatNumber(earningsStats.todayEarnings + dailyStats.perVideoIncome)} ETB</p>
                             </div>
                         </div>
                     </div>

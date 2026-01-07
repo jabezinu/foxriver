@@ -22,6 +22,7 @@ app.use('/api/users', require('./routes/user'));
 app.use('/api/deposits', require('./routes/deposit'));
 app.use('/api/withdrawals', require('./routes/withdrawal'));
 app.use('/api/tasks', require('./routes/task'));
+app.use('/api/video-tasks', require('./routes/videoTask'));
 app.use('/api/messages', require('./routes/message'));
 app.use('/api/memberships', require('./routes/membership'));
 app.use('/api/referrals', require('./routes/referral'));
