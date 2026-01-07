@@ -27,7 +27,7 @@ exports.createDeposit = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Deposit request created. Please submit transaction FT.',
+            message: 'Deposit request created. Please submit transaction ID.',
             deposit
         });
     } catch (error) {
@@ -38,36 +38,22 @@ exports.createDeposit = async (req, res) => {
     }
 };
 
-// @desc    Submit transaction FT for deposit
+// @desc    Submit transaction ID for deposit
 // @route   POST /api/deposits/submit-ft
 // @access  Private
 exports.submitTransactionFT = async (req, res) => {
     try {
         const { depositId, transactionFT } = req.body;
 
-        // Validate FT Code Format
+        // Validate Transaction ID Format
         if (!transactionFT) {
             return res.status(400).json({
                 success: false,
-                message: 'Transaction FT code is required'
+                message: 'Transaction ID is required'
             });
         }
 
         const ftCode = transactionFT.trim().toUpperCase();
-
-        if (ftCode.length !== 12) {
-            return res.status(400).json({
-                success: false,
-                message: 'Transaction FT code must be exactly 12 characters'
-            });
-        }
-
-        if (!ftCode.startsWith('FT')) {
-            return res.status(400).json({
-                success: false,
-                message: 'Transaction FT code must start with "FT"'
-            });
-        }
 
         const deposit = await Deposit.findById(depositId);
 
@@ -89,7 +75,7 @@ exports.submitTransactionFT = async (req, res) => {
         if (deposit.status !== 'pending') {
             return res.status(400).json({
                 success: false,
-                message: 'Transaction FT already submitted or deposit processed'
+                message: 'Transaction ID already submitted or deposit processed'
             });
         }
 
@@ -108,7 +94,7 @@ exports.submitTransactionFT = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Transaction FT submitted successfully. Awaiting admin approval.',
+            message: 'Transaction ID submitted successfully. Awaiting admin approval.',
             deposit
         });
     } catch (error) {

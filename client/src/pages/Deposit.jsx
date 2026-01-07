@@ -94,17 +94,6 @@ export default function Deposit() {
             return;
         }
 
-        const formattedFT = ftNumber.trim().toUpperCase();
-
-        if (formattedFT.length !== 12) {
-            toast.error('FT Code must be exactly 12 characters');
-            return;
-        }
-
-        if (!formattedFT.startsWith('FT')) {
-            toast.error('FT Code must start with "FT"');
-            return;
-        }
 
         setSubmitting(true);
         try {
@@ -376,12 +365,11 @@ export default function Deposit() {
                                 <Input
                                     value={ftNumber}
                                     onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
-                                    placeholder="FT230104XXXX"
-                                    maxLength={12}
+                                    placeholder="Enter transaction ID"
                                     className="text-center font-mono tracking-widest text-lg py-3 uppercase placeholder:normal-case placeholder:tracking-normal"
                                 />
                                 <p className="text-[10px] text-zinc-500 mt-2 text-center">
-                                    Enter the 12-digit transaction reference number from your bank app.
+                                    Enter the transaction reference number from your bank app.
                                 </p>
                             </Card>
                         </div>

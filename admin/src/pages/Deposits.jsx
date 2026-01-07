@@ -83,14 +83,14 @@ export default function DepositRequests() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Capital Ledger</h1>
-                    <p className="text-sm text-gray-500">Authenticate incoming fund transfers and verify FT credentials.</p>
+                    <p className="text-sm text-gray-500">Authenticate incoming fund transfers and verify transaction credentials.</p>
                 </div>
                 <div className="flex flex-wrap gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100 w-full md:w-auto">
                     <button
                         onClick={() => setFilterStatus('ft_submitted')}
                         className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all whitespace-nowrap ${filterStatus === 'ft_submitted' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-400 hover:bg-gray-50'}`}
                     >
-                        Pending FT
+                        Pending
                     </button>
                     <button
                         onClick={() => setFilterStatus('approved')}
@@ -131,7 +131,7 @@ export default function DepositRequests() {
                                     </div>
                                     <div className="flex flex-wrap gap-x-6 gap-y-2">
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Transaction FT</span>
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Transaction ID</span>
                                             <span className="text-sm font-mono font-bold text-green-600">{dep.transactionFT || 'WAITING'}</span>
                                         </div>
                                         <div className="flex flex-col">
