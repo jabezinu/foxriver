@@ -6,8 +6,12 @@ const User = require('../models/User');
 // @access  Private
 exports.getUserMessages = async (req, res) => {
     try {
+        // Get messages where user is a recipient OR messages that are broadcast
         const messages = await Message.find({
-            'recipients.user': req.user.id
+            $or: [
+                { 'recipients.user': req.user.id },
+                { isBroadcast: true }
+            ]
         })
             .populate('sender', 'phone role')
             .sort({ createdAt: -1 });
@@ -50,17 +54,27 @@ exports.markAsRead = async (req, res) => {
         }
 
         // Find recipient and update read status
-        const recipient = message.recipients.find(r => r.user.toString() === req.user.id);
+        let recipient = message.recipients.find(r => r.user.toString() === req.user.id);
 
         if (!recipient) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized'
-            });
+            // For broadcast messages, if user is not in recipients, add them
+            if (message.isBroadcast) {
+                message.recipients.push({
+                    user: req.user.id,
+                    isRead: true,
+                    readAt: new Date()
+                });
+            } else {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Not authorized'
+                });
+            }
+        } else {
+            recipient.isRead = true;
+            recipient.readAt = new Date();
         }
 
-        recipient.isRead = true;
-        recipient.readAt = new Date();
         await message.save();
 
         res.status(200).json({
@@ -188,7 +202,7 @@ exports.updateMessage = async (req, res) => {
 // @access  Private/Admin
 exports.deleteMessage = async (req, res) => {
     try {
-        const message = await Message.findById(req.params.id);
+        const message = await Message.findByIdAndDelete(req.params.id);
 
         if (!message) {
             return res.status(404).json({
@@ -196,8 +210,6 @@ exports.deleteMessage = async (req, res) => {
                 message: 'Message not found'
             });
         }
-
-        await message.remove();
 
         res.status(200).json({
             success: true,

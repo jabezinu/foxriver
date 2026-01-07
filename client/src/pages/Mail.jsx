@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { useAppStore } from '../store/appStore';
 
 export default function Mail() {
     const navigate = useNavigate();
+    const { setUnreadMessages } = useAppStore();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeMessage, setActiveMessage] = useState(null);
@@ -20,6 +22,9 @@ export default function Mail() {
         try {
             const res = await messageAPI.getUserMessages();
             setMessages(res.data.messages);
+            // Update unread count in store
+            const unread = res.data.messages.filter(msg => !msg.isRead).length;
+            setUnreadMessages(unread);
         } catch (error) {
             console.error(error);
         } finally {

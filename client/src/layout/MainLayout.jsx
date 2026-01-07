@@ -5,12 +5,10 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 import { messageAPI } from '../services/api';
-import { toast } from 'react-hot-toast';
-import FirstEntryPopup from '../components/FirstEntryPopup';
 
 export default function MainLayout() {
     const { user } = useAuthStore();
-    const { setUnreadMessages, showFirstEntryPopup, setShowFirstEntryPopup } = useAppStore();
+    const { setUnreadMessages } = useAppStore();
     const location = useLocation();
 
     // Hide bottom nav on specific pages if needed (e.g., login/register usually not here, but maybe others)
@@ -23,12 +21,6 @@ export default function MainLayout() {
                 const response = await messageAPI.getUserMessages();
                 const unread = response.data.messages.filter(msg => !msg.isRead).length;
                 setUnreadMessages(unread);
-
-                // Show first entry popup if there are unread messages and user just logged in
-                if (unread > 0 && !sessionStorage.getItem('foxriver_popup_shown')) {
-                    setShowFirstEntryPopup(true);
-                    sessionStorage.setItem('foxriver_popup_shown', 'true');
-                }
             } catch (error) {
                 // Silent fail for UX unless critical
                 console.error('Error fetching messages:', error);
@@ -38,7 +30,7 @@ export default function MainLayout() {
         if (user) {
             fetchUnreadMessages();
         }
-    }, [user, setUnreadMessages, setShowFirstEntryPopup]);
+    }, [user, setUnreadMessages]);
 
     return (
         <div className="app-container flex flex-col">
@@ -49,8 +41,6 @@ export default function MainLayout() {
             <FloatingMail />
 
             {showBottomNav && <BottomNav />}
-
-            {showFirstEntryPopup && <FirstEntryPopup />}
         </div>
     );
 }
