@@ -38,7 +38,16 @@ export default function Register() {
         e.preventDefault();
 
         // Validation
-        if (!formData.phone.startsWith('+251') || formData.phone.length !== 13) {
+        // Normalize phone number
+        let phone = formData.phone.trim();
+        if (phone.startsWith('0')) {
+            phone = '+251' + phone.substring(1);
+        } else if (phone.startsWith('9')) {
+            phone = '+251' + phone;
+        }
+
+        // Validation
+        if (!phone.startsWith('+251') || phone.length !== 13) {
             toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
             captchaRef.current?.refreshCaptcha();
             return;
@@ -64,7 +73,7 @@ export default function Register() {
         }
 
         const result = await register({
-            phone: formData.phone,
+            phone: phone,
             password: formData.password,
             invitationCode: formData.invitationCode || undefined,
         });

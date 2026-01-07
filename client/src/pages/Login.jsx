@@ -34,7 +34,14 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.phone.startsWith('+251') || formData.phone.length !== 13) {
+        let phone = formData.phone.trim();
+        if (phone.startsWith('0')) {
+            phone = '+251' + phone.substring(1);
+        } else if (phone.startsWith('9')) {
+            phone = '+251' + phone;
+        }
+
+        if (!phone.startsWith('+251') || phone.length !== 13) {
             toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
             return;
         }
@@ -47,7 +54,7 @@ export default function Login() {
         }
 
         const result = await login({
-            phone: formData.phone,
+            phone: phone,
             password: formData.password,
         });
 
