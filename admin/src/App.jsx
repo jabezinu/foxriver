@@ -13,7 +13,6 @@ import UserManagement from './pages/Users';
 import DepositRequests from './pages/Deposits';
 import WithdrawalRequests from './pages/Withdrawals';
 import TaskManagement from './pages/Tasks';
-import NewsManagement from './pages/News';
 import QnaManagement from './pages/QnA';
 import Messages from './pages/Messages';
 import BankSettings from './pages/BankSettings';
@@ -68,7 +67,6 @@ function App() {
           <Route path="deposits" element={<DepositRequests />} />
           <Route path="withdrawals" element={<WithdrawalRequests />} />
           <Route path="tasks" element={<TaskManagement />} />
-          <Route path="news" element={<NewsManagement />} />
           <Route path="qna" element={<QnaManagement />} />
           <Route path="messages" element={<Messages />} />
           <Route path="bank-settings" element={<BankSettings />} />
