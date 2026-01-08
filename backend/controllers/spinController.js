@@ -10,6 +10,23 @@ exports.spinWheel = async (req, res) => {
         const userId = req.user._id;
         const { walletType, tierId } = req.body; // 'personal' or 'income', and tier ID
 
+        console.log('Spin request:', { userId, walletType, tierId });
+
+        // Validate required fields
+        if (!tierId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tier ID is required'
+            });
+        }
+
+        if (!walletType || !['personal', 'income'].includes(walletType)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid wallet type is required (personal or income)'
+            });
+        }
+
         // Get the selected tier
         const tier = await SlotTier.findById(tierId);
         
@@ -101,6 +118,7 @@ exports.spinWheel = async (req, res) => {
 
     } catch (error) {
         console.error('Spin wheel error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Error spinning the wheel',

@@ -34,7 +34,7 @@ const SpinWheel = () => {
 
     const fetchTiers = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/slot-tiers');
+            const response = await fetch('http://localhost:5002/api/slot-tiers');
             const data = await response.json();
             if (data.success) {
                 setTiers(data.data);

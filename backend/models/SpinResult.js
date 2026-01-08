@@ -8,7 +8,6 @@ const spinResultSchema = new mongoose.Schema({
     },
     result: {
         type: String,
-        enum: ['Try Again', 'Win 100 ETB'],
         required: true
     },
     amountPaid: {

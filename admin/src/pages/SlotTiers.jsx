@@ -23,8 +23,8 @@ const SlotTiers = () => {
     const fetchTiers = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch('http://localhost:5000/api/slot-tiers/admin/all', {
+            const token = localStorage.getItem('foxriver_admin_token');
+            const response = await fetch('http://localhost:5002/api/slot-tiers/admin/all', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -48,10 +48,10 @@ const SlotTiers = () => {
         e.preventDefault();
         
         try {
-            const token = localStorage.getItem('adminToken');
+            const token = localStorage.getItem('foxriver_admin_token');
             const url = editingTier
-                ? `http://localhost:5000/api/slot-tiers/admin/${editingTier._id}`
-                : 'http://localhost:5000/api/slot-tiers/admin';
+                ? `http://localhost:5002/api/slot-tiers/admin/${editingTier._id}`
+                : 'http://localhost:5002/api/slot-tiers/admin';
             
             const method = editingTier ? 'PUT' : 'POST';
             
@@ -105,8 +105,8 @@ const SlotTiers = () => {
         if (!window.confirm('Are you sure you want to delete this tier?')) return;
         
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/slot-tiers/admin/${id}`, {
+            const token = localStorage.getItem('foxriver_admin_token');
+            const response = await fetch(`http://localhost:5002/api/slot-tiers/admin/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -129,8 +129,8 @@ const SlotTiers = () => {
 
     const handleToggleStatus = async (id) => {
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`http://localhost:5000/api/slot-tiers/admin/${id}/toggle`, {
+            const token = localStorage.getItem('foxriver_admin_token');
+            const response = await fetch(`http://localhost:5002/api/slot-tiers/admin/${id}/toggle`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`
