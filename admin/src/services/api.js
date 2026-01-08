@@ -115,4 +115,8 @@ export const adminReferralAPI = {
     getCommissions: () => api.get('/admin/commissions'),
 };
 
+export const adminSpinAPI = {
+    getAllSpins: (params) => api.get('/spin/admin/all', { params }),
+};
+
 export default api;

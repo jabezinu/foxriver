@@ -18,6 +18,7 @@ import CompanyNews from './pages/CompanyNews';
 import QnA from './pages/QnA';
 import TierList from './pages/TierList';
 import Team from './pages/Team';
+import SpinWheel from './pages/SpinWheel';
 
 
 // Layout
@@ -85,6 +86,7 @@ function App() {
           <Route path="qna" element={<QnA />} />
           <Route path="tiers" element={<TierList />} />
           <Route path="team" element={<Team />} />
+          <Route path="spin" element={<SpinWheel />} />
         </Route>
 
 

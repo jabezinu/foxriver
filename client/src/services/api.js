@@ -112,4 +112,11 @@ export const bankAPI = {
     getBanks: () => api.get('/bank'),
 };
 
+// Spin endpoints
+export const spinAPI = {
+    spin: () => api.post('/spin'),
+    getHistory: () => api.get('/spin/history'),
+    getBalance: () => api.get('/users/wallet'),
+};
+
 export default api;

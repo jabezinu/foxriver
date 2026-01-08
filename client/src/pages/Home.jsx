@@ -73,7 +73,7 @@ export default function Home() {
         { icon: Upload, label: 'Withdraw', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
         { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
         { icon: Zap, label: 'Wealth', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
-        { icon: Globe, label: 'Spin', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', action: () => toast('Lucky Wheel coming soon!') },
+        { icon: Globe, label: 'Spin', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', path: '/spin' },
         { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
         {
             icon: Share2,

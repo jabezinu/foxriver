@@ -10,4 +10,222 @@ exports.spinWheel = async (req, res) => {
         const spinCost = 10;
 
         // Get user with current balance
-        const use
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Check if user has enough balance
+        if (user.personalWallet < spinCost) {
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient balance. You need 10 ETB to spin the wheel.'
+            });
+        }
+
+        const balanceBefore = user.personalWallet;
+
+        // Deduct spin cost
+        user.personalWallet -= spinCost;
+
+        // Determine result (10% chance to win 100 ETB)
+        const random = Math.random();
+        const isWin = random < 0.1; // 10% chance
+        
+        let result, amountWon = 0;
+        
+        if (isWin) {
+            result = 'Win 100 ETB';
+            amountWon = 100;
+            user.personalWallet += amountWon;
+        } else {
+            result = 'Try Again';
+        }
+
+        await user.save();
+
+        const balanceAfter = user.personalWallet;
+
+        // Create spin result record
+        const spinResult = await SpinResult.create({
+            userId,
+            result,
+            amountPaid: spinCost,
+            amountWon,
+            balanceBefore,
+            balanceAfter
+        });
+
+        // Populate user info for response
+        await spinResult.populate('userId', 'phone membershipLevel');
+
+        res.status(200).json({
+            success: true,
+            data: {
+                result,
+                amountWon,
+                balanceBefore,
+                balanceAfter,
+                spinResult
+            }
+        });
+
+    } catch (error) {
+        console.error('Spin wheel error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error spinning the wheel',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Get user's spin history
+// @route   GET /api/spin/history
+// @access  Private
+exports.getUserSpinHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const spins = await SpinResult.find({ userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await SpinResult.countDocuments({ userId });
+
+        // Calculate stats
+        const stats = await SpinResult.aggregate([
+            { $match: { userId: req.user._id } },
+            {
+                $group: {
+                    _id: null,
+                    totalSpins: { $sum: 1 },
+                    totalPaid: { $sum: '$amountPaid' },
+                    totalWon: { $sum: '$amountWon' },
+                    wins: {
+                        $sum: {
+                            $cond: [{ $eq: ['$result', 'Win 100 ETB'] }, 1, 0]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                spins,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                },
+                stats: stats[0] || {
+                    totalSpins: 0,
+                    totalPaid: 0,
+                    totalWon: 0,
+                    wins: 0
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Get spin history error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching spin history',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Get all spin results (Admin)
+// @route   GET /api/spin/admin/all
+// @access  Private/Admin
+exports.getAllSpinResults = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+        
+        // Filter by result type
+        if (req.query.result) {
+            filter.result = req.query.result;
+        }
+
+        // Filter by date range
+        if (req.query.startDate || req.query.endDate) {
+            filter.createdAt = {};
+            if (req.query.startDate) {
+                filter.createdAt.$gte = new Date(req.query.startDate);
+            }
+            if (req.query.endDate) {
+                filter.createdAt.$lte = new Date(req.query.endDate);
+            }
+        }
+
+        const spins = await SpinResult.find(filter)
+            .populate('userId', 'phone membershipLevel')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await SpinResult.countDocuments(filter);
+
+        // Calculate overall stats
+        const stats = await SpinResult.aggregate([
+            { $match: filter },
+            {
+                $group: {
+                    _id: null,
+                    totalSpins: { $sum: 1 },
+                    totalPaid: { $sum: '$amountPaid' },
+                    totalWon: { $sum: '$amountWon' },
+                    wins: {
+                        $sum: {
+                            $cond: [{ $eq: ['$result', 'Win 100 ETB'] }, 1, 0]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                spins,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                },
+                stats: stats[0] || {
+                    totalSpins: 0,
+                    totalPaid: 0,
+                    totalWon: 0,
+                    wins: 0
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Get all spin results error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching spin results',
+            error: error.message
+        });
+    }
+};

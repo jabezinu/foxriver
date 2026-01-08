@@ -19,6 +19,7 @@ import Messages from './pages/Messages';
 import BankSettings from './pages/BankSettings';
 import Commissions from './pages/Commissions';
 import ReferralSettings from './pages/ReferralSettings';
+import SpinResults from './pages/SpinResults';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -74,6 +75,7 @@ function App() {
           <Route path="bank-settings" element={<BankSettings />} />
           <Route path="commissions" element={<Commissions />} />
           <Route path="referral-settings" element={<ReferralSettings />} />
+          <Route path="spin-results" element={<SpinResults />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
