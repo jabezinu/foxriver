@@ -36,7 +36,7 @@ const SpinResults = () => {
                 pages: response.data.data.pagination.pages
             }));
         } catch (error) {
-            toast.error('Failed to fetch spin results');
+            toast.error('Failed to fetch slot machine results');
             console.error(error);
         } finally {
             setLoading(false);
@@ -76,7 +76,7 @@ const SpinResults = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `spin-results-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `slot-machine-results-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
     };
@@ -85,8 +85,8 @@ const SpinResults = () => {
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">🎡 Spin Wheel Results</h1>
-                    <p className="text-gray-600 mt-1">Track all spin activities and winnings</p>
+                    <h1 className="text-3xl font-bold text-gray-800">🎰 Slot Machine Results</h1>
+                    <p className="text-gray-600 mt-1">Track all slot machine plays and jackpots</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -110,7 +110,7 @@ const SpinResults = () => {
                     <div className="bg-white rounded-xl shadow-md p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm">Total Spins</p>
+                                <p className="text-gray-600 text-sm">Total Plays</p>
                                 <p className="text-3xl font-bold text-gray-800">{stats.totalSpins}</p>
                             </div>
                             <div className="text-4xl">🎰</div>
@@ -120,10 +120,10 @@ const SpinResults = () => {
                     <div className="bg-white rounded-xl shadow-md p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm">Total Wins</p>
+                                <p className="text-gray-600 text-sm">Total Jackpots</p>
                                 <p className="text-3xl font-bold text-green-600">{stats.wins}</p>
                                 <p className="text-xs text-gray-500">
-                                    {stats.totalSpins > 0 ? ((stats.wins / stats.totalSpins) * 100).toFixed(1) : 0}% win rate
+                                    {stats.totalSpins > 0 ? ((stats.wins / stats.totalSpins) * 100).toFixed(1) : 0}% jackpot rate
                                 </p>
                             </div>
                             <div className="text-4xl">🎉</div>
@@ -171,8 +171,8 @@ const SpinResults = () => {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">All Results</option>
-                            <option value="Win 100 ETB">Wins Only</option>
-                            <option value="Try Again">Try Again Only</option>
+                            <option value="Win 100 ETB">Jackpots Only</option>
+                            <option value="Try Again">No Match Only</option>
                         </select>
                     </div>
 
@@ -253,7 +253,7 @@ const SpinResults = () => {
                             ) : spins.length === 0 ? (
                                 <tr>
                                     <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
-                                        No spin results found
+                                        No slot machine results found
                                     </td>
                                 </tr>
                             ) : (

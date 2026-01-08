@@ -4,26 +4,16 @@ import { spinAPI } from '../services/api';
 
 const SpinWheel = () => {
     const [spinning, setSpinning] = useState(false);
-    const [rotation, setRotation] = useState(0);
     const [balance, setBalance] = useState(0);
     const [history, setHistory] = useState([]);
     const [stats, setStats] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [lastResult, setLastResult] = useState(null);
+    const [reels, setReels] = useState([0, 0, 0]);
 
-    // Wheel segments (10 total: 9 "Try Again", 1 "Win 100 ETB")
-    const segments = [
-        { label: 'Try Again', color: '#ef4444' },
-        { label: 'Try Again', color: '#f59e0b' },
-        { label: 'Try Again', color: '#10b981' },
-        { label: 'Try Again', color: '#3b82f6' },
-        { label: 'Try Again', color: '#8b5cf6' },
-        { label: 'Win 100 ETB', color: '#fbbf24' }, // The winning segment
-        { label: 'Try Again', color: '#ec4899' },
-        { label: 'Try Again', color: '#14b8a6' },
-        { label: 'Try Again', color: '#f97316' },
-        { label: 'Try Again', color: '#6366f1' }
-    ];
+    // Slot machine symbols
+    const symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣'];
+    const symbolNames = ['Cherry', 'Lemon', 'Orange', 'Grape', 'Bell', 'Diamond', 'Seven'];
 
     useEffect(() => {
         fetchBalance();
@@ -53,7 +43,7 @@ const SpinWheel = () => {
         if (spinning) return;
 
         if (balance < 10) {
-            toast.error('Insufficient balance! You need 10 ETB to spin.');
+            toast.error('Insufficient balance! You need 10 ETB to play.');
             return;
         }
 
@@ -64,48 +54,73 @@ const SpinWheel = () => {
             const response = await spinAPI.spin();
             const { result, amountWon, balanceAfter } = response.data.data;
 
-            // Determine which segment was hit
-            const winningIndex = result === 'Win 100 ETB' ? 5 : 
-                [0, 1, 2, 3, 4, 6, 7, 8, 9][Math.floor(Math.random() * 9)];
+            // Animate reels spinning
+            const spinDuration = 2000; // 2 seconds
+            const spinInterval = 50; // Update every 50ms
+            const spinCount = spinDuration / spinInterval;
+            let currentSpin = 0;
 
-            // Calculate rotation (multiple full spins + landing position)
-            const segmentAngle = 360 / segments.length;
-            const targetAngle = 360 - (winningIndex * segmentAngle + segmentAngle / 2);
-            const spins = 5; // Number of full rotations
-            const finalRotation = rotation + (spins * 360) + targetAngle;
+            const spinAnimation = setInterval(() => {
+                setReels([
+                    Math.floor(Math.random() * symbols.length),
+                    Math.floor(Math.random() * symbols.length),
+                    Math.floor(Math.random() * symbols.length)
+                ]);
+                currentSpin++;
 
-            setRotation(finalRotation);
+                if (currentSpin >= spinCount) {
+                    clearInterval(spinAnimation);
+                    
+                    // Set final result
+                    if (result === 'Win 100 ETB') {
+                        // All three reels show the same symbol
+                        const winningSymbol = Math.floor(Math.random() * symbols.length);
+                        setReels([winningSymbol, winningSymbol, winningSymbol]);
+                    } else {
+                        // Show different symbols (no match)
+                        const reel1 = Math.floor(Math.random() * symbols.length);
+                        let reel2 = Math.floor(Math.random() * symbols.length);
+                        let reel3 = Math.floor(Math.random() * symbols.length);
+                        
+                        // Ensure they don't all match
+                        while (reel2 === reel1) reel2 = Math.floor(Math.random() * symbols.length);
+                        while (reel3 === reel1 || reel3 === reel2) reel3 = Math.floor(Math.random() * symbols.length);
+                        
+                        setReels([reel1, reel2, reel3]);
+                    }
 
-            // Wait for animation to complete
-            setTimeout(() => {
-                setLastResult({ result, amountWon, balanceAfter });
-                setBalance(balanceAfter);
-                setShowResult(true);
-                setSpinning(false);
-                
-                if (result === 'Win 100 ETB') {
-                    toast.success(`🎉 Congratulations! You won ${amountWon} ETB!`);
-                } else {
-                    toast.error('Try Again! Better luck next time.');
+                    // Show result after a brief delay
+                    setTimeout(() => {
+                        setLastResult({ result, amountWon, balanceAfter });
+                        setBalance(balanceAfter);
+                        setShowResult(true);
+                        setSpinning(false);
+                        
+                        if (result === 'Win 100 ETB') {
+                            toast.success(`🎉 JACKPOT! You won ${amountWon} ETB!`);
+                        } else {
+                            toast.error('No match! Try again!');
+                        }
+
+                        fetchHistory();
+                        fetchBalance();
+                    }, 500);
                 }
-
-                fetchHistory();
-                fetchBalance();
-            }, 4000);
+            }, spinInterval);
 
         } catch (error) {
             setSpinning(false);
-            toast.error(error.response?.data?.message || 'Error spinning the wheel');
+            toast.error(error.response?.data?.message || 'Error playing slot machine');
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+        <div className="min-h-screen bg-gradient-to-br from-red-900 via-purple-900 to-pink-900 p-4">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8 pt-6">
-                    <h1 className="text-4xl font-bold text-white mb-2">🎡 Spin the Wheel</h1>
-                    <p className="text-gray-300">Pay 10 ETB per spin • Win up to 100 ETB!</p>
+                    <h1 className="text-5xl font-bold text-white mb-2">🎰 Slot Machine</h1>
+                    <p className="text-gray-300">Pay 10 ETB per play • Match 3 symbols to win 100 ETB!</p>
                 </div>
 
                 {/* Balance Card */}
@@ -114,80 +129,82 @@ const SpinWheel = () => {
                     <p className="text-4xl font-bold text-yellow-400">{balance.toFixed(2)} ETB</p>
                 </div>
 
-                {/* Wheel Container */}
+                {/* Slot Machine Container */}
                 <div className="flex flex-col lg:flex-row gap-8 mb-8">
-                    {/* Wheel */}
+                    {/* Slot Machine */}
                     <div className="flex-1 flex flex-col items-center">
-                        <div className="relative w-full max-w-md aspect-square">
-                            {/* Pointer */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-20">
-                                <div className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-red-500 drop-shadow-lg"></div>
+                        {/* Slot Machine Frame */}
+                        <div className="bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-3xl p-8 shadow-2xl border-8 border-yellow-700">
+                            {/* Title */}
+                            <div className="text-center mb-6">
+                                <h2 className="text-3xl font-bold text-white drop-shadow-lg">LUCKY 777</h2>
+                                <p className="text-yellow-200 text-sm mt-1">Match 3 to Win!</p>
                             </div>
 
-                            {/* Wheel */}
-                            <div className="relative w-full h-full">
-                                <div 
-                                    className="absolute inset-0 rounded-full shadow-2xl transition-transform duration-[4000ms] ease-out"
-                                    style={{ 
-                                        transform: `rotate(${rotation}deg)`,
-                                        background: `conic-gradient(${segments.map((seg, i) => 
-                                            `${seg.color} ${(i * 36)}deg ${((i + 1) * 36)}deg`
-                                        ).join(', ')})`
-                                    }}
-                                >
-                                    {/* Center circle */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center">
-                                            <span className="text-2xl">🎰</span>
-                                        </div>
+                            {/* Reels Container */}
+                            <div className="bg-black/50 rounded-2xl p-6 mb-6">
+                                <div className="flex gap-4 justify-center">
+                                    {/* Reel 1 */}
+                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
+                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
+                                            {symbols[reels[0]]}
+                                        </span>
                                     </div>
-
-                                    {/* Segment labels */}
-                                    {segments.map((segment, index) => {
-                                        const angle = (index * 36) + 18;
-                                        const radius = 40;
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="absolute top-1/2 left-1/2 origin-left text-white font-bold text-xs"
-                                                style={{
-                                                    transform: `rotate(${angle}deg) translateX(${radius}%)`,
-                                                    width: '60%'
-                                                }}
-                                            >
-                                                <span className="block whitespace-nowrap">
-                                                    {segment.label === 'Win 100 ETB' ? '💰 100 ETB' : '❌'}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
+                                    
+                                    {/* Reel 2 */}
+                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
+                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
+                                            {symbols[reels[1]]}
+                                        </span>
+                                    </div>
+                                    
+                                    {/* Reel 3 */}
+                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
+                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
+                                            {symbols[reels[2]]}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Spin Button */}
-                        <button
-                            onClick={handleSpin}
-                            disabled={spinning || balance < 10}
-                            className={`mt-8 px-12 py-4 rounded-full text-xl font-bold transition-all transform hover:scale-105 ${
-                                spinning || balance < 10
-                                    ? 'bg-gray-500 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 shadow-lg'
-                            } text-white`}
-                        >
-                            {spinning ? '🎡 Spinning...' : '🎰 SPIN (10 ETB)'}
-                        </button>
+                            {/* Symbol Legend */}
+                            <div className="bg-black/30 rounded-xl p-4 mb-4">
+                                <p className="text-yellow-200 text-center text-sm mb-2 font-semibold">Symbols:</p>
+                                <div className="flex justify-center gap-2 flex-wrap">
+                                    {symbols.map((symbol, idx) => (
+                                        <span key={idx} className="text-2xl bg-white/20 rounded-lg px-2 py-1">
+                                            {symbol}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Play Button */}
+                            <button
+                                onClick={handleSpin}
+                                disabled={spinning || balance < 10}
+                                className={`w-full py-4 rounded-xl text-2xl font-bold transition-all transform hover:scale-105 ${
+                                    spinning || balance < 10
+                                        ? 'bg-gray-500 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg'
+                                } text-white`}
+                            >
+                                {spinning ? '🎰 SPINNING...' : '🎮 PLAY (10 ETB)'}
+                            </button>
+                        </div>
 
                         {/* Result Modal */}
                         {showResult && lastResult && (
-                            <div className="mt-6 bg-white/20 backdrop-blur-md rounded-xl p-6 text-center animate-bounce">
-                                <p className="text-2xl font-bold text-white mb-2">
-                                    {lastResult.result === 'Win 100 ETB' ? '🎉 YOU WON!' : '😔 Try Again'}
+                            <div className="mt-6 bg-white/20 backdrop-blur-md rounded-xl p-6 text-center animate-pulse">
+                                <p className="text-3xl font-bold text-white mb-2">
+                                    {lastResult.result === 'Win 100 ETB' ? '🎉 JACKPOT!' : '❌ No Match'}
                                 </p>
-                                {lastResult.amountWon > 0 && (
-                                    <p className="text-3xl font-bold text-yellow-400">
+                                {lastResult.amountWon > 0 ? (
+                                    <p className="text-4xl font-bold text-yellow-400">
                                         +{lastResult.amountWon} ETB
                                     </p>
+                                ) : (
+                                    <p className="text-xl text-gray-300">Try Again!</p>
                                 )}
                             </div>
                         )}
@@ -201,11 +218,11 @@ const SpinWheel = () => {
                                 <h3 className="text-xl font-bold text-white mb-4">📊 Your Stats</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Total Spins</p>
+                                        <p className="text-gray-300 text-sm">Total Plays</p>
                                         <p className="text-2xl font-bold text-white">{stats.totalSpins}</p>
                                     </div>
                                     <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Wins</p>
+                                        <p className="text-gray-300 text-sm">Jackpots</p>
                                         <p className="text-2xl font-bold text-green-400">{stats.wins}</p>
                                     </div>
                                     <div className="bg-white/10 rounded-lg p-4">
@@ -222,10 +239,10 @@ const SpinWheel = () => {
 
                         {/* Recent History */}
                         <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">📜 Recent Spins</h3>
+                            <h3 className="text-xl font-bold text-white mb-4">📜 Recent Plays</h3>
                             <div className="space-y-2 max-h-96 overflow-y-auto">
                                 {history.length === 0 ? (
-                                    <p className="text-gray-400 text-center py-4">No spins yet</p>
+                                    <p className="text-gray-400 text-center py-4">No plays yet</p>
                                 ) : (
                                     history.map((spin) => (
                                         <div
@@ -236,7 +253,7 @@ const SpinWheel = () => {
                                                 <p className={`font-semibold ${
                                                     spin.result === 'Win 100 ETB' ? 'text-yellow-400' : 'text-gray-300'
                                                 }`}>
-                                                    {spin.result === 'Win 100 ETB' ? '🎉 Won 100 ETB' : '❌ Try Again'}
+                                                    {spin.result === 'Win 100 ETB' ? '🎰 JACKPOT!' : '❌ No Match'}
                                                 </p>
                                                 <p className="text-xs text-gray-400">
                                                     {new Date(spin.createdAt).toLocaleString()}
