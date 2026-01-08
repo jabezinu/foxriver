@@ -17,10 +17,8 @@ import NewsManagement from './pages/News';
 import QnaManagement from './pages/QnA';
 import Messages from './pages/Messages';
 import BankSettings from './pages/BankSettings';
-import Commissions from './pages/Commissions';
-import ReferralSettings from './pages/ReferralSettings';
-import SpinResults from './pages/SpinResults';
-import SlotTiers from './pages/SlotTiers';
+import ReferralManagement from './pages/ReferralManagement';
+import SlotMachine from './pages/SlotMachine';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -74,10 +72,8 @@ function App() {
           <Route path="qna" element={<QnaManagement />} />
           <Route path="messages" element={<Messages />} />
           <Route path="bank-settings" element={<BankSettings />} />
-          <Route path="commissions" element={<Commissions />} />
-          <Route path="referral-settings" element={<ReferralSettings />} />
-          <Route path="spin-results" element={<SpinResults />} />
-          <Route path="slot-tiers" element={<SlotTiers />} />
+          <Route path="referral-management" element={<ReferralManagement />} />
+          <Route path="slot-machine" element={<SlotMachine />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

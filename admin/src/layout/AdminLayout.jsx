@@ -67,11 +67,9 @@ export default function AdminLayout() {
         { path: '/news', icon: HiNewspaper, label: 'News' },
         { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
         { path: '/messages', icon: HiMail, label: 'Messages' },
-        { path: '/spin-results', icon: HiRefresh, label: 'Slot Machine' },
-        { path: '/slot-tiers', icon: HiCog, label: 'Slot Tiers' },
+        { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
-        { path: '/commissions', icon: HiTrendingUp, label: 'Commissions' },
-        { path: '/referral-settings', icon: HiAdjustments, label: 'Referral Settings' },
+        { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management' },
     ];
 
     const handleLogout = () => {
