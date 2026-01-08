@@ -132,7 +132,7 @@ export default function Home() {
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.incomeWallet)}</p>
                             </div>
                             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Asset Wallet</p>
+                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Personal Wallet</p>
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.personalWallet)}</p>
                             </div>
                         </div>
