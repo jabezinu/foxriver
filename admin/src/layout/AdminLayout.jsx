@@ -68,6 +68,7 @@ export default function AdminLayout() {
         { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
         { path: '/messages', icon: HiMail, label: 'Messages' },
         { path: '/spin-results', icon: HiRefresh, label: 'Slot Machine' },
+        { path: '/slot-tiers', icon: HiCog, label: 'Slot Tiers' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
         { path: '/commissions', icon: HiTrendingUp, label: 'Commissions' },
         { path: '/referral-settings', icon: HiAdjustments, label: 'Referral Settings' },

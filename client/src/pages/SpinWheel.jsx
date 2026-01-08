@@ -11,8 +11,11 @@ const SpinWheel = () => {
     const [showResult, setShowResult] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const [reels, setReels] = useState([0, 0, 0]);
+    const [showTierModal, setShowTierModal] = useState(false);
     const [showWalletModal, setShowWalletModal] = useState(false);
+    const [selectedTier, setSelectedTier] = useState(null);
     const [selectedWallet, setSelectedWallet] = useState(null);
+    const [tiers, setTiers] = useState([]);
 
     // Slot machine symbols - 50 different symbols
     const symbols = [
@@ -26,7 +29,20 @@ const SpinWheel = () => {
     useEffect(() => {
         fetchBalance();
         fetchHistory();
+        fetchTiers();
     }, []);
+
+    const fetchTiers = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/slot-tiers');
+            const data = await response.json();
+            if (data.success) {
+                setTiers(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching tiers:', error);
+        }
+    };
 
     const fetchBalance = async () => {
         try {
@@ -49,12 +65,19 @@ const SpinWheel = () => {
     };
 
     const handlePlayClick = () => {
+        // Show tier selection modal first
+        setShowTierModal(true);
+    };
+
+    const handleTierSelect = (tier) => {
         // Check if user has sufficient balance in either wallet
-        if (personalBalance < 10 && incomeBalance < 10) {
-            toast.error('Insufficient balance! You need 10 ETB to play.');
+        if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount) {
+            toast.error(`Insufficient balance! You need ${tier.betAmount} ETB to play this tier.`);
             return;
         }
         
+        setSelectedTier(tier);
+        setShowTierModal(false);
         // Show wallet selection modal
         setShowWalletModal(true);
     };
@@ -62,25 +85,25 @@ const SpinWheel = () => {
     const handleWalletSelect = (wallet) => {
         const balance = wallet === 'personal' ? personalBalance : incomeBalance;
         
-        if (balance < 10) {
-            toast.error(`Insufficient ${wallet} balance! You need 10 ETB to play.`);
+        if (balance < selectedTier.betAmount) {
+            toast.error(`Insufficient ${wallet} balance! You need ${selectedTier.betAmount} ETB to play.`);
             return;
         }
         
         setSelectedWallet(wallet);
         setShowWalletModal(false);
-        handleSpin(wallet);
+        handleSpin(wallet, selectedTier);
     };
 
-    const handleSpin = async (walletType) => {
+    const handleSpin = async (walletType, tier) => {
         if (spinning) return;
 
         setSpinning(true);
         setShowResult(false);
 
         try {
-            const response = await spinAPI.spin({ walletType });
-            const { result, amountWon, balanceAfter } = response.data.data;
+            const response = await spinAPI.spin({ walletType, tierId: tier._id });
+            const { result, amountWon, balanceAfter, incomeBalanceAfter } = response.data.data;
 
             // Animate reels spinning
             const spinDuration = 2000; // 2 seconds
@@ -100,7 +123,7 @@ const SpinWheel = () => {
                     clearInterval(spinAnimation);
                     
                     // Set final result
-                    if (result === 'Win 100 ETB') {
+                    if (result.includes('Win')) {
                         // All three reels show the same symbol
                         const winningSymbol = Math.floor(Math.random() * symbols.length);
                         setReels([winningSymbol, winningSymbol, winningSymbol]);
@@ -121,18 +144,23 @@ const SpinWheel = () => {
                     setTimeout(() => {
                         setLastResult({ result, amountWon, balanceAfter });
                         
-                        // Update the correct balance
+                        // Update the payment wallet balance (where 10 ETB was deducted)
                         if (selectedWallet === 'personal') {
                             setPersonalBalance(balanceAfter);
                         } else {
                             setIncomeBalance(balanceAfter);
                         }
                         
+                        // Update income balance (where winnings are always added)
+                        if (amountWon > 0 && incomeBalanceAfter) {
+                            setIncomeBalance(incomeBalanceAfter);
+                        }
+                        
                         setShowResult(true);
                         setSpinning(false);
                         
-                        if (result === 'Win 100 ETB') {
-                            toast.success(`🎉 JACKPOT! You won ${amountWon} ETB!`);
+                        if (result.includes('Win')) {
+                            toast.success(`🎉 JACKPOT! You won ${amountWon} ETB added to Income Balance!`);
                         } else {
                             toast.error('No match! Try again!');
                         }
@@ -223,14 +251,14 @@ const SpinWheel = () => {
                             {/* Play Button */}
                             <button
                                 onClick={handlePlayClick}
-                                disabled={spinning || (personalBalance < 10 && incomeBalance < 10)}
+                                disabled={spinning || tiers.length === 0}
                                 className={`w-full py-4 rounded-xl text-2xl font-bold transition-all transform hover:scale-105 ${
-                                    spinning || (personalBalance < 10 && incomeBalance < 10)
+                                    spinning || tiers.length === 0
                                         ? 'bg-gray-500 cursor-not-allowed'
                                         : 'bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg'
                                 } text-white`}
                             >
-                                {spinning ? '🎰 SPINNING...' : '🎮 PLAY (10 ETB)'}
+                                {spinning ? '🎰 SPINNING...' : tiers.length === 0 ? 'No Tiers Available' : '🎮 PLAY NOW'}
                             </button>
                         </div>
 
@@ -315,20 +343,84 @@ const SpinWheel = () => {
                     </div>
                 </div>
 
+                {/* Tier Selection Modal */}
+                {showTierModal && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-2xl w-full shadow-2xl border-2 border-purple-500/50 max-h-[90vh] overflow-y-auto">
+                            <h2 className="text-3xl font-bold text-white mb-2 text-center">🎰 Choose Your Bet</h2>
+                            <p className="text-gray-300 text-center mb-6">Select a tier to play</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {tiers.map((tier) => (
+                                    <button
+                                        key={tier._id}
+                                        onClick={() => handleTierSelect(tier)}
+                                        disabled={personalBalance < tier.betAmount && incomeBalance < tier.betAmount}
+                                        className={`p-6 rounded-xl transition-all transform hover:scale-105 text-left ${
+                                            personalBalance < tier.betAmount && incomeBalance < tier.betAmount
+                                                ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                                : 'bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg'
+                                        }`}
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <h3 className="text-2xl font-bold text-white">{tier.name}</h3>
+                                            <span className="bg-white/20 px-2 py-1 rounded text-xs font-semibold text-white">
+                                                {tier.winProbability}% Win
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-yellow-100">Bet:</span>
+                                                <span className="text-white font-bold text-xl">{tier.betAmount} ETB</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-yellow-100">Win:</span>
+                                                <span className="text-white font-bold text-2xl">{tier.winAmount} ETB</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-yellow-100">Multiplier:</span>
+                                                <span className="text-green-300 font-bold">{(tier.winAmount / tier.betAmount).toFixed(1)}x</span>
+                                            </div>
+                                        </div>
+                                        
+                                        {tier.description && (
+                                            <p className="text-yellow-100 text-sm mt-3 italic">{tier.description}</p>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Cancel Button */}
+                            <button
+                                onClick={() => setShowTierModal(false)}
+                                className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Wallet Selection Modal */}
                 {showWalletModal && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-purple-500/50">
                             <h2 className="text-3xl font-bold text-white mb-2 text-center">💰 Choose Wallet</h2>
-                            <p className="text-gray-300 text-center mb-6">Select which balance to use for playing</p>
+                            <p className="text-gray-300 text-center mb-2">Select which balance to use for playing</p>
+                            {selectedTier && (
+                                <p className="text-yellow-300 text-center mb-4 font-semibold">
+                                    {selectedTier.name}: Bet {selectedTier.betAmount} ETB • Win {selectedTier.winAmount} ETB
+                                </p>
+                            )}
                             
                             <div className="space-y-4">
                                 {/* Personal Wallet Option */}
                                 <button
                                     onClick={() => handleWalletSelect('personal')}
-                                    disabled={personalBalance < 10}
+                                    disabled={!selectedTier || personalBalance < selectedTier.betAmount}
                                     className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
-                                        personalBalance < 10
+                                        !selectedTier || personalBalance < selectedTier.betAmount
                                             ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
                                             : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg'
                                     }`}
@@ -348,9 +440,9 @@ const SpinWheel = () => {
                                 {/* Income Wallet Option */}
                                 <button
                                     onClick={() => handleWalletSelect('income')}
-                                    disabled={incomeBalance < 10}
+                                    disabled={!selectedTier || incomeBalance < selectedTier.betAmount}
                                     className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
-                                        incomeBalance < 10
+                                        !selectedTier || incomeBalance < selectedTier.betAmount
                                             ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
                                             : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg'
                                     }`}

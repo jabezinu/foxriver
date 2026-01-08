@@ -31,6 +31,13 @@ const spinResultSchema = new mongoose.Schema({
         type: String,
         enum: ['personal', 'income'],
         default: 'personal'
+    },
+    tierId: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'SlotTier'
+    },
+    tierName: {
+        type: String
     }
 }, {
     timestamps: true

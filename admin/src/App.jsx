@@ -20,6 +20,7 @@ import BankSettings from './pages/BankSettings';
 import Commissions from './pages/Commissions';
 import ReferralSettings from './pages/ReferralSettings';
 import SpinResults from './pages/SpinResults';
+import SlotTiers from './pages/SlotTiers';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -76,6 +77,7 @@ function App() {
           <Route path="commissions" element={<Commissions />} />
           <Route path="referral-settings" element={<ReferralSettings />} />
           <Route path="spin-results" element={<SpinResults />} />
+          <Route path="slot-tiers" element={<SlotTiers />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

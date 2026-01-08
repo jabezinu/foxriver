@@ -1,5 +1,6 @@
 const SpinResult = require('../models/SpinResult');
 const User = require('../models/User');
+const SlotTier = require('../models/SlotTier');
 
 // @desc    Spin the wheel
 // @route   POST /api/spin
@@ -7,8 +8,21 @@ const User = require('../models/User');
 exports.spinWheel = async (req, res) => {
     try {
         const userId = req.user._id;
-        const spinCost = 10;
-        const { walletType } = req.body; // 'personal' or 'income'
+        const { walletType, tierId } = req.body; // 'personal' or 'income', and tier ID
+
+        // Get the selected tier
+        const tier = await SlotTier.findById(tierId);
+        
+        if (!tier || !tier.isActive) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or inactive slot tier'
+            });
+        }
+
+        const spinCost = tier.betAmount;
+        const winAmount = tier.winAmount;
+        const winProbability = tier.winProbability / 100; // Convert percentage to decimal
 
         // Get user with current balance
         const user = await User.findById(userId);
@@ -28,25 +42,26 @@ exports.spinWheel = async (req, res) => {
         if (user[wallet] < spinCost) {
             return res.status(400).json({
                 success: false,
-                message: `Insufficient ${walletName} balance. You need 10 ETB to play.`
+                message: `Insufficient ${walletName} balance. You need ${spinCost} ETB to play.`
             });
         }
 
         const balanceBefore = user[wallet];
 
-        // Deduct spin cost
+        // Deduct spin cost from selected wallet
         user[wallet] -= spinCost;
 
-        // Determine result (10% chance to win 100 ETB)
+        // Determine result based on tier's win probability
         const random = Math.random();
-        const isWin = random < 0.1; // 10% chance
+        const isWin = random < winProbability;
         
         let result, amountWon = 0;
         
         if (isWin) {
-            result = 'Win 100 ETB';
-            amountWon = 100;
-            user[wallet] += amountWon;
+            result = `Win ${winAmount} ETB`;
+            amountWon = winAmount;
+            // Winnings always go to income wallet
+            user.incomeWallet += amountWon;
         } else {
             result = 'Try Again';
         }
@@ -54,6 +69,7 @@ exports.spinWheel = async (req, res) => {
         await user.save();
 
         const balanceAfter = user[wallet];
+        const incomeBalanceAfter = user.incomeWallet;
 
         // Create spin result record
         const spinResult = await SpinResult.create({
@@ -63,7 +79,9 @@ exports.spinWheel = async (req, res) => {
             amountWon,
             balanceBefore,
             balanceAfter,
-            walletType: walletName
+            walletType: walletName,
+            tierId: tier._id,
+            tierName: tier.name
         });
 
         // Populate user info for response
@@ -76,6 +94,7 @@ exports.spinWheel = async (req, res) => {
                 amountWon,
                 balanceBefore,
                 balanceAfter,
+                incomeBalanceAfter,
                 spinResult
             }
         });

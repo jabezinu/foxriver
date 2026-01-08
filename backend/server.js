@@ -31,6 +31,7 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/bank', require('./routes/bank'));
 app.use('/api/spin', require('./routes/spin'));
+app.use('/api/slot-tiers', require('./routes/slotTier'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
