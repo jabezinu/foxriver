@@ -26,6 +26,11 @@ const spinResultSchema = new mongoose.Schema({
     balanceAfter: {
         type: Number,
         required: true
+    },
+    walletType: {
+        type: String,
+        enum: ['personal', 'income'],
+        default: 'personal'
     }
 }, {
     timestamps: true

@@ -4,16 +4,24 @@ import { spinAPI } from '../services/api';
 
 const SpinWheel = () => {
     const [spinning, setSpinning] = useState(false);
-    const [balance, setBalance] = useState(0);
+    const [personalBalance, setPersonalBalance] = useState(0);
+    const [incomeBalance, setIncomeBalance] = useState(0);
     const [history, setHistory] = useState([]);
     const [stats, setStats] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const [reels, setReels] = useState([0, 0, 0]);
+    const [showWalletModal, setShowWalletModal] = useState(false);
+    const [selectedWallet, setSelectedWallet] = useState(null);
 
-    // Slot machine symbols
-    const symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣'];
-    const symbolNames = ['Cherry', 'Lemon', 'Orange', 'Grape', 'Bell', 'Diamond', 'Seven'];
+    // Slot machine symbols - 50 different symbols
+    const symbols = [
+        '🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍑', '🍍', '🥝', '🍌',
+        '🍎', '🍏', '🍐', '🥭', '🍈', '🫐', '🥥', '🍅', '🌶️', '🥕',
+        '🌽', '🥦', '🥒', '🥬', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞',
+        '🥐', '🥖', '🥨', '🧀', '🥚', '🍗', '🍖', '🥩', '🍕', '🍔',
+        '🌭', '🥪', '🌮', '🌯', '🥙', '🍱', '🍜', '🍲', '🍛', '🍣'
+    ];
 
     useEffect(() => {
         fetchBalance();
@@ -23,7 +31,8 @@ const SpinWheel = () => {
     const fetchBalance = async () => {
         try {
             const response = await spinAPI.getBalance();
-            setBalance(response.data.wallet.personalWallet);
+            setPersonalBalance(response.data.wallet.personalWallet);
+            setIncomeBalance(response.data.wallet.incomeWallet);
         } catch (error) {
             console.error('Error fetching balance:', error);
         }
@@ -39,19 +48,38 @@ const SpinWheel = () => {
         }
     };
 
-    const handleSpin = async () => {
-        if (spinning) return;
-
-        if (balance < 10) {
+    const handlePlayClick = () => {
+        // Check if user has sufficient balance in either wallet
+        if (personalBalance < 10 && incomeBalance < 10) {
             toast.error('Insufficient balance! You need 10 ETB to play.');
             return;
         }
+        
+        // Show wallet selection modal
+        setShowWalletModal(true);
+    };
+
+    const handleWalletSelect = (wallet) => {
+        const balance = wallet === 'personal' ? personalBalance : incomeBalance;
+        
+        if (balance < 10) {
+            toast.error(`Insufficient ${wallet} balance! You need 10 ETB to play.`);
+            return;
+        }
+        
+        setSelectedWallet(wallet);
+        setShowWalletModal(false);
+        handleSpin(wallet);
+    };
+
+    const handleSpin = async (walletType) => {
+        if (spinning) return;
 
         setSpinning(true);
         setShowResult(false);
 
         try {
-            const response = await spinAPI.spin();
+            const response = await spinAPI.spin({ walletType });
             const { result, amountWon, balanceAfter } = response.data.data;
 
             // Animate reels spinning
@@ -92,7 +120,14 @@ const SpinWheel = () => {
                     // Show result after a brief delay
                     setTimeout(() => {
                         setLastResult({ result, amountWon, balanceAfter });
-                        setBalance(balanceAfter);
+                        
+                        // Update the correct balance
+                        if (selectedWallet === 'personal') {
+                            setPersonalBalance(balanceAfter);
+                        } else {
+                            setIncomeBalance(balanceAfter);
+                        }
+                        
                         setShowResult(true);
                         setSpinning(false);
                         
@@ -123,10 +158,16 @@ const SpinWheel = () => {
                     <p className="text-gray-300">Pay 10 ETB per play • Match 3 symbols to win 100 ETB!</p>
                 </div>
 
-                {/* Balance Card */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8 text-center">
-                    <p className="text-gray-300 mb-2">Your Balance</p>
-                    <p className="text-4xl font-bold text-yellow-400">{balance.toFixed(2)} ETB</p>
+                {/* Balance Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center">
+                        <p className="text-gray-300 mb-2">💰 Personal Balance</p>
+                        <p className="text-3xl font-bold text-yellow-400">{personalBalance.toFixed(2)} ETB</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center">
+                        <p className="text-gray-300 mb-2">💵 Income Balance</p>
+                        <p className="text-3xl font-bold text-green-400">{incomeBalance.toFixed(2)} ETB</p>
+                    </div>
                 </div>
 
                 {/* Slot Machine Container */}
@@ -168,7 +209,7 @@ const SpinWheel = () => {
                             </div>
 
                             {/* Symbol Legend */}
-                            <div className="bg-black/30 rounded-xl p-4 mb-4">
+                            {/* <div className="bg-black/30 rounded-xl p-4 mb-4">
                                 <p className="text-yellow-200 text-center text-sm mb-2 font-semibold">Symbols:</p>
                                 <div className="flex justify-center gap-2 flex-wrap">
                                     {symbols.map((symbol, idx) => (
@@ -177,14 +218,14 @@ const SpinWheel = () => {
                                         </span>
                                     ))}
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Play Button */}
                             <button
-                                onClick={handleSpin}
-                                disabled={spinning || balance < 10}
+                                onClick={handlePlayClick}
+                                disabled={spinning || (personalBalance < 10 && incomeBalance < 10)}
                                 className={`w-full py-4 rounded-xl text-2xl font-bold transition-all transform hover:scale-105 ${
-                                    spinning || balance < 10
+                                    spinning || (personalBalance < 10 && incomeBalance < 10)
                                         ? 'bg-gray-500 cursor-not-allowed'
                                         : 'bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg'
                                 } text-white`}
@@ -273,6 +314,70 @@ const SpinWheel = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Wallet Selection Modal */}
+                {showWalletModal && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-purple-500/50">
+                            <h2 className="text-3xl font-bold text-white mb-2 text-center">💰 Choose Wallet</h2>
+                            <p className="text-gray-300 text-center mb-6">Select which balance to use for playing</p>
+                            
+                            <div className="space-y-4">
+                                {/* Personal Wallet Option */}
+                                <button
+                                    onClick={() => handleWalletSelect('personal')}
+                                    disabled={personalBalance < 10}
+                                    className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
+                                        personalBalance < 10
+                                            ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                            : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-left">
+                                            <p className="text-white font-bold text-xl">💰 Personal Balance</p>
+                                            <p className="text-yellow-100 text-sm mt-1">Use your personal wallet</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-white font-bold text-2xl">{personalBalance.toFixed(2)}</p>
+                                            <p className="text-yellow-100 text-sm">ETB</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                {/* Income Wallet Option */}
+                                <button
+                                    onClick={() => handleWalletSelect('income')}
+                                    disabled={incomeBalance < 10}
+                                    className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
+                                        incomeBalance < 10
+                                            ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                            : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-left">
+                                            <p className="text-white font-bold text-xl">💵 Income Balance</p>
+                                            <p className="text-green-100 text-sm mt-1">Use your income wallet</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-white font-bold text-2xl">{incomeBalance.toFixed(2)}</p>
+                                            <p className="text-green-100 text-sm">ETB</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            {/* Cancel Button */}
+                            <button
+                                onClick={() => setShowWalletModal(false)}
+                                className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

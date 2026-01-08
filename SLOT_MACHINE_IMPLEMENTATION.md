@@ -1,25 +1,26 @@
 # 🎰 Slot Machine Game Implementation
 
 ## Overview
-The spin wheel feature has been successfully converted to a **Slot Machine Game**. Users pay 10 ETB per play and win 100 ETB by matching 3 identical symbols.
+The spin wheel feature has been successfully converted to a **Slot Machine Game**. Users pay 10 ETB per play and win 100 ETB by matching 3 identical symbols. Users can choose to play using either their **Personal Balance** or **Income Balance**.
 
 ## Game Mechanics
 
 ### How It Works
 - **Cost**: 10 ETB per play
+- **Wallet Selection**: Choose between Personal Balance or Income Balance
 - **Win Condition**: Match 3 identical symbols across all 3 reels
-- **Prize**: 100 ETB (jackpot)
+- **Prize**: 100 ETB (jackpot) - added to the wallet used for playing
 - **Win Rate**: 10% (same as before, 1 in 10 plays)
 
 ### Symbols
-The slot machine features 7 different symbols:
-- 🍒 Cherry
-- 🍋 Lemon
-- 🍊 Orange
-- 🍇 Grape
-- 🔔 Bell
-- 💎 Diamond
-- 7️⃣ Seven
+The slot machine features **50 different symbols** including:
+- 🍒🍋🍊🍇🍉🍓🍑🍍🥝🍌 (Fruits)
+- 🍎🍏🍐🥭🍈🫐🥥🍅🌶️🥕 (More fruits & vegetables)
+- 🌽🥦🥒🥬🧄🧅🍄🥜🌰🍞 (Vegetables & bread)
+- 🥐🥖🥨🧀🥚🍗🍖🥩🍕🍔 (Bakery & proteins)
+- 🌭🥪🌮🌯🥙🍱🍜🍲🍛🍣 (Fast food & meals)
+
+With 50 symbols, the variety makes each play unique and exciting!
 
 ### Animation
 - Reels spin for 2 seconds with rapid symbol changes
@@ -84,10 +85,10 @@ The slot machine features 7 different symbols:
 // Backend determines win/loss (10% probability)
 const isWin = Math.random() < 0.1;
 
-// Frontend displays result:
+// Frontend displays result with 50 symbols:
 if (isWin) {
   // Show 3 matching symbols
-  const symbol = random(0-6);
+  const symbol = random(0-49); // Pick from 50 symbols
   reels = [symbol, symbol, symbol];
 } else {
   // Show 3 different symbols
@@ -108,12 +109,21 @@ if (isWin) {
 ### Playing the Game
 1. Navigate to home page
 2. Click "Slot Machine" button
-3. Ensure balance ≥ 10 ETB
+3. View both Personal and Income balances
 4. Click "PLAY (10 ETB)"
-5. Watch reels spin
-6. See result:
-   - **Jackpot**: 3 matching symbols + 100 ETB win
+5. **Choose wallet**: Select Personal Balance or Income Balance from modal
+6. Watch reels spin for 2 seconds
+7. See result:
+   - **Jackpot**: 3 matching symbols + 100 ETB win (added to selected wallet)
    - **No Match**: Different symbols + try again
+
+### Wallet Selection Modal
+When clicking the PLAY button, a modal appears with:
+- **Personal Balance option** (💰 yellow/orange gradient)
+- **Income Balance option** (💵 green gradient)
+- Current balance displayed for each wallet
+- Disabled wallets if balance < 10 ETB
+- Cancel button to close modal
 
 ### Statistics Tracked
 - Total Plays
@@ -130,10 +140,12 @@ if (isWin) {
 - Export data to CSV
 
 ## Files Modified
-- ✅ `client/src/pages/SpinWheel.jsx` - Complete slot machine UI
+- ✅ `client/src/pages/SpinWheel.jsx` - Complete slot machine UI with wallet selection
 - ✅ `client/src/pages/Home.jsx` - Updated menu label
 - ✅ `admin/src/pages/SpinResults.jsx` - Updated labels and text
 - ✅ `admin/src/layout/AdminLayout.jsx` - Updated sidebar menu
+- ✅ `backend/controllers/spinController.js` - Added wallet type support
+- ✅ `backend/models/SpinResult.js` - Added walletType field
 
 ## Testing
 The game is ready to test:

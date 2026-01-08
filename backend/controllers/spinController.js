@@ -8,6 +8,7 @@ exports.spinWheel = async (req, res) => {
     try {
         const userId = req.user._id;
         const spinCost = 10;
+        const { walletType } = req.body; // 'personal' or 'income'
 
         // Get user with current balance
         const user = await User.findById(userId);
@@ -19,18 +20,22 @@ exports.spinWheel = async (req, res) => {
             });
         }
 
+        // Determine which wallet to use
+        const wallet = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
+        const walletName = walletType === 'income' ? 'income' : 'personal';
+
         // Check if user has enough balance
-        if (user.personalWallet < spinCost) {
+        if (user[wallet] < spinCost) {
             return res.status(400).json({
                 success: false,
-                message: 'Insufficient balance. You need 10 ETB to spin the wheel.'
+                message: `Insufficient ${walletName} balance. You need 10 ETB to play.`
             });
         }
 
-        const balanceBefore = user.personalWallet;
+        const balanceBefore = user[wallet];
 
         // Deduct spin cost
-        user.personalWallet -= spinCost;
+        user[wallet] -= spinCost;
 
         // Determine result (10% chance to win 100 ETB)
         const random = Math.random();
@@ -41,14 +46,14 @@ exports.spinWheel = async (req, res) => {
         if (isWin) {
             result = 'Win 100 ETB';
             amountWon = 100;
-            user.personalWallet += amountWon;
+            user[wallet] += amountWon;
         } else {
             result = 'Try Again';
         }
 
         await user.save();
 
-        const balanceAfter = user.personalWallet;
+        const balanceAfter = user[wallet];
 
         // Create spin result record
         const spinResult = await SpinResult.create({
@@ -57,7 +62,8 @@ exports.spinWheel = async (req, res) => {
             amountPaid: spinCost,
             amountWon,
             balanceBefore,
-            balanceAfter
+            balanceAfter,
+            walletType: walletName
         });
 
         // Populate user info for response
