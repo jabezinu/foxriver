@@ -30,6 +30,8 @@ exports.calculateMonthlySalary = async (userId) => {
                 salaryDirect15Amount: 15000,
                 salaryDirect20Threshold: 20,
                 salaryDirect20Amount: 20000,
+                salaryDirect10Threshold: 10,
+                salaryDirect10Amount: 10000,
                 salaryNetwork40Threshold: 40,
                 salaryNetwork40Amount: 48000
             };
@@ -86,6 +88,7 @@ exports.calculateMonthlySalary = async (userId) => {
             settings: {
                 direct15: { threshold: settings.salaryDirect15Threshold, amount: settings.salaryDirect15Amount },
                 direct20: { threshold: settings.salaryDirect20Threshold, amount: settings.salaryDirect20Amount },
+                direct10: { threshold: settings.salaryDirect10Threshold, amount: settings.salaryDirect10Amount },
                 network40: { threshold: settings.salaryNetwork40Threshold, amount: settings.salaryNetwork40Amount }
             },
             filteredReferrals: {
@@ -119,6 +122,15 @@ exports.calculateMonthlySalary = async (userId) => {
             if (amount > salary) {
                 salary = amount;
                 breakdown.salaryComponents = [{ rule: `${settings.salaryDirect15Threshold} direct A-level users`, amount: settings.salaryDirect15Amount }];
+            }
+        }
+
+        // Check Fourth Direct Threshold (identical to Lower Direct Threshold logic)
+        if (aLevelCount >= settings.salaryDirect10Threshold) {
+            const amount = settings.salaryDirect10Amount;
+            if (amount > salary) {
+                salary = amount;
+                breakdown.salaryComponents = [{ rule: `${settings.salaryDirect10Threshold} direct A-level users`, amount: settings.salaryDirect10Amount }];
             }
         }
 

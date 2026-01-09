@@ -22,6 +22,8 @@ export default function ReferralManagement() {
         salaryDirect15Amount: 15000,
         salaryDirect20Threshold: 20,
         salaryDirect20Amount: 20000,
+        salaryDirect10Threshold: 10,
+        salaryDirect10Amount: 10000,
         salaryNetwork40Threshold: 40,
         salaryNetwork40Amount: 48000
     });
@@ -347,6 +349,33 @@ export default function ReferralManagement() {
                                                 className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
                                                 value={settings.salaryNetwork40Amount}
                                                 onChange={(e) => setSettings({ ...settings, salaryNetwork40Amount: Number(e.target.value) })}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Rule 4: Fourth Direct Threshold (identical to Rule 1) */}
+                                <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-4">
+                                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-tighter">Rule 4: Fourth Direct Threshold</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Threshold (Invites)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                value={settings.salaryDirect10Threshold}
+                                                onChange={(e) => setSettings({ ...settings, salaryDirect10Threshold: Number(e.target.value) })}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Amount (ETB)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full px-4 py-2 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                value={settings.salaryDirect10Amount}
+                                                onChange={(e) => setSettings({ ...settings, salaryDirect10Amount: Number(e.target.value) })}
                                                 required
                                             />
                                         </div>

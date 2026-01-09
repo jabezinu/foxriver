@@ -185,6 +185,21 @@ export default function Team() {
                     </div>
 
                     <div className="space-y-4 relative z-10">
+                        {/* Rule 4 Progress */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-end text-xs">
+                                <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.direct10?.threshold || 10} Direct Invites</span>
+                                <span className="font-bold text-cyan-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct10?.threshold || 10}</span>
+                            </div>
+                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-cyan-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                                    style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct10?.threshold || 10)) * 100, 100)}%` }}
+                                />
+                            </div>
+                            <p className="text-[10px] text-zinc-500 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct10?.amount || 10000)} ETB/month</p>
+                        </div>
+
                         {/* Rule 1 Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-end text-xs">

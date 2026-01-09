@@ -33,6 +33,14 @@ const systemSettingSchema = new mongoose.Schema({
         type: Number,
         default: 20000
     },
+    salaryDirect10Threshold: {
+        type: Number,
+        default: 10
+    },
+    salaryDirect10Amount: {
+        type: Number,
+        default: 10000
+    },
     salaryNetwork40Threshold: {
         type: Number,
         default: 40
