@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI, depositAPI, bankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy } from 'lucide-react';
+import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy, Upload, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
@@ -20,6 +20,8 @@ export default function Deposit() {
     const [step, setStep] = useState(1); // 1: Amount, 2: FT submission
     const [currentDeposit, setCurrentDeposit] = useState(null);
     const [ftNumber, setFtNumber] = useState('');
+    const [screenshot, setScreenshot] = useState(null);
+    const [screenshotPreview, setScreenshotPreview] = useState(null);
     const [methods, setMethods] = useState([]);
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -90,23 +92,41 @@ export default function Deposit() {
 
     const handleSubmitFT = async () => {
         if (!ftNumber) {
-            toast.error('Please enter FT number');
+            toast.error('Please enter transaction ID');
             return;
         }
 
+        if (!screenshot) {
+            toast.error('Please upload transaction screenshot');
+            return;
+        }
 
         setSubmitting(true);
         try {
-            await depositAPI.submitFT({
-                depositId: currentDeposit._id,
-                transactionFT: ftNumber
-            });
+            const formData = new FormData();
+            formData.append('depositId', currentDeposit._id);
+            formData.append('transactionFT', ftNumber);
+            formData.append('screenshot', screenshot);
+
+            await depositAPI.submitFT(formData);
             toast.success('Transaction submitted! Awaiting approval.');
             navigate('/');
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to submit FT');
+            toast.error(error.response?.data?.message || 'Failed to submit transaction');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleScreenshotChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5000000) {
+                toast.error('File size must be less than 5MB');
+                return;
+            }
+            setScreenshot(file);
+            setScreenshotPreview(URL.createObjectURL(file));
         }
     };
 
@@ -370,6 +390,52 @@ export default function Deposit() {
                                 />
                                 <p className="text-[10px] text-zinc-500 mt-2 text-center">
                                     Enter the transaction reference number from your bank app.
+                                </p>
+                            </Card>
+                        </div>
+
+                        <div className="mb-8">
+                            <Card className="p-5 border-zinc-800 shadow-sm bg-zinc-900">
+                                <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Upload Transaction Screenshot</label>
+                                
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleScreenshotChange}
+                                    className="hidden"
+                                    id="screenshot-upload"
+                                />
+                                
+                                {screenshotPreview ? (
+                                    <div className="relative">
+                                        <img 
+                                            src={screenshotPreview} 
+                                            alt="Transaction screenshot" 
+                                            className="w-full rounded-xl border-2 border-zinc-800 mb-3"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setScreenshot(null);
+                                                setScreenshotPreview(null);
+                                            }}
+                                            className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label
+                                        htmlFor="screenshot-upload"
+                                        className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-700 rounded-xl p-8 cursor-pointer hover:border-primary-500 transition-colors"
+                                    >
+                                        <Image size={40} className="text-zinc-600 mb-2" />
+                                        <span className="text-sm font-bold text-zinc-400">Click to upload screenshot</span>
+                                        <span className="text-xs text-zinc-600 mt-1">PNG, JPG, GIF up to 5MB</span>
+                                    </label>
+                                )}
+                                
+                                <p className="text-[10px] text-zinc-500 mt-2 text-center">
+                                    Upload a clear screenshot of your transaction confirmation.
                                 </p>
                             </Card>
                         </div>

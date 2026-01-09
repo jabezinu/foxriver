@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminDepositAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiCurrencyDollar, HiCheck, HiX, HiExternalLink } from 'react-icons/hi';
+import { HiCheck, HiX, HiPhotograph } from 'react-icons/hi';
 import { formatNumber } from '../utils/formatNumber';
 
 import ConfirmModal from '../components/ConfirmModal';
@@ -13,6 +13,7 @@ export default function DepositRequests() {
     const [filterStatus, setFilterStatus] = useState('ft_submitted');
     const [approveId, setApproveId] = useState(null);
     const [rejectId, setRejectId] = useState(null);
+    const [viewScreenshot, setViewScreenshot] = useState(null);
 
     useEffect(() => {
         fetchDeposits();
@@ -80,6 +81,31 @@ export default function DepositRequests() {
                 confirmText="Reject Deposit"
             />
 
+            {/* Screenshot Modal */}
+            {viewScreenshot && (
+                <div 
+                    className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+                    onClick={() => setViewScreenshot(null)}
+                >
+                    <div className="max-w-4xl w-full bg-white rounded-2xl p-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-900">Transaction Screenshot</h3>
+                            <button
+                                onClick={() => setViewScreenshot(null)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <HiX size={24} />
+                            </button>
+                        </div>
+                        <img 
+                            src={viewScreenshot}
+                            alt="Transaction screenshot" 
+                            className="w-full rounded-xl object-contain max-h-[70vh]"
+                        />
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Capital Ledger</h1>
@@ -133,6 +159,20 @@ export default function DepositRequests() {
                                         <div className="flex flex-col">
                                             <span className="text-[9px] text-gray-400 uppercase font-bold">Transaction ID</span>
                                             <span className="text-sm font-mono font-bold text-green-600">{dep.transactionFT || 'WAITING'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-gray-400 uppercase font-bold">Screenshot</span>
+                                            {dep.transactionScreenshot ? (
+                                                <button
+                                                    onClick={() => setViewScreenshot(dep.transactionScreenshot)}
+                                                    className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                                                >
+                                                    <HiPhotograph size={16} />
+                                                    View
+                                                </button>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">Not uploaded</span>
+                                            )}
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-[9px] text-gray-400 uppercase font-bold">Bank Name</span>

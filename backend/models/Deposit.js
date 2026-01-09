@@ -20,6 +20,10 @@ const depositSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    transactionScreenshot: {
+        type: String,
+        default: null
+    },
     orderId: {
         type: String,
         required: true,

@@ -55,7 +55,11 @@ export const userAPI = {
 // Deposit endpoints
 export const depositAPI = {
     create: (data) => api.post('/deposits/create', data),
-    submitFT: (data) => api.post('/deposits/submit-ft', data),
+    submitFT: (formData) => api.post('/deposits/submit-ft', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    }),
     getUserDeposits: () => api.get('/deposits/user'),
 };
 
