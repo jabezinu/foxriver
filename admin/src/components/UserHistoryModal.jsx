@@ -31,6 +31,11 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
         }
     };
 
+    // Calculate totals
+    const totalDeposits = deposits.reduce((sum, deposit) => sum + deposit.amount, 0);
+    const totalWithdrawals = withdrawals.reduce((sum, withdrawal) => sum + withdrawal.netAmount, 0);
+    const netAmount = totalDeposits - totalWithdrawals;
+
     if (!isOpen || !user) return null;
 
     return (
@@ -45,6 +50,26 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
                     <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-200 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all">
                         <HiX className="text-xl" />
                     </button>
+                </div>
+
+                {/* Summary Section */}
+                <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center">
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Total Deposits</p>
+                            <p className="text-lg font-bold text-green-600">{totalDeposits.toLocaleString()} ETB</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Total Withdrawals</p>
+                            <p className="text-lg font-bold text-red-600">{totalWithdrawals.toLocaleString()} ETB</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xs font-bold text-gray-500 uppercase mb-1">Net Amount</p>
+                            <p className={`text-lg font-bold ${netAmount >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                                {netAmount >= 0 ? '+' : ''}{netAmount.toLocaleString()} ETB
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Tabs */}
