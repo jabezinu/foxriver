@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import {
     HiChartBar, HiUsers, HiCurrencyDollar, HiBriefcase,
-    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh
+    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck
 } from 'react-icons/hi';
 import AdminProfileModal from '../components/AdminProfileModal';
 
@@ -69,6 +69,7 @@ export default function AdminLayout() {
         { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
         { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management' },
+        { path: '/membership-management', icon: HiShieldCheck, label: 'Membership Management' },
     ];
 
     const handleLogout = () => {

@@ -119,4 +119,10 @@ export const adminSpinAPI = {
     getAllSpins: (params) => api.get('/spin/admin/all', { params }),
 };
 
+export const adminMembershipAPI = {
+    getAllTiers: () => api.get('/memberships/admin/all'),
+    hideRange: (data) => api.put('/memberships/admin/hide-range', data),
+    unhideRange: (data) => api.put('/memberships/admin/unhide-range', data),
+};
+
 export default api;

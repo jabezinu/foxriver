@@ -25,6 +25,10 @@ const membershipSchema = new mongoose.Schema({
     order: {
         type: Number,
         required: true
+    },
+    hidden: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
