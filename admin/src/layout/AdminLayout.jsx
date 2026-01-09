@@ -65,7 +65,7 @@ export default function AdminLayout() {
         { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals' },
         { path: '/tasks', icon: HiVideoCamera, label: 'Tasks' },
                 { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
-        { path: '/messages', icon: HiMail, label: 'Messages' },
+        { path: '/messages', icon: HiMail, label: 'News' },
         { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
         { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management' },

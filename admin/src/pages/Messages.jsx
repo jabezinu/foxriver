@@ -35,10 +35,10 @@ export default function Messages() {
         try {
             if (editingId) {
                 await adminMessageAPI.update(editingId, formData);
-                toast.success('Broadcast updated successfully!');
+                toast.success('News updated successfully!');
             } else {
                 await adminMessageAPI.send(formData);
-                toast.success('Satellite broadcast successful!');
+                toast.success('News published successfully!');
             }
 
             resetForm();
@@ -57,7 +57,7 @@ export default function Messages() {
     const confirmDelete = async () => {
         try {
             await adminMessageAPI.delete(deleteId);
-            toast.success('Broadcast deleted');
+            toast.success('News deleted');
             fetchMessages();
             if (editingId === deleteId) resetForm();
         } catch (error) {
@@ -89,16 +89,16 @@ export default function Messages() {
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={confirmDelete}
-                title="Delete Broadcast"
-                message="Are you sure you want to delete this broadcast? This action cannot be undone."
+                title="Delete News"
+                message="Are you sure you want to delete this news? This action cannot be undone."
                 confirmText="Delete"
                 isDangerous={true}
             />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Communication Relay</h1>
-                    <p className="text-sm text-gray-500">Dispatch orbital broadcasts and system alerts to all operatives.</p>
+                    <h1 className="text-2xl font-bold text-gray-900">News Management</h1>
+                    <p className="text-sm text-gray-500">Create and manage news updates for all users.</p>
                 </div>
             </div>
 
@@ -111,7 +111,7 @@ export default function Messages() {
                                 {editingId ? <HiPencil /> : <HiLightningBolt />}
                             </div>
                             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest leading-none">
-                                {editingId ? 'Edit Broadcast' : 'Emergency Broadcast'}
+                                {editingId ? 'Edit News' : 'Create News'}
                             </h3>
                         </div>
                         {editingId && (
@@ -123,36 +123,36 @@ export default function Messages() {
 
                     <form onSubmit={handleSend} className="space-y-4">
                         <input
-                            type="text" placeholder="Direct Alert Title" className="admin-input"
+                            type="text" placeholder="News Title" className="admin-input"
                             value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })}
                             required
                         />
                         <textarea
-                            placeholder="Detailed operative instructions..." className="admin-input min-h-[200px]"
+                            placeholder="News content..." className="admin-input min-h-[200px]"
                             value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })}
                             required
                         />
                         <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-100 rounded-xl">
                             <HiUsers className="text-orange-500 text-xl" />
                             <div className="flex-1">
-                                <p className="text-[10px] font-bold text-orange-800 uppercase">Priority Protocol</p>
-                                <p className="text-[8px] text-orange-600 font-bold uppercase tracking-widest">Transmitting to all REGISTERED users globally</p>
+                                <p className="text-[10px] font-bold text-orange-800 uppercase">Broadcast to All Users</p>
+                                <p className="text-[8px] text-orange-600 font-bold uppercase tracking-widest">This news will be sent to all registered users</p>
                             </div>
                         </div>
                         <button
                             type="submit" disabled={submitting}
                             className={`w-full py-4 tracking-[0.2em] text-xs font-bold uppercase shadow-lg transition-all rounded-xl text-white ${editingId ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-200' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-200'}`}
                         >
-                            {submitting ? 'Processing...' : (editingId ? 'Update Signal' : 'Initiate Broadcast')}
+                            {submitting ? 'Processing...' : (editingId ? 'Update News' : 'Publish News')}
                         </button>
                     </form>
                 </div>
 
                 {/* History Box */}
                 <div className="admin-card">
-                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6">Signal History ({messages.length})</h3>
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-6">News History ({messages.length})</h3>
                     {loading ? (
-                        <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest">Scanning Waves...</div>
+                        <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest">Loading...</div>
                     ) : (
                         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                             {messages.map((msg) => (
@@ -183,14 +183,14 @@ export default function Messages() {
                                     <p className="text-xs text-gray-500 line-clamp-3 leading-relaxed">{msg.content}</p>
                                     <div className="mt-3 flex gap-4">
                                         <div className="flex items-center gap-1">
-                                            <span className="text-[8px] font-bold text-gray-400 uppercase">Signals Confirmed:</span>
+                                            <span className="text-[8px] font-bold text-gray-400 uppercase">Recipients:</span>
                                             <span className="text-[10px] text-indigo-600 font-bold">{msg.recipients?.length || 0}</span>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                             {messages.length === 0 && (
-                                <div className="py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No historical broadcasts found</div>
+                                <div className="py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No news found</div>
                             )}
                         </div>
                     )}
