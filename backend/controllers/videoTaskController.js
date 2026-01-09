@@ -22,7 +22,7 @@ exports.getDailyVideoTasks = async (req, res) => {
         const settings = await SystemSetting.findOne() || {};
         const videosPerDay = settings.videosPerDay || 4;
         const videoPaymentAmount = settings.videoPaymentAmount || 10;
-        const videoWatchTimeRequired = settings.videoWatchTimeRequired || 15;
+        const videoWatchTimeRequired = settings.videoWatchTimeRequired || 8;
 
         // Check if user already has assignment for today
         let assignment = await DailyVideoAssignment.findOne({
@@ -221,7 +221,7 @@ exports.completeVideoTask = async (req, res) => {
 
         // Get system settings
         const settings = await SystemSetting.findOne() || {};
-        const videoWatchTimeRequired = settings.videoWatchTimeRequired || 15;
+        const videoWatchTimeRequired = settings.videoWatchTimeRequired || 8;
         const videoPaymentAmount = settings.videoPaymentAmount || 10;
 
         if (!watchedSeconds || watchedSeconds < videoWatchTimeRequired) {

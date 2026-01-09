@@ -51,7 +51,7 @@ const systemSettingSchema = new mongoose.Schema({
     },
     videoWatchTimeRequired: {
         type: Number,
-        default: 15 // Required watch time in seconds
+        default: 8 // Required watch time in seconds
     }
 }, {
     timestamps: true

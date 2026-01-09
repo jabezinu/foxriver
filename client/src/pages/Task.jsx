@@ -84,7 +84,8 @@ export default function Task() {
         }
         
         setActiveVideo({ url: task.videoUrl, id: task._id });
-        setCountdown(10); // Changed to 10 seconds for testing/UX
+        // Don't start countdown here - wait for video to actually start playing
+        setCountdown(null);
     };
 
     const handleAutoResolve = async () => {
@@ -316,25 +317,25 @@ export default function Task() {
             {/* Video Preview Overlay */}
             {activeVideo && (
                 <div className="fixed inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 animate-fade-in backdrop-blur-md">
-                    {/* Countdown Banner */}
-                    <div className="absolute top-8 left-0 right-0 flex justify-center px-4 animate-slide-down">
-                        <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-700 px-6 py-4 rounded-2xl flex items-center gap-5 shadow-2xl">
-                            <div className="relative">
-                                <div className="w-12 h-12 rounded-full border-4 border-primary-500 flex items-center justify-center text-white font-bold text-xl relative z-10 bg-black/50">
-                                    {countdown}
+                    <div className="w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10 max-w-2xl relative">
+                        {/* Countdown Overlay - Positioned over the video */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="bg-black/70 backdrop-blur-sm border-2 border-primary-500 px-8 py-6 rounded-2xl flex items-center gap-6 shadow-2xl animate-pulse-slow">
+                                <div className="relative">
+                                    <div className="w-16 h-16 rounded-full border-4 border-primary-500 flex items-center justify-center text-white font-bold text-3xl relative z-10 bg-black/50">
+                                        {countdown || 8}
+                                    </div>
+                                    <div className="absolute inset-0 rounded-full border-4 border-primary-500 blur-md animate-pulse"></div>
                                 </div>
-                                <div className="absolute inset-0 rounded-full border-4 border-primary-500 blur-sm animate-pulse-slow"></div>
-                            </div>
-                            <div>
-                                <p className="text-white font-bold uppercase tracking-widest text-sm mb-0.5">Watching Ad</p>
-                                <p className="text-primary-400 text-xs font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
-                                <p className="text-zinc-500 text-[10px] mt-1">Total Today: {formatNumber(earningsStats.todayEarnings + dailyStats.perVideoIncome)} ETB</p>
+                                <div className="text-right">
+                                    <p className="text-white font-bold uppercase tracking-widest text-lg mb-1">Watching Ad</p>
+                                    <p className="text-primary-400 text-sm font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
+                                    <p className="text-zinc-300 text-xs mt-1">Total Today: {formatNumber(earningsStats.todayEarnings + dailyStats.perVideoIncome)} ETB</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10 max-w-2xl relative">
-                        {/* Loading/Buffering Indicator could go here */}
+                        
+                        {/* Video Player */}
                         <ReactPlayer
                             url={activeVideo.url.startsWith('http') ? activeVideo.url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${activeVideo.url}`}
                             controls={false}
@@ -342,6 +343,13 @@ export default function Task() {
                             height="100%"
                             playing={true}
                             muted={false}
+                            onReady={() => {
+                                // Video is ready but don't start countdown yet
+                            }}
+                            onStart={() => {
+                                // Start countdown exactly when video starts playing
+                                setCountdown(8);
+                            }}
                             config={{
                                 file: {
                                     attributes: {

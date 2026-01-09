@@ -1,8 +1,10 @@
 const User = require('../models/User');
 const SystemSetting = require('../models/SystemSetting');
+const Membership = require('../models/Membership');
 
 /**
  * Calculate monthly salary based on downline counts
+ * Only counts referrals that are same level or lower than the inviter
  */
 exports.calculateMonthlySalary = async (userId) => {
     try {
@@ -10,6 +12,15 @@ exports.calculateMonthlySalary = async (userId) => {
         if (!user) {
             return { salary: 0, breakdown: null };
         }
+
+        // Get membership levels for comparison
+        const memberships = await Membership.find().sort({ order: 1 });
+        const membershipOrder = {};
+        memberships.forEach(m => {
+            membershipOrder[m.level] = m.order;
+        });
+
+        const userLevel = membershipOrder[user.membershipLevel];
 
         // Fetch dynamic settings
         let settings = await SystemSetting.findOne();
@@ -24,18 +35,30 @@ exports.calculateMonthlySalary = async (userId) => {
             };
         }
 
-        // Find all A-level (direct) referrals
-        const aLevelUsers = await User.find({ referrerId: userId });
+        // Find all A-level (direct) referrals that are same level or lower
+        const allALevelUsers = await User.find({ referrerId: userId });
+        const aLevelUsers = allALevelUsers.filter(referral => {
+            const referralLevel = membershipOrder[referral.membershipLevel];
+            return referralLevel <= userLevel; // Only count same level or lower
+        });
         const aLevelCount = aLevelUsers.length;
 
-        // Find all B-level referrals
+        // Find all B-level referrals that are same level or lower
         const aLevelIds = aLevelUsers.map(u => u._id);
-        const bLevelUsers = await User.find({ referrerId: { $in: aLevelIds } });
+        const allBLevelUsers = await User.find({ referrerId: { $in: aLevelIds } });
+        const bLevelUsers = allBLevelUsers.filter(referral => {
+            const referralLevel = membershipOrder[referral.membershipLevel];
+            return referralLevel <= userLevel; // Only count same level or lower
+        });
         const bLevelCount = bLevelUsers.length;
 
-        // Find all C-level referrals
+        // Find all C-level referrals that are same level or lower
         const bLevelIds = bLevelUsers.map(u => u._id);
-        const cLevelUsers = await User.find({ referrerId: { $in: bLevelIds } });
+        const allCLevelUsers = await User.find({ referrerId: { $in: bLevelIds } });
+        const cLevelUsers = allCLevelUsers.filter(referral => {
+            const referralLevel = membershipOrder[referral.membershipLevel];
+            return referralLevel <= userLevel; // Only count same level or lower
+        });
         const cLevelCount = cLevelUsers.length;
 
         const totalCount = aLevelCount + bLevelCount + cLevelCount;
@@ -51,6 +74,14 @@ exports.calculateMonthlySalary = async (userId) => {
                 direct15: { threshold: settings.salaryDirect15Threshold, amount: settings.salaryDirect15Amount },
                 direct20: { threshold: settings.salaryDirect20Threshold, amount: settings.salaryDirect20Amount },
                 network40: { threshold: settings.salaryNetwork40Threshold, amount: settings.salaryNetwork40Amount }
+            },
+            filteredReferrals: {
+                totalALevel: allALevelUsers.length,
+                qualifiedALevel: aLevelCount,
+                totalBLevel: allBLevelUsers.length,
+                qualifiedBLevel: bLevelCount,
+                totalCLevel: allCLevelUsers.length,
+                qualifiedCLevel: cLevelCount
             }
         };
 
