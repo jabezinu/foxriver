@@ -119,6 +119,13 @@ export const newsAPI = {
     getNews: () => api.get('/news'),
 };
 
+// Chat endpoints
+export const chatAPI = {
+    getChat: () => api.get('/chat'),
+    getMessages: (chatId) => api.get(`/chat/${chatId}/messages`),
+    sendMessage: (chatId, content) => api.post(`/chat/${chatId}/messages`, { content }),
+};
+
 export const bankAPI = {
     getBanks: () => api.get('/bank'),
 };

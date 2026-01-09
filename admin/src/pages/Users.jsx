@@ -200,7 +200,7 @@ export default function UserManagement() {
                                             <div className="flex items-center gap-3">
                                                 {user.profilePhoto ? (
                                                     <img
-                                                        src={user.profilePhoto.startsWith('http') ? user.profilePhoto : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '')}${user.profilePhoto}`}
+                                                        src={user.profilePhoto.startsWith('http') ? user.profilePhoto : `${(import.meta.env.VITE_API_URL || 'http://localhost:5002/api').replace(/\/api$/, '')}${user.profilePhoto}`}
                                                         alt={user.name || 'User'}
                                                         className="w-8 h-8 rounded-lg object-cover"
                                                     />

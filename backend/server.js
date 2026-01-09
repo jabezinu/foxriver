@@ -24,6 +24,7 @@ app.use('/api/withdrawals', require('./routes/withdrawal'));
 app.use('/api/tasks', require('./routes/task'));
 app.use('/api/video-tasks', require('./routes/videoTask'));
 app.use('/api/messages', require('./routes/message'));
+app.use('/api/chat', require('./routes/chat'));
 app.use('/api/memberships', require('./routes/membership'));
 app.use('/api/referrals', require('./routes/referral'));
 app.use('/api/qna', require('./routes/qna'));

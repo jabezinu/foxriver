@@ -82,12 +82,18 @@ export const adminMessageAPI = {
 };
 
 export const adminNewsAPI = {
-    getNews: () => api.get('/news'),
+    getAll: () => api.get('/news'),
     create: (data) => api.post('/news', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
     update: (id, data) => api.put(`/news/${id}`, data),
     delete: (id) => api.delete(`/news/${id}`),
+};
+
+export const adminChatAPI = {
+    getAllChats: () => api.get('/chat/admin'),
+    getMessages: (chatId) => api.get(`/chat/${chatId}/messages`),
+    sendMessage: (chatId, content) => api.post(`/chat/${chatId}/messages`, { content }),
 };
 
 export const adminQnaAPI = {

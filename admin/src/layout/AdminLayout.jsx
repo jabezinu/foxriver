@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import {
     HiChartBar, HiUsers, HiCurrencyDollar, HiBriefcase,
-    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck
+    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck, HiChat
 } from 'react-icons/hi';
 import AdminProfileModal from '../components/AdminProfileModal';
 
@@ -64,8 +64,9 @@ export default function AdminLayout() {
         { path: '/deposits', icon: HiCurrencyDollar, label: 'Deposits' },
         { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals' },
         { path: '/tasks', icon: HiVideoCamera, label: 'Tasks' },
-                { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
-        { path: '/messages', icon: HiMail, label: 'News' },
+        { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
+        { path: '/messages', icon: HiChat, label: 'Messages' },
+        { path: '/news', icon: HiNewspaper, label: 'News' },
         { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
         { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management' },

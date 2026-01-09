@@ -78,7 +78,7 @@ export default function Team() {
             return <p className="text-center py-4 text-zinc-500 text-xs italic">No users in this level yet</p>;
         }
 
-        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
+        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5002/api').replace(/\/api$/, '');
 
         return (
             <div className="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">

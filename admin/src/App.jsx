@@ -15,6 +15,7 @@ import WithdrawalRequests from './pages/Withdrawals';
 import TaskManagement from './pages/Tasks';
 import QnaManagement from './pages/QnA';
 import Messages from './pages/Messages';
+import News from './pages/News';
 import BankSettings from './pages/BankSettings';
 import ReferralManagement from './pages/ReferralManagement';
 import SlotMachine from './pages/SlotMachine';
@@ -70,6 +71,7 @@ function App() {
           <Route path="tasks" element={<TaskManagement />} />
           <Route path="qna" element={<QnaManagement />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="news" element={<News />} />
           <Route path="bank-settings" element={<BankSettings />} />
           <Route path="referral-management" element={<ReferralManagement />} />
           <Route path="slot-machine" element={<SlotMachine />} />
