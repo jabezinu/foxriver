@@ -74,6 +74,15 @@ exports.upgradeMembership = async (req, res) => {
             });
         }
 
+        // Check rank progression restrictions
+        const progressionCheck = await Membership.isProgressionAllowed(user.membershipLevel, newLevel);
+        if (!progressionCheck.allowed) {
+            return res.status(400).json({
+                success: false,
+                message: progressionCheck.reason
+            });
+        }
+
         // Check Balance
         const walletField = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
         if (user[walletField] < newMembership.price) {
@@ -244,6 +253,119 @@ exports.unhideMembershipsByRange = async (req, res) => {
             success: true,
             message: `Successfully unhidden memberships from Rank ${startRank} to Rank ${endRank}`,
             modifiedCount: result.modifiedCount
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Set restricted rank progression range
+// @route   PUT /api/memberships/admin/set-restricted-range
+// @access  Private/Admin
+exports.setRestrictedRange = async (req, res) => {
+    try {
+        const { startRank, endRank } = req.body;
+
+        // Validate input
+        if (!startRank || !endRank) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start rank and end rank are required'
+            });
+        }
+
+        if (startRank < 1 || startRank > 10 || endRank < 1 || endRank > 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Ranks must be between 1 and 10'
+            });
+        }
+
+        if (startRank > endRank) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start rank must be less than or equal to end rank'
+            });
+        }
+
+        if (endRank - startRank < 1) {
+            return res.status(400).json({
+                success: false,
+                message: 'Restricted range must include at least 2 ranks'
+            });
+        }
+
+        // Store the restriction in the Intern membership document
+        await Membership.updateOne(
+            { level: 'Intern' },
+            { 
+                $set: { 
+                    restrictedRangeStart: startRank,
+                    restrictedRangeEnd: endRank
+                } 
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: `Sequential progression is now required from Rank ${startRank} to Rank ${endRank}`,
+            restrictedRange: {
+                start: startRank,
+                end: endRank
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Get restricted rank progression range
+// @route   GET /api/memberships/admin/restricted-range
+// @access  Private/Admin
+exports.getRestrictedRange = async (req, res) => {
+    try {
+        const restrictedRange = await Membership.getRestrictedRange();
+
+        res.status(200).json({
+            success: true,
+            restrictedRange: restrictedRange || null,
+            message: restrictedRange 
+                ? `Sequential progression required from Rank ${restrictedRange.start} to Rank ${restrictedRange.end}`
+                : 'No rank progression restrictions are currently set'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Clear restricted rank progression range
+// @route   DELETE /api/memberships/admin/restricted-range
+// @access  Private/Admin
+exports.clearRestrictedRange = async (req, res) => {
+    try {
+        // Clear the restriction from the Intern membership document
+        await Membership.updateOne(
+            { level: 'Intern' },
+            { 
+                $set: { 
+                    restrictedRangeStart: null,
+                    restrictedRangeEnd: null
+                } 
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Rank progression restrictions have been cleared. Users can now skip ranks freely.'
         });
     } catch (error) {
         res.status(500).json({

@@ -5,7 +5,10 @@ const {
     upgradeMembership, 
     getAllTiers, 
     hideMembershipsByRange, 
-    unhideMembershipsByRange 
+    unhideMembershipsByRange,
+    setRestrictedRange,
+    getRestrictedRange,
+    clearRestrictedRange
 } = require('../controllers/membershipController');
 const { protect, adminOnly } = require('../middlewares/auth');
 
@@ -16,5 +19,8 @@ router.post('/upgrade', protect, upgradeMembership);
 router.get('/admin/all', protect, adminOnly, getAllTiers);
 router.put('/admin/hide-range', protect, adminOnly, hideMembershipsByRange);
 router.put('/admin/unhide-range', protect, adminOnly, unhideMembershipsByRange);
+router.put('/admin/set-restricted-range', protect, adminOnly, setRestrictedRange);
+router.get('/admin/restricted-range', protect, adminOnly, getRestrictedRange);
+router.delete('/admin/restricted-range', protect, adminOnly, clearRestrictedRange);
 
 module.exports = router;

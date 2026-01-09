@@ -123,6 +123,9 @@ export const adminMembershipAPI = {
     getAllTiers: () => api.get('/memberships/admin/all'),
     hideRange: (data) => api.put('/memberships/admin/hide-range', data),
     unhideRange: (data) => api.put('/memberships/admin/unhide-range', data),
+    setRestrictedRange: (data) => api.put('/memberships/admin/set-restricted-range', data),
+    getRestrictedRange: () => api.get('/memberships/admin/restricted-range'),
+    clearRestrictedRange: () => api.delete('/memberships/admin/restricted-range'),
 };
 
 export default api;
