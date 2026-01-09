@@ -35,30 +35,43 @@ exports.calculateMonthlySalary = async (userId) => {
             };
         }
 
-        // Find all A-level (direct) referrals that are same level or lower
+        // Find all A-level (direct) referrals that are same level or lower (and not Intern)
         const allALevelUsers = await User.find({ referrerId: userId });
         const aLevelUsers = allALevelUsers.filter(referral => {
             const referralLevel = membershipOrder[referral.membershipLevel];
-            return referralLevel <= userLevel; // Only count same level or lower
+            // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
+            return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
         });
         const aLevelCount = aLevelUsers.length;
 
-        // Find all B-level referrals that are same level or lower
+        // Find all B-level referrals that are same level or lower (and not Intern)
+        // Important: Only look at B-level users whose direct referrer (A-level) was qualified
         const aLevelIds = aLevelUsers.map(u => u._id);
-        const allBLevelUsers = await User.find({ referrerId: { $in: aLevelIds } });
-        const bLevelUsers = allBLevelUsers.filter(referral => {
-            const referralLevel = membershipOrder[referral.membershipLevel];
-            return referralLevel <= userLevel; // Only count same level or lower
-        });
+        let bLevelUsers = [];
+        let allBLevelUsers = [];
+        if (aLevelIds.length > 0) {
+            allBLevelUsers = await User.find({ referrerId: { $in: aLevelIds } });
+            bLevelUsers = allBLevelUsers.filter(referral => {
+                const referralLevel = membershipOrder[referral.membershipLevel];
+                // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
+                return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
+            });
+        }
         const bLevelCount = bLevelUsers.length;
 
-        // Find all C-level referrals that are same level or lower
+        // Find all C-level referrals that are same level or lower (and not Intern)
+        // Important: Only look at C-level users whose direct referrer (B-level) was qualified
         const bLevelIds = bLevelUsers.map(u => u._id);
-        const allCLevelUsers = await User.find({ referrerId: { $in: bLevelIds } });
-        const cLevelUsers = allCLevelUsers.filter(referral => {
-            const referralLevel = membershipOrder[referral.membershipLevel];
-            return referralLevel <= userLevel; // Only count same level or lower
-        });
+        let cLevelUsers = [];
+        let allCLevelUsers = [];
+        if (bLevelIds.length > 0) {
+            allCLevelUsers = await User.find({ referrerId: { $in: bLevelIds } });
+            cLevelUsers = allCLevelUsers.filter(referral => {
+                const referralLevel = membershipOrder[referral.membershipLevel];
+                // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
+                return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
+            });
+        }
         const cLevelCount = cLevelUsers.length;
 
         const totalCount = aLevelCount + bLevelCount + cLevelCount;

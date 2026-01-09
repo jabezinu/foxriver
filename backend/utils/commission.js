@@ -55,7 +55,9 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
 
             async function processALevel() {
                 const aLevelOrder = membershipOrder[aLevelUser.membershipLevel];
-                if (aLevelOrder >= userLevel) {
+                // Inviter gets commission only if referred user's level is equal or lower than inviter's level
+                // AND the referred user is not an Intern (Intern doesn't qualify for commission)
+                if (user.membershipLevel !== 'Intern' && userLevel <= aLevelOrder) {
                     const aCommission = earningsAmount * (settings.commissionPercentA / 100);
                     commissions.push({
                         user: aLevelUser._id,
@@ -74,7 +76,9 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
                 const bLevelUser = await User.findById(aLevelUser.referrerId);
                 if (bLevelUser) {
                     const bLevelOrder = membershipOrder[bLevelUser.membershipLevel];
-                    if (bLevelOrder >= userLevel) {
+                    // B-level inviter gets commission only if referred user's level is equal or lower
+                    // AND the referred user is not an Intern
+                    if (user.membershipLevel !== 'Intern' && userLevel <= bLevelOrder) {
                         const bCommission = earningsAmount * (settings.commissionPercentB / 100);
                         commissions.push({
                             user: bLevelUser._id,
@@ -91,7 +95,9 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
                             const cLevelUser = await User.findById(bLevelUser.referrerId);
                             if (cLevelUser) {
                                 const cLevelOrder = membershipOrder[cLevelUser.membershipLevel];
-                                if (cLevelOrder >= userLevel) {
+                                // C-level inviter gets commission only if referred user's level is equal or lower
+                                // AND the referred user is not an Intern
+                                if (user.membershipLevel !== 'Intern' && userLevel <= cLevelOrder) {
                                     const cCommission = earningsAmount * (settings.commissionPercentC / 100);
                                     commissions.push({
                                         user: cLevelUser._id,
@@ -154,7 +160,9 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
 
             if (canEarnA) {
                 const aLevelOrder = membershipOrder[aLevelUser.membershipLevel];
-                if (aLevelOrder >= purchaseOrder) {
+                // Inviter gets commission only if purchased membership level is equal or lower than inviter's level
+                // AND the purchased membership is not Intern
+                if (newMembership.level !== 'Intern' && purchaseOrder <= aLevelOrder) {
                     const aCommission = newMembership.price * (settings.commissionPercentA / 100);
                     commissions.push({
                         user: aLevelUser._id,
@@ -173,7 +181,9 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
                 const bLevelUser = await User.findById(aLevelUser.referrerId);
                 if (bLevelUser) {
                     const bLevelOrder = membershipOrder[bLevelUser.membershipLevel];
-                    if (bLevelOrder >= purchaseOrder) {
+                    // B-level inviter gets commission only if purchased membership level is equal or lower
+                    // AND the purchased membership is not Intern
+                    if (newMembership.level !== 'Intern' && purchaseOrder <= bLevelOrder) {
                         const bCommission = newMembership.price * (settings.commissionPercentB / 100);
                         commissions.push({
                             user: bLevelUser._id,
@@ -190,7 +200,9 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
                             const cLevelUser = await User.findById(bLevelUser.referrerId);
                             if (cLevelUser) {
                                 const cLevelOrder = membershipOrder[cLevelUser.membershipLevel];
-                                if (cLevelOrder >= purchaseOrder) {
+                                // C-level inviter gets commission only if purchased membership level is equal or lower
+                                // AND the purchased membership is not Intern
+                                if (newMembership.level !== 'Intern' && purchaseOrder <= cLevelOrder) {
                                     const cCommission = newMembership.price * (settings.commissionPercentC / 100);
                                     commissions.push({
                                         user: cLevelUser._id,

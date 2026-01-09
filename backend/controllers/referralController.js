@@ -7,36 +7,81 @@ const { calculateMonthlySalary } = require('../utils/salary');
 // @access  Private
 exports.getDownline = async (req, res) => {
     try {
-        // A-level (direct referrals)
-        const aLevelUsers = await User.find({ referrerId: req.user.id })
+        const Membership = require('../models/Membership');
+        
+        // Get membership levels for comparison
+        const memberships = await Membership.find().sort({ order: 1 });
+        const membershipOrder = {};
+        memberships.forEach(m => {
+            membershipOrder[m.level] = m.order;
+        });
+
+        const user = await User.findById(req.user.id);
+        const userLevel = membershipOrder[user.membershipLevel];
+
+        // A-level (direct referrals) - all referrals
+        const allALevelUsers = await User.find({ referrerId: req.user.id })
             .select('phone membershipLevel createdAt incomeWallet personalWallet');
 
-        // B-level (referrals' referrals)
-        const aLevelIds = aLevelUsers.map(u => u._id);
-        const bLevelUsers = await User.find({ referrerId: { $in: aLevelIds } })
-            .select('phone membershipLevel createdAt referrerId');
+        // Filter A-level for qualified referrals (not Intern, equal or lower level)
+        const qualifiedALevelUsers = allALevelUsers.filter(referral => {
+            const referralLevel = membershipOrder[referral.membershipLevel];
+            return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
+        });
 
-        // C-level (B-level's referrals)
-        const bLevelIds = bLevelUsers.map(u => u._id);
-        const cLevelUsers = await User.find({ referrerId: { $in: bLevelIds } })
-            .select('phone membershipLevel createdAt referrerId');
+        // B-level (referrals' referrals) - only from qualified A-level users
+        const qualifiedALevelIds = qualifiedALevelUsers.map(u => u._id);
+        let allBLevelUsers = [];
+        let qualifiedBLevelUsers = [];
+        
+        if (qualifiedALevelIds.length > 0) {
+            allBLevelUsers = await User.find({ referrerId: { $in: qualifiedALevelIds } })
+                .select('phone membershipLevel createdAt referrerId');
+            
+            qualifiedBLevelUsers = allBLevelUsers.filter(referral => {
+                const referralLevel = membershipOrder[referral.membershipLevel];
+                return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
+            });
+        }
+
+        // C-level (B-level's referrals) - only from qualified B-level users
+        const qualifiedBLevelIds = qualifiedBLevelUsers.map(u => u._id);
+        let allCLevelUsers = [];
+        let qualifiedCLevelUsers = [];
+        
+        if (qualifiedBLevelIds.length > 0) {
+            allCLevelUsers = await User.find({ referrerId: { $in: qualifiedBLevelIds } })
+                .select('phone membershipLevel createdAt referrerId');
+            
+            qualifiedCLevelUsers = allCLevelUsers.filter(referral => {
+                const referralLevel = membershipOrder[referral.membershipLevel];
+                return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
+            });
+        }
 
         res.status(200).json({
             success: true,
             downline: {
                 aLevel: {
-                    count: aLevelUsers.length,
-                    users: aLevelUsers
+                    count: qualifiedALevelUsers.length,
+                    totalCount: allALevelUsers.length,
+                    users: qualifiedALevelUsers,
+                    allUsers: allALevelUsers
                 },
                 bLevel: {
-                    count: bLevelUsers.length,
-                    users: bLevelUsers
+                    count: qualifiedBLevelUsers.length,
+                    totalCount: allBLevelUsers.length,
+                    users: qualifiedBLevelUsers,
+                    allUsers: allBLevelUsers
                 },
                 cLevel: {
-                    count: cLevelUsers.length,
-                    users: cLevelUsers
+                    count: qualifiedCLevelUsers.length,
+                    totalCount: allCLevelUsers.length,
+                    users: qualifiedCLevelUsers,
+                    allUsers: allCLevelUsers
                 },
-                total: aLevelUsers.length + bLevelUsers.length + cLevelUsers.length
+                total: qualifiedALevelUsers.length + qualifiedBLevelUsers.length + qualifiedCLevelUsers.length,
+                totalAll: allALevelUsers.length + allBLevelUsers.length + allCLevelUsers.length
             }
         });
     } catch (error) {
