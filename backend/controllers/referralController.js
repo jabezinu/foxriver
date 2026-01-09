@@ -21,7 +21,7 @@ exports.getDownline = async (req, res) => {
 
         // A-level (direct referrals) - all referrals
         const allALevelUsers = await User.find({ referrerId: req.user.id })
-            .select('phone membershipLevel createdAt incomeWallet personalWallet');
+            .select('name profilePhoto phone membershipLevel createdAt incomeWallet personalWallet');
 
         // Filter A-level for qualified referrals (not Intern, equal or lower level)
         const qualifiedALevelUsers = allALevelUsers.filter(referral => {
@@ -36,7 +36,7 @@ exports.getDownline = async (req, res) => {
         
         if (qualifiedALevelIds.length > 0) {
             allBLevelUsers = await User.find({ referrerId: { $in: qualifiedALevelIds } })
-                .select('phone membershipLevel createdAt referrerId');
+                .select('name profilePhoto phone membershipLevel createdAt referrerId');
             
             qualifiedBLevelUsers = allBLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
@@ -51,7 +51,7 @@ exports.getDownline = async (req, res) => {
         
         if (qualifiedBLevelIds.length > 0) {
             allCLevelUsers = await User.find({ referrerId: { $in: qualifiedBLevelIds } })
-                .select('phone membershipLevel createdAt referrerId');
+                .select('name profilePhoto phone membershipLevel createdAt referrerId');
             
             qualifiedCLevelUsers = allCLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
@@ -98,7 +98,7 @@ exports.getDownline = async (req, res) => {
 exports.getCommissions = async (req, res) => {
     try {
         const commissions = await Commission.find({ user: req.user.id })
-            .populate('downlineUser', 'phone membershipLevel')
+            .populate('downlineUser', 'name profilePhoto phone membershipLevel')
             .populate('sourceTask')
             .sort({ createdAt: -1 });
 

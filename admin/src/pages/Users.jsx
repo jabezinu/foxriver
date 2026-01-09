@@ -198,10 +198,21 @@ export default function UserManagement() {
                                     <tr key={user._id} className="table-row">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                                                    <HiIdentification />
+                                                {user.profilePhoto ? (
+                                                    <img
+                                                        src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '')}${user.profilePhoto}`}
+                                                        alt={user.name || 'User'}
+                                                        className="w-8 h-8 rounded-lg object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                                                        {user.name ? user.name.charAt(0).toUpperCase() : <HiIdentification />}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="font-bold text-gray-800 tracking-tight">{user.name || 'No name set'}</div>
+                                                    <div className="text-xs text-gray-500 font-medium">{user.phone}</div>
                                                 </div>
-                                                <span className="font-bold text-gray-800 tracking-tight">{user.phone}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

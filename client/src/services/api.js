@@ -45,6 +45,13 @@ export const authAPI = {
 // User endpoints
 export const userAPI = {
     getProfile: () => api.get('/users/profile'),
+    updateProfile: (data) => api.put('/users/profile', data),
+    uploadProfilePhoto: (formData) => api.post('/users/profile-photo', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    }),
+    deleteProfilePhoto: () => api.delete('/users/profile-photo'),
     getWallet: () => api.get('/users/wallet'),
     setBankAccount: (data) => api.put('/users/bank-account', data),
     setTransactionPassword: (data) => api.put('/users/transaction-password', data),

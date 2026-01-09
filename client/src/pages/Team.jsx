@@ -78,13 +78,28 @@ export default function Team() {
             return <p className="text-center py-4 text-zinc-500 text-xs italic">No users in this level yet</p>;
         }
 
+        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
+
         return (
             <div className="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                 {users.map((u, idx) => (
                     <div key={idx} className="flex justify-between items-center p-3 bg-zinc-950/50 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-bold text-zinc-300">{u.phone.replace(/(\+\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 *** $4')}</span>
-                            <span className="text-[10px] text-zinc-500">{new Date(u.createdAt).toLocaleDateString()}</span>
+                        <div className="flex items-center gap-3">
+                            {u.profilePhoto ? (
+                                <img
+                                    src={`${API_URL}${u.profilePhoto}`}
+                                    alt={u.name || 'User'}
+                                    className="w-8 h-8 rounded-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white font-bold text-xs">
+                                    {u.name ? u.name.charAt(0).toUpperCase() : u.phone.slice(-1)}
+                                </div>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-zinc-300">{u.name || 'User'}</span>
+                                <span className="text-[10px] text-zinc-500">{u.phone.replace(/(\+\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 *** $4')}</span>
+                            </div>
                         </div>
                         <span className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-bold text-primary-500 uppercase tracking-wider shadow-sm">
                             {u.membershipLevel}

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle } from 'lucide-react';
+import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle, Edit2, Camera, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
 import { formatNumber } from '../utils/formatNumber';
 import { useAuthStore } from '../store/authStore';
+import Modal from '../components/Modal';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 export default function Mine() {
     const navigate = useNavigate();
@@ -14,6 +17,10 @@ export default function Mine() {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
     const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [profileName, setProfileName] = useState('');
+    const [updating, setUpdating] = useState(false);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
     // Calculate Intern restriction info
     const getInternRestrictionInfo = () => {
@@ -46,6 +53,7 @@ export default function Mine() {
                 userAPI.getWallet()
             ]);
             setProfile(profileRes.data.user);
+            setProfileName(profileRes.data.user.name || '');
             setWallet(walletRes.data.wallet);
         } catch (error) {
             toast.error('Failed to load profile data');
@@ -53,6 +61,76 @@ export default function Mine() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleUpdateProfile = async () => {
+        if (!profileName.trim()) {
+            toast.error('Name cannot be empty');
+            return;
+        }
+
+        setUpdating(true);
+        try {
+            await userAPI.updateProfile({ name: profileName.trim() });
+            toast.success('Profile updated successfully');
+            setShowProfileModal(false);
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update profile');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handlePhotoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Image size must be less than 5MB');
+            return;
+        }
+
+        setUploadingPhoto(true);
+        try {
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            await userAPI.uploadProfilePhoto(formData);
+            toast.success('Profile photo updated successfully');
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to upload photo');
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
+    const handleDeletePhoto = async () => {
+        if (!confirm('Are you sure you want to delete your profile photo?')) return;
+
+        try {
+            await userAPI.deleteProfilePhoto();
+            toast.success('Profile photo deleted successfully');
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete photo');
+        }
+    };
+
+    const getProfileImageUrl = () => {
+        if (!profile.profilePhoto) return null;
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        // Remove /api from the end since uploads are served at root level
+        const baseURL = API_URL.replace(/\/api$/, '');
+        return `${baseURL}${profile.profilePhoto}`;
     };
 
     if (loading) return <Loading />;
@@ -69,15 +147,64 @@ export default function Mine() {
 
             <div className="px-5 pt-6 pb-2">
                 {/* User Info Card */}
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white text-3xl font-black shadow-glow">
-                        {profile.phone.slice(-1)}
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-white mb-2">{profile.phone}</h2>
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800 text-primary-500 text-xs font-bold uppercase tracking-wider border border-zinc-700">
-                            <User size={12} fill="currentColor" />
-                            <span>{profile.membershipLevel} Member</span>
+                <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-6 border border-zinc-800">
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            {profile.profilePhoto ? (
+                                <img
+                                    src={getProfileImageUrl()}
+                                    alt="Profile"
+                                    className="w-20 h-20 rounded-2xl object-cover shadow-glow"
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white text-3xl font-black shadow-glow">
+                                    {profile.name ? profile.name.charAt(0).toUpperCase() : profile.phone.slice(-1)}
+                                </div>
+                            )}
+                            <label
+                                htmlFor="photo-upload"
+                                className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-600 transition-colors shadow-lg border-2 border-zinc-900"
+                            >
+                                {uploadingPhoto ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <Camera size={16} className="text-white" />
+                                )}
+                            </label>
+                            <input
+                                id="photo-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoUpload}
+                                className="hidden"
+                                disabled={uploadingPhoto}
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <h2 className="text-2xl font-bold text-white mb-1">
+                                {profile.name || 'Set your name'}
+                            </h2>
+                            <p className="text-sm text-zinc-400 mb-2">{profile.phone}</p>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800 text-primary-500 text-xs font-bold uppercase tracking-wider border border-zinc-700">
+                                <User size={12} fill="currentColor" />
+                                <span>{profile.membershipLevel} Member</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={() => setShowProfileModal(true)}
+                                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-all"
+                            >
+                                <Edit2 size={20} />
+                            </button>
+                            {profile.profilePhoto && (
+                                <button
+                                    onClick={handleDeletePhoto}
+                                    className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded-full transition-all"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -216,6 +343,30 @@ export default function Mine() {
                 </div>
 
             </div>
+
+            {/* Profile Edit Modal */}
+            <Modal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} title="Edit Profile">
+                <div className="space-y-4">
+                    <Input
+                        label="Your Name"
+                        placeholder="Enter your name"
+                        value={profileName}
+                        onChange={e => setProfileName(e.target.value)}
+                        maxLength={50}
+                    />
+                    <p className="text-xs text-zinc-500">This name will be displayed on your profile.</p>
+                    <div className="pt-2">
+                        <Button 
+                            onClick={handleUpdateProfile} 
+                            fullWidth 
+                            className="shadow-glow"
+                            disabled={updating}
+                        >
+                            {updating ? 'Saving...' : 'Save Profile'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

@@ -2,6 +2,15 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        trim: true,
+        maxlength: [50, 'Name cannot exceed 50 characters']
+    },
+    profilePhoto: {
+        type: String,
+        default: null
+    },
     phone: {
         type: String,
         required: [true, 'Please provide a phone number'],

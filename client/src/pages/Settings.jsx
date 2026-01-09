@@ -150,13 +150,21 @@ export default function Settings() {
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* User Card */}
                 <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-8 flex items-center gap-4 border border-zinc-800">
-                    <div className="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 border border-zinc-700">
-                        <User size={28} />
-                    </div>
+                    {profile.profilePhoto ? (
+                        <img
+                            src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '')}${profile.profilePhoto}`}
+                            alt="Profile"
+                            className="w-14 h-14 rounded-full object-cover border-2 border-zinc-700"
+                        />
+                    ) : (
+                        <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-violet-600 rounded-full flex items-center justify-center text-white text-xl font-black border-2 border-zinc-700">
+                            {profile.name ? profile.name.charAt(0).toUpperCase() : <User size={28} />}
+                        </div>
+                    )}
                     <div>
-                        <p className="font-bold text-white text-lg">{profile.phone}</p>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-500/10 text-primary-500 text-xs font-bold uppercase tracking-wide border border-primary-500/20">
-                            {/* <User size={10} strokeWidth={3} /> */}
+                        <p className="font-bold text-white text-lg">{profile.name || 'User'}</p>
+                        <p className="text-sm text-zinc-400">{profile.phone}</p>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-500/10 text-primary-500 text-xs font-bold uppercase tracking-wide border border-primary-500/20 mt-1">
                             <span>Level {profile.membershipLevel}</span>
                         </div>
                     </div>

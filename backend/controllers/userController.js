@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { isValidTransactionPassword } = require('../utils/validators');
+const path = require('path');
+const fs = require('fs').promises;
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -37,6 +39,128 @@ exports.getProfile = async (req, res) => {
                 ...userObj,
                 hasTransactionPassword
             }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+exports.updateProfile = async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        if (!name || name.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name is required'
+            });
+        }
+
+        if (name.length > 50) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name cannot exceed 50 characters'
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        user.name = name.trim();
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                phone: user.phone,
+                membershipLevel: user.membershipLevel,
+                profilePhoto: user.profilePhoto
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Upload profile photo
+// @route   POST /api/users/profile-photo
+// @access  Private
+exports.uploadProfilePhoto = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload an image file'
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        // Delete old profile photo if exists
+        if (user.profilePhoto) {
+            const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
+            try {
+                await fs.unlink(oldPhotoPath);
+            } catch (err) {
+                console.log('Old photo not found or already deleted');
+            }
+        }
+
+        // Save new photo path
+        user.profilePhoto = `/uploads/profiles/${req.file.filename}`;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile photo uploaded successfully',
+            profilePhoto: user.profilePhoto
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Delete profile photo
+// @route   DELETE /api/users/profile-photo
+// @access  Private
+exports.deleteProfilePhoto = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (!user.profilePhoto) {
+            return res.status(400).json({
+                success: false,
+                message: 'No profile photo to delete'
+            });
+        }
+
+        // Delete photo file
+        const photoPath = path.join(__dirname, '..', user.profilePhoto);
+        try {
+            await fs.unlink(photoPath);
+        } catch (err) {
+            console.log('Photo file not found');
+        }
+
+        user.profilePhoto = null;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile photo deleted successfully'
         });
     } catch (error) {
         res.status(500).json({
