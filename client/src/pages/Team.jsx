@@ -87,7 +87,7 @@ export default function Team() {
                         <div className="flex items-center gap-3">
                             {u.profilePhoto ? (
                                 <img
-                                    src={`${API_URL}${u.profilePhoto}`}
+                                    src={u.profilePhoto.startsWith('http') ? u.profilePhoto : `${API_URL}${u.profilePhoto}`}
                                     alt={u.name || 'User'}
                                     className="w-8 h-8 rounded-full object-cover"
                                 />

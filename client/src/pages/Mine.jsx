@@ -127,8 +127,12 @@ export default function Mine() {
 
     const getProfileImageUrl = () => {
         if (!profile.profilePhoto) return null;
+        // If it's a Cloudinary URL (starts with http), use it directly
+        if (profile.profilePhoto.startsWith('http')) {
+            return profile.profilePhoto;
+        }
+        // Otherwise, construct URL for legacy local files
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        // Remove /api from the end since uploads are served at root level
         const baseURL = API_URL.replace(/\/api$/, '');
         return `${baseURL}${profile.profilePhoto}`;
     };

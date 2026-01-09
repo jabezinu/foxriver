@@ -1,8 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { isValidTransactionPassword } = require('../utils/validators');
-const path = require('path');
-const fs = require('fs').promises;
+const cloudinary = require('../config/cloudinary');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -106,18 +105,44 @@ exports.uploadProfilePhoto = async (req, res) => {
 
         const user = await User.findById(req.user.id);
 
-        // Delete old profile photo if exists
+        // Delete old profile photo from Cloudinary if exists
         if (user.profilePhoto) {
-            const oldPhotoPath = path.join(__dirname, '..', user.profilePhoto);
             try {
-                await fs.unlink(oldPhotoPath);
+                // Extract public_id from the Cloudinary URL
+                const urlParts = user.profilePhoto.split('/');
+                const publicIdWithExt = urlParts[urlParts.length - 1];
+                const publicId = `foxriver/profiles/${publicIdWithExt.split('.')[0]}`;
+                await cloudinary.uploader.destroy(publicId);
             } catch (err) {
-                console.log('Old photo not found or already deleted');
+                console.log('Old photo not found or already deleted from Cloudinary');
             }
         }
 
-        // Save new photo path
-        user.profilePhoto = `/uploads/profiles/${req.file.filename}`;
+        // Upload new photo to Cloudinary
+        const uploadStream = () => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'foxriver/profiles',
+                        public_id: `profile-${user._id}-${Date.now()}`,
+                        transformation: [
+                            { width: 500, height: 500, crop: 'limit' },
+                            { quality: 'auto' }
+                        ]
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+        };
+
+        const result = await uploadStream();
+
+        // Save Cloudinary URL to database
+        user.profilePhoto = result.secure_url;
         await user.save();
 
         res.status(200).json({
@@ -126,6 +151,7 @@ exports.uploadProfilePhoto = async (req, res) => {
             profilePhoto: user.profilePhoto
         });
     } catch (error) {
+        console.error('Upload error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Server error'
@@ -147,12 +173,15 @@ exports.deleteProfilePhoto = async (req, res) => {
             });
         }
 
-        // Delete photo file
-        const photoPath = path.join(__dirname, '..', user.profilePhoto);
+        // Delete photo from Cloudinary
         try {
-            await fs.unlink(photoPath);
+            // Extract public_id from the Cloudinary URL
+            const urlParts = user.profilePhoto.split('/');
+            const publicIdWithExt = urlParts[urlParts.length - 1];
+            const publicId = `foxriver/profiles/${publicIdWithExt.split('.')[0]}`;
+            await cloudinary.uploader.destroy(publicId);
         } catch (err) {
-            console.log('Photo file not found');
+            console.log('Photo file not found on Cloudinary');
         }
 
         user.profilePhoto = null;
