@@ -17,23 +17,23 @@ For monthly salary calculations based on downline counts, only referrals that me
 
 ## Examples
 
-### Example 1: V1 Inviter → Intern Referral
-- **Inviter:** Mr. X with V1 membership (order = 1)
+### Example 1: Rank 1 Inviter → Intern Referral
+- **Inviter:** Mr. X with Rank 1 membership (order = 1)
 - **Referral:** Mr. Y stays as Intern (order = 0)
 - **Result:** 
   - ❌ Mr. X gets NO commission from Mr. Y's activities
   - ❌ Mr. Y is NOT counted for Mr. X's salary status
 
-### Example 2: V1 Inviter → V1 Referral (Equal Level)
-- **Inviter:** Mr. X with V1 membership (order = 1)
-- **Referral:** Mr. Y upgrades to V1 (order = 1)
+### Example 2: Rank 1 Inviter → Rank 1 Referral (Equal Level)
+- **Inviter:** Mr. X with Rank 1 membership (order = 1)
+- **Referral:** Mr. Y upgrades to Rank 1 (order = 1)
 - **Result:** 
   - ✅ Mr. X gets commission from Mr. Y's activities
   - ✅ Mr. Y is counted for Mr. X's salary status
 
-### Example 3: V1 Inviter → V2 Referral (Higher Level)
-- **Inviter:** Mr. X with V1 membership (order = 1)
-- **Referral:** Mr. Y upgrades to V2 (order = 2)
+### Example 3: Rank 1 Inviter → Rank 2 Referral (Higher Level)
+- **Inviter:** Mr. X with Rank 1 membership (order = 1)
+- **Referral:** Mr. Y upgrades to Rank 2 (order = 2)
 - **Result:** 
   - ❌ Mr. X gets NO commission from Mr. Y's activities
   - ❌ Mr. Y is NOT counted for Mr. X's salary status
@@ -42,12 +42,12 @@ For monthly salary calculations based on downline counts, only referrals that me
 
 ### Membership Order System
 ```
-Intern: order = 0 (lowest)
-V1:     order = 1
-V2:     order = 2
-V3:     order = 3
+Intern:  order = 0 (lowest)
+Rank 1:  order = 1
+Rank 2:  order = 2
+Rank 3:  order = 3
 ...
-V10:    order = 10 (highest)
+Rank 10: order = 10 (highest)
 ```
 
 Higher order number = higher membership level

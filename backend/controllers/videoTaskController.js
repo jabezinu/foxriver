@@ -214,7 +214,7 @@ exports.completeVideoTask = async (req, res) => {
         if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
             return res.status(403).json({
                 success: false,
-                message: 'Your Intern trial period has ended. Video task earning is no longer available. Please upgrade to V1 to continue earning.',
+                message: 'Your Intern trial period has ended. Video task earning is no longer available. Please upgrade to Rank 1 to continue earning.',
                 code: 'INTERN_TRIAL_EXPIRED'
             });
         }

@@ -5,7 +5,7 @@ const membershipSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        enum: ['Intern', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10']
+        enum: ['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10']
     },
     price: {
         type: Number,

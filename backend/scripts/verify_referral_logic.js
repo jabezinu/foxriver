@@ -21,7 +21,7 @@ async function verify() {
         const userW = await User.create({
             phone: '+251911111111',
             password: 'password123',
-            membershipLevel: 'V2',
+            membershipLevel: 'Rank 2',
             invitationCode: 'W1234567'
         });
 
@@ -29,7 +29,7 @@ async function verify() {
         const userX = await User.create({
             phone: '+251922222222',
             password: 'password123',
-            membershipLevel: 'V2',
+            membershipLevel: 'Rank 2',
             referrerId: userW._id,
             invitationCode: 'X1234567'
         });
@@ -38,7 +38,7 @@ async function verify() {
         const userY = await User.create({
             phone: '+251933333333',
             password: 'password123',
-            membershipLevel: 'V2',
+            membershipLevel: 'Rank 2',
             referrerId: userX._id,
             invitationCode: 'Y1234567'
         });
@@ -54,12 +54,12 @@ async function verify() {
 
         console.log('Created user chain: W -> X -> Y -> Z');
 
-        // Get V2 membership details
-        const v2Membership = await Membership.findOne({ level: 'V2' });
-        console.log(`V2 Membership Price: ${v2Membership.price}`);
+        // Get Rank 2 membership details
+        const v2Membership = await Membership.findOne({ level: 'Rank 2' });
+        console.log(`Rank 2 Membership Price: ${v2Membership.price}`);
 
-        // Trigger Z upgrade to V2
-        console.log('Upgrading Z to V2...');
+        // Trigger Z upgrade to Rank 2
+        console.log('Upgrading Z to Rank 2...');
         const commissions = await calculateAndCreateMembershipCommissions(userZ, v2Membership);
 
         console.log('Commissions created:', commissions.length);
@@ -90,12 +90,12 @@ async function verify() {
 
         // Test Rule: Higher level purchase should not pay commission (if referrer is lower)
         console.log('\n--- Testing Level Eligibility Rule ---');
-        // Set Y to V1, but Z is upgrading to V2
-        await User.findByIdAndUpdate(userY._id, { membershipLevel: 'V1', incomeWallet: 0 });
+        // Set Y to Rank 1, but Z is upgrading to Rank 2
+        await User.findByIdAndUpdate(userY._id, { membershipLevel: 'Rank 1', incomeWallet: 0 });
         await User.findByIdAndUpdate(userX._id, { incomeWallet: 0 });
         await User.findByIdAndUpdate(userW._id, { incomeWallet: 0 });
 
-        console.log('Set Y to V1. Upgrading Z to V2 again...');
+        console.log('Set Y to Rank 1. Upgrading Z to Rank 2 again...');
         const commissions2 = await calculateAndCreateMembershipCommissions(userZ, v2Membership);
         console.log('Commissions created:', commissions2.length);
 

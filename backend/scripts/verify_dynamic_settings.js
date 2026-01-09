@@ -26,7 +26,7 @@ async function verifyDynamicCommissions() {
             referrer = await User.create({
                 phone: '+251911223344',
                 password: 'password123',
-                membershipLevel: 'V10', // High level to ensure eligibility
+                membershipLevel: 'Rank 10', // High level to ensure eligibility
                 invitationCode: 'REF123'
             });
         }
@@ -40,15 +40,15 @@ async function verifyDynamicCommissions() {
             });
         }
 
-        const v1Membership = await Membership.findOne({ level: 'V1' });
+        const v1Membership = await Membership.findOne({ level: 'Rank 1' });
 
         if (!v1Membership) {
-            console.log('Missing V1 membership level in DB.');
+            console.log('Missing Rank 1 membership level in DB.');
             process.exit(1);
         }
 
         // 3. Test commission calculation
-        console.log(`Calculating commission for V1 purchase (Price: ${v1Membership.price})`);
+        console.log(`Calculating commission for Rank 1 purchase (Price: ${v1Membership.price})`);
         const commissions = await calculateAndCreateMembershipCommissions(invitee, v1Membership);
 
         const aComm = commissions.find(c => c.level === 'A');

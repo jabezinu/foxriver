@@ -4,7 +4,7 @@ const { isValidWithdrawalAmount } = require('../utils/validators');
 
 // @desc    Create withdrawal request
 // @route   POST /api/withdrawals/create
-// @access  Private (V1+)
+// @access  Private (Rank 1+)
 exports.createWithdrawal = async (req, res) => {
     try {
         const { amount, walletType, transactionPassword } = req.body;

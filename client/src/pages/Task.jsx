@@ -79,7 +79,7 @@ export default function Task() {
         
         // Check if Intern user can earn
         if (internRestriction && !internRestriction.canEarn) {
-            toast.error('Your Intern trial period has ended. Please upgrade to V1 to continue earning.');
+            toast.error('Your Intern trial period has ended. Please upgrade to Rank 1 to continue earning.');
             return;
         }
         
@@ -143,8 +143,8 @@ export default function Task() {
                             </p>
                             <p className="text-xs text-zinc-400">
                                 {internRestriction.canEarn 
-                                    ? 'Upgrade to V1 before your trial ends to continue earning without interruption.'
-                                    : 'Upgrade to V1 membership to resume earning from tasks.'
+                                    ? 'Upgrade to Rank 1 before your trial ends to continue earning without interruption.'
+                                    : 'Upgrade to Rank 1 membership to resume earning from tasks.'
                                 }
                             </p>
                         </div>

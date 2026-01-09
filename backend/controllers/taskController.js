@@ -179,7 +179,7 @@ exports.completeTask = async (req, res) => {
         if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
             return res.status(403).json({
                 success: false,
-                message: 'Your Intern trial period has ended. Task earning is no longer available. Please upgrade to V1 to continue earning.',
+                message: 'Your Intern trial period has ended. Task earning is no longer available. Please upgrade to Rank 1 to continue earning.',
                 code: 'INTERN_TRIAL_EXPIRED'
             });
         }
@@ -203,7 +203,7 @@ exports.completeTask = async (req, res) => {
             if (lifetimeTotal >= 200) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Your Intern trial has completed (Total 200 ETB limit reached). Please upgrade to V1.'
+                    message: 'Your Intern trial has completed (Total 200 ETB limit reached). Please upgrade to Rank 1.'
                 });
             }
 

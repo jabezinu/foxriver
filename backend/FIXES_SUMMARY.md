@@ -77,7 +77,7 @@ The `getDownline` API endpoint in `referralController.js` was returning ALL refe
 ## Business Rules Summary
 
 ### ✅ Qualified Referrals (Count for Commission & Salary)
-- Membership level: V1 or higher
+- Membership level: Rank 1 or higher
 - Level must be equal to or lower than inviter's level
 
 ### ❌ Unqualified Referrals (Do NOT count)
@@ -88,13 +88,13 @@ The `getDownline` API endpoint in `referralController.js` was returning ALL refe
 
 | Inviter Level | Referral Level | Counts for Commission? | Counts for Salary? |
 |---------------|----------------|------------------------|-------------------|
-| V1            | Intern         | ❌ No                  | ❌ No             |
-| V1            | V1             | ✅ Yes                 | ✅ Yes            |
-| V1            | V2             | ❌ No                  | ❌ No             |
-| V2            | Intern         | ❌ No                  | ❌ No             |
-| V2            | V1             | ✅ Yes                 | ✅ Yes            |
-| V2            | V2             | ✅ Yes                 | ✅ Yes            |
-| V2            | V3             | ❌ No                  | ❌ No             |
+| Rank 1        | Intern         | ❌ No                  | ❌ No             |
+| Rank 1        | Rank 1         | ✅ Yes                 | ✅ Yes            |
+| Rank 1        | Rank 2         | ❌ No                  | ❌ No             |
+| Rank 2        | Intern         | ❌ No                  | ❌ No             |
+| Rank 2        | Rank 1         | ✅ Yes                 | ✅ Yes            |
+| Rank 2        | Rank 2         | ✅ Yes                 | ✅ Yes            |
+| Rank 2        | Rank 3         | ❌ No                  | ❌ No             |
 
 ## Testing
 Run the test script to verify:

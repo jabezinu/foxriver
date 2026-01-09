@@ -166,7 +166,7 @@ export default function UserManagement() {
                         onChange={(e) => setFilterLevel(e.target.value)}
                     >
                         <option value="">All Tiers</option>
-                        {['Intern', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'].map(v => (
+                        {['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'].map(v => (
                             <option key={v} value={v}>{v}</option>
                         ))}
                     </select>
@@ -274,7 +274,7 @@ export default function UserManagement() {
                                     value={editForm.membershipLevel}
                                     onChange={e => setEditForm({ ...editForm, membershipLevel: e.target.value })}
                                 >
-                                    {['Intern', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'].map(v => (
+                                    {['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'].map(v => (
                                         <option key={v} value={v}>{v}</option>
                                     ))}
                                 </select>

@@ -123,7 +123,7 @@ exports.setBankAccount = async (req, res) => {
 
 // @desc    Set/change transaction password
 // @route   PUT /api/users/transaction-password
-// @access  Private (V1+)
+// @access  Private (Rank 1+)
 exports.setTransactionPassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
@@ -218,7 +218,7 @@ exports.changeLoginPassword = async (req, res) => {
 
 // @desc    Get referral link
 // @route   GET /api/users/referral-link
-// @access  Private (V1+)
+// @access  Private (Rank 1+)
 exports.getReferralLink = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);

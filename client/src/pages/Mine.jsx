@@ -111,8 +111,8 @@ export default function Mine() {
                                 </p>
                                 <p className="text-xs text-zinc-400">
                                     {internInfo.canEarn 
-                                        ? 'Upgrade to V1 before your trial ends to continue earning.'
-                                        : 'Upgrade to V1 membership to resume earning from tasks.'
+                                        ? 'Upgrade to Rank 1 before your trial ends to continue earning.'
+                                        : 'Upgrade to Rank 1 membership to resume earning from tasks.'
                                     }
                                 </p>
                                 {internInfo.canEarn && (

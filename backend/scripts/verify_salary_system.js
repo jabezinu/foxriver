@@ -35,7 +35,7 @@ const verifySalary = async () => {
             phone: '+251911111111',
             password: 'password123',
             role: 'user',
-            membershipLevel: 'V10'
+            membershipLevel: 'Rank 10'
         });
 
         console.log('Created User W');
@@ -47,7 +47,7 @@ const verifySalary = async () => {
                 phone: `+25192${String(i).padStart(7, '0')}`,
                 password: 'password123',
                 referrerId: userW._id,
-                membershipLevel: 'V1'
+                membershipLevel: 'Rank 1'
             });
             aLevelUsers.push(u);
         }
@@ -60,7 +60,7 @@ const verifySalary = async () => {
                 phone: `+25193${String(i).padStart(7, '0')}`,
                 password: 'password123',
                 referrerId: aLevelUsers[0]._id,
-                membershipLevel: 'V1'
+                membershipLevel: 'Rank 1'
             });
             bLevelUsers.push(u);
         }
@@ -71,7 +71,7 @@ const verifySalary = async () => {
             phone: '+251940000000',
             password: 'password123',
             referrerId: bLevelUsers[0]._id,
-            membershipLevel: 'V1'
+            membershipLevel: 'Rank 1'
         });
         console.log('Created 1 C-level user');
 
