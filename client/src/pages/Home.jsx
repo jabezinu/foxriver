@@ -6,7 +6,7 @@ import { formatNumber } from '../utils/formatNumber';
 import {
     Download, Upload, LayoutGrid, Zap,
     Briefcase,
-    HelpCircle, Share2, Globe, Settings, Bell, Newspaper, GraduationCap
+    HelpCircle, Share2, Globe, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
@@ -37,7 +37,69 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
             <span className={`font-semibold text-zinc-100 leading-tight ${isLarge ? 'text-base' : 'text-xs'}`}>
                 {item.label}
             </span>
-            {isLarge && <span className="text-xs text-zinc-400 mt-1">Invite friends and earn commission together</span>}
+            {isLarge && item.description && <span className="text-xs text-zinc-400 mt-1">{item.description}</span>}
+        </div>
+    </div>
+);
+
+const SlotMachineButton = ({ onClick }) => (
+    <div
+        onClick={onClick}
+        className="group relative overflow-hidden rounded-3xl cursor-pointer active:scale-[0.98] transition-transform duration-200"
+    >
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 animate-gradient-x"></div>
+        
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-yellow-500/50 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+        
+        {/* Sparkle effects */}
+        <div className="absolute top-2 right-4 text-yellow-300 animate-pulse">
+            <Sparkles size={20} />
+        </div>
+        <div className="absolute bottom-3 left-6 text-pink-300 animate-pulse delay-150">
+            <Sparkles size={16} />
+        </div>
+        <div className="absolute top-1/2 right-8 text-purple-300 animate-pulse delay-300">
+            <Sparkles size={14} />
+        </div>
+        
+        {/* Content */}
+        <div className="relative flex items-center justify-between px-6 py-6 bg-gradient-to-br from-pink-600/90 via-purple-600/90 to-yellow-600/90 backdrop-blur-sm">
+            <div className="flex items-center gap-4">
+                {/* Icon container with animation */}
+                <div className="relative">
+                    <div className="absolute inset-0 bg-white/30 rounded-2xl blur-md animate-pulse"></div>
+                    <div className="relative p-4 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                        <Gamepad2 size={32} className="text-white drop-shadow-lg" strokeWidth={2.5} />
+                    </div>
+                </div>
+                
+                {/* Text content */}
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="font-black text-white text-xl tracking-tight drop-shadow-lg">
+                            Slot Machine
+                        </span>
+                        <Trophy size={20} className="text-yellow-300 animate-bounce" />
+                    </div>
+                    <span className="text-sm text-white/90 font-semibold drop-shadow">
+                        🎰 Spin to win amazing prizes!
+                    </span>
+                </div>
+            </div>
+            
+            {/* Arrow indicator */}
+            <div className="text-white/80 group-hover:translate-x-1 transition-transform duration-300">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </div>
+        </div>
+        
+        {/* Shine effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-shine"></div>
         </div>
     </div>
 );
@@ -72,8 +134,8 @@ export default function Home() {
         { icon: Download, label: 'Deposit', color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
         { icon: Upload, label: 'Withdraw', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
         { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
+        { icon: Gamepad2, label: 'Slot Machine', color: 'bg-gradient-to-br from-pink-500 to-purple-600 text-white border-0 shadow-lg shadow-pink-500/50', path: '/spin', description: 'Spin to win amazing prizes!' },
         { icon: Zap, label: 'Wealth', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
-        { icon: Globe, label: 'Slot Machine', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', path: '/spin' },
         { icon: GraduationCap, label: 'Courses', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
         { icon: Newspaper, label: 'News', color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
         { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
@@ -81,6 +143,7 @@ export default function Home() {
             icon: Share2,
             label: 'Invite Friends',
             color: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+            description: 'Invite friends and earn commission together',
             action: async () => {
                 try {
                     const res = await userAPI.getReferralLink();
@@ -148,13 +211,26 @@ export default function Home() {
                     <h3 className="font-bold text-white text-lg">Quick Actions</h3>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                    {menuItems.slice(0, 8).map((item, index) => (
+                {/* First Row - 3 items */}
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                    {menuItems.slice(0, 3).map((item, index) => (
                         <MenuItem key={index} item={item} navigate={navigate} />
                     ))}
                 </div>
 
-                {/* Featured Large Card */}
+                {/* Second Row - Slot Machine (large) */}
+                <div className="mb-3">
+                    <SlotMachineButton onClick={() => navigate('/spin')} />
+                </div>
+
+                {/* Remaining items */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                    {menuItems.slice(4, 8).map((item, index) => (
+                        <MenuItem key={index + 4} item={item} navigate={navigate} />
+                    ))}
+                </div>
+
+                {/* Featured Large Card - Invite Friends */}
                 <div className="grid grid-cols-1">
                     {menuItems.slice(8, 9).map((item, index) => (
                         <MenuItem key={index + 8} item={item} navigate={navigate} isLarge={true} />
