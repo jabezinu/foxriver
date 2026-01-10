@@ -60,6 +60,10 @@ const systemSettingSchema = new mongoose.Schema({
     videoWatchTimeRequired: {
         type: Number,
         default: 8 // Required watch time in seconds
+    },
+    frontendDisabled: {
+        type: Boolean,
+        default: false // Whether the user frontend is disabled
     }
 }, {
     timestamps: true

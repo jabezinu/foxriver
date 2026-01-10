@@ -20,6 +20,7 @@ import BankSettings from './pages/BankSettings';
 import ReferralManagement from './pages/ReferralManagement';
 import SlotMachine from './pages/SlotMachine';
 import MembershipManagement from './pages/MembershipManagement';
+import SystemSettings from './pages/SystemSettings';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -76,6 +77,7 @@ function App() {
           <Route path="referral-management" element={<ReferralManagement />} />
           <Route path="slot-machine" element={<SlotMachine />} />
           <Route path="membership-management" element={<MembershipManagement />} />
+          <Route path="system-settings" element={<SystemSettings />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/authStore';
 
 // Pages
@@ -45,10 +45,46 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const { verifyToken } = useAuthStore();
+  const [frontendDisabled, setFrontendDisabled] = useState(false);
+  const [systemSettingsLoading, setSystemSettingsLoading] = useState(true);
 
   useEffect(() => {
     verifyToken();
+    checkSystemSettings();
   }, [verifyToken]);
+
+  const checkSystemSettings = async () => {
+    try {
+      const response = await fetch('/api/system/settings');
+      const data = await response.json();
+      
+      if (data.success) {
+        setFrontendDisabled(data.frontendDisabled);
+      }
+    } catch (error) {
+      console.error('Failed to check system settings:', error);
+    } finally {
+      setSystemSettingsLoading(false);
+    }
+  };
+
+  // Show white page if frontend is disabled
+  if (!systemSettingsLoading && frontendDisabled) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Completely white page - no content */}
+      </div>
+    );
+  }
+
+  // Show loading spinner while checking system settings
+  if (systemSettingsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
