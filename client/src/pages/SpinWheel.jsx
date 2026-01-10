@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { spinAPI } from '../services/api';
+import { ArrowLeft, TrendingUp, Trophy, Zap, Sparkles } from 'lucide-react';
 
 const SpinWheel = () => {
+    const navigate = useNavigate();
     const [spinning, setSpinning] = useState(false);
     const [personalBalance, setPersonalBalance] = useState(0);
     const [incomeBalance, setIncomeBalance] = useState(0);
@@ -17,7 +20,7 @@ const SpinWheel = () => {
     const [selectedWallet, setSelectedWallet] = useState(null);
     const [tiers, setTiers] = useState([]);
 
-    // Slot machine symbols - 50 different symbols
+    // Slot machine symbols
     const symbols = [
         '🍒', '🍋', '🍊', '🍇', '🍉', '🍓', '🍑', '🍍', '🥝', '🍌',
         '🍎', '🍏', '🍐', '🥭', '🍈', '🫐', '🥥', '🍅', '🌶️', '🥕',
@@ -65,12 +68,10 @@ const SpinWheel = () => {
     };
 
     const handlePlayClick = () => {
-        // Show tier selection modal first
         setShowTierModal(true);
     };
 
     const handleTierSelect = (tier) => {
-        // Check if user has sufficient balance in either wallet
         if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount) {
             toast.error(`Insufficient balance! You need ${tier.betAmount} ETB to play this tier.`);
             return;
@@ -78,7 +79,6 @@ const SpinWheel = () => {
         
         setSelectedTier(tier);
         setShowTierModal(false);
-        // Show wallet selection modal
         setShowWalletModal(true);
     };
 
@@ -105,9 +105,8 @@ const SpinWheel = () => {
             const response = await spinAPI.spin({ walletType, tierId: tier._id });
             const { result, amountWon, balanceAfter, incomeBalanceAfter } = response.data.data;
 
-            // Animate reels spinning
-            const spinDuration = 2000; // 2 seconds
-            const spinInterval = 50; // Update every 50ms
+            const spinDuration = 2000;
+            const spinInterval = 50;
             const spinCount = spinDuration / spinInterval;
             let currentSpin = 0;
 
@@ -122,36 +121,29 @@ const SpinWheel = () => {
                 if (currentSpin >= spinCount) {
                     clearInterval(spinAnimation);
                     
-                    // Set final result
                     if (result.includes('Win')) {
-                        // All three reels show the same symbol
                         const winningSymbol = Math.floor(Math.random() * symbols.length);
                         setReels([winningSymbol, winningSymbol, winningSymbol]);
                     } else {
-                        // Show different symbols (no match)
                         const reel1 = Math.floor(Math.random() * symbols.length);
                         let reel2 = Math.floor(Math.random() * symbols.length);
                         let reel3 = Math.floor(Math.random() * symbols.length);
                         
-                        // Ensure they don't all match
                         while (reel2 === reel1) reel2 = Math.floor(Math.random() * symbols.length);
                         while (reel3 === reel1 || reel3 === reel2) reel3 = Math.floor(Math.random() * symbols.length);
                         
                         setReels([reel1, reel2, reel3]);
                     }
 
-                    // Show result after a brief delay
                     setTimeout(() => {
                         setLastResult({ result, amountWon, balanceAfter });
                         
-                        // Update the payment wallet balance (where 10 ETB was deducted)
                         if (selectedWallet === 'personal') {
                             setPersonalBalance(balanceAfter);
                         } else {
                             setIncomeBalance(balanceAfter);
                         }
                         
-                        // Update income balance (where winnings are always added)
                         if (amountWon > 0 && incomeBalanceAfter) {
                             setIncomeBalance(incomeBalanceAfter);
                         }
@@ -160,7 +152,7 @@ const SpinWheel = () => {
                         setSpinning(false);
                         
                         if (result.includes('Win')) {
-                            toast.success(`🎉 JACKPOT! You won ${amountWon} ETB added to Income Balance!`);
+                            toast.success(`🎉 JACKPOT! You won ${amountWon} ETB!`);
                         } else {
                             toast.error('No match! Try again!');
                         }
@@ -178,294 +170,287 @@ const SpinWheel = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-900 via-purple-900 to-pink-900 p-4">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-zinc-950 pb-6">
+            {/* Header */}
+            <div className="bg-zinc-900/80 backdrop-blur-md px-5 py-4 flex items-center gap-4 sticky top-0 z-30 border-b border-zinc-800">
+                <button onClick={() => navigate(-1)} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
+                    <ArrowLeft size={20} className="text-white" />
+                </button>
+                <div>
+                    <h1 className="font-bold text-white text-lg">Slot Machine</h1>
+                    <p className="text-xs text-zinc-400">Match 3 symbols to win!</p>
+                </div>
+            </div>
 
+            <div className="px-5 py-6 space-y-6">
                 {/* Balance Cards */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center">
-                        <p className="text-gray-300 mb-2">💰 Personal Balance</p>
-                        <p className="text-3xl font-bold text-yellow-400">{personalBalance.toFixed(2)} ETB</p>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-4">
+                        <p className="text-xs text-emerald-400 mb-1 font-semibold">Personal Balance</p>
+                        <p className="text-2xl font-bold text-white">{personalBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center">
-                        <p className="text-gray-300 mb-2">💵 Income Balance</p>
-                        <p className="text-3xl font-bold text-green-400">{incomeBalance.toFixed(2)} ETB</p>
-                    </div>
-                </div> */}
-
-                {/* Slot Machine Container */}
-                <div className="flex flex-col lg:flex-row gap-8 mb-8">
-                    {/* Slot Machine */}
-                    <div className="flex-1 flex flex-col items-center">
-                        {/* Slot Machine Frame */}
-                        <div className="bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-3xl p-8 shadow-2xl border-8 border-yellow-700">
-                            {/* Title */}
-                            <div className="text-center mb-6">
-                                <h2 className="text-3xl font-bold text-white drop-shadow-lg">LUCKY 777</h2>
-                                <p className="text-yellow-200 text-sm mt-1">Match 3 to Win!</p>
-                            </div>
-
-                            {/* Reels Container */}
-                            <div className="bg-black/50 rounded-2xl p-6 mb-6">
-                                <div className="flex gap-4 justify-center">
-                                    {/* Reel 1 */}
-                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
-                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
-                                            {symbols[reels[0]]}
-                                        </span>
-                                    </div>
-                                    
-                                    {/* Reel 2 */}
-                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
-                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
-                                            {symbols[reels[1]]}
-                                        </span>
-                                    </div>
-                                    
-                                    {/* Reel 3 */}
-                                    <div className="bg-white rounded-xl shadow-inner p-4 w-28 h-32 flex items-center justify-center border-4 border-gray-300">
-                                        <span className={`text-7xl transition-all duration-100 ${spinning ? 'blur-sm' : ''}`}>
-                                            {symbols[reels[2]]}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Symbol Legend */}
-                            {/* <div className="bg-black/30 rounded-xl p-4 mb-4">
-                                <p className="text-yellow-200 text-center text-sm mb-2 font-semibold">Symbols:</p>
-                                <div className="flex justify-center gap-2 flex-wrap">
-                                    {symbols.map((symbol, idx) => (
-                                        <span key={idx} className="text-2xl bg-white/20 rounded-lg px-2 py-1">
-                                            {symbol}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div> */}
-
-                            {/* Play Button */}
-                            <button
-                                onClick={handlePlayClick}
-                                disabled={spinning || tiers.length === 0}
-                                className={`w-full py-4 rounded-xl text-2xl font-bold transition-all transform hover:scale-105 ${
-                                    spinning || tiers.length === 0
-                                        ? 'bg-gray-500 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg'
-                                } text-white`}
-                            >
-                                {spinning ? '🎰 SPINNING...' : tiers.length === 0 ? 'No Tiers Available' : '🎮 PLAY NOW'}
-                            </button>
-                        </div>
-
-                        {/* Result Modal */}
-                        {showResult && lastResult && (
-                            <div className="mt-6 bg-white/20 backdrop-blur-md rounded-xl p-6 text-center animate-pulse">
-                                <p className="text-3xl font-bold text-white mb-2">
-                                    {lastResult.result === 'Win 100 ETB' ? '🎉 JACKPOT!' : '❌ No Match'}
-                                </p>
-                                {lastResult.amountWon > 0 ? (
-                                    <p className="text-4xl font-bold text-yellow-400">
-                                        +{lastResult.amountWon} ETB
-                                    </p>
-                                ) : (
-                                    <p className="text-xl text-gray-300">Try Again!</p>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Stats & History */}
-                    <div className="flex-1 space-y-6">
-                        {/* Stats */}
-                        {stats && (
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                                <h3 className="text-xl font-bold text-white mb-4">📊 Your Stats</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Total Plays</p>
-                                        <p className="text-2xl font-bold text-white">{stats.totalSpins}</p>
-                                    </div>
-                                    <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Jackpots</p>
-                                        <p className="text-2xl font-bold text-green-400">{stats.wins}</p>
-                                    </div>
-                                    <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Total Paid</p>
-                                        <p className="text-2xl font-bold text-red-400">{stats.totalPaid} ETB</p>
-                                    </div>
-                                    <div className="bg-white/10 rounded-lg p-4">
-                                        <p className="text-gray-300 text-sm">Total Won</p>
-                                        <p className="text-2xl font-bold text-yellow-400">{stats.totalWon} ETB</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Recent History */}
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">📜 Recent Plays</h3>
-                            <div className="space-y-2 max-h-96 overflow-y-auto">
-                                {history.length === 0 ? (
-                                    <p className="text-gray-400 text-center py-4">No plays yet</p>
-                                ) : (
-                                    history.map((spin) => (
-                                        <div
-                                            key={spin._id}
-                                            className="bg-white/10 rounded-lg p-3 flex justify-between items-center"
-                                        >
-                                            <div>
-                                                <p className={`font-semibold ${
-                                                    spin.result === 'Win 100 ETB' ? 'text-yellow-400' : 'text-gray-300'
-                                                }`}>
-                                                    {spin.result === 'Win 100 ETB' ? '🎰 JACKPOT!' : '❌ No Match'}
-                                                </p>
-                                                <p className="text-xs text-gray-400">
-                                                    {new Date(spin.createdAt).toLocaleString()}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className={`font-bold ${
-                                                    spin.amountWon > 0 ? 'text-green-400' : 'text-red-400'
-                                                }`}>
-                                                    {spin.amountWon > 0 ? `+${spin.amountWon}` : `-${spin.amountPaid}`} ETB
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
+                    <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-2xl p-4">
+                        <p className="text-xs text-blue-400 mb-1 font-semibold">Income Balance</p>
+                        <p className="text-2xl font-bold text-white">{incomeBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
                     </div>
                 </div>
 
-                {/* Tier Selection Modal */}
-                {showTierModal && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-2xl w-full shadow-2xl border-2 border-purple-500/50 max-h-[90vh] overflow-y-auto">
-                            <h2 className="text-3xl font-bold text-white mb-2 text-center">🎰 Choose Your Bet</h2>
-                            <p className="text-gray-300 text-center mb-6">Select a tier to play</p>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {tiers.map((tier) => (
-                                    <button
-                                        key={tier._id}
-                                        onClick={() => handleTierSelect(tier)}
-                                        disabled={personalBalance < tier.betAmount && incomeBalance < tier.betAmount}
-                                        className={`p-6 rounded-xl transition-all transform hover:scale-105 text-left ${
-                                            personalBalance < tier.betAmount && incomeBalance < tier.betAmount
-                                                ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
-                                                : 'bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg'
-                                        }`}
-                                    >
-                                        <div className="flex justify-between items-start mb-3">
-                                            <h3 className="text-2xl font-bold text-white">{tier.name}</h3>
-                                            <span className="bg-white/20 px-2 py-1 rounded text-xs font-semibold text-white">
-                                                {tier.winProbability}% Win
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-yellow-100">Bet:</span>
-                                                <span className="text-white font-bold text-xl">{tier.betAmount} ETB</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-yellow-100">Win:</span>
-                                                <span className="text-white font-bold text-2xl">{tier.winAmount} ETB</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-yellow-100">Multiplier:</span>
-                                                <span className="text-green-300 font-bold">{(tier.winAmount / tier.betAmount).toFixed(1)}x</span>
-                                            </div>
-                                        </div>
-                                        
-                                        {tier.description && (
-                                            <p className="text-yellow-100 text-sm mt-3 italic">{tier.description}</p>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                {/* Slot Machine */}
+                <div className="bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-yellow-500/10 border border-pink-500/20 rounded-3xl p-6 relative overflow-hidden">
+                    {/* Decorative elements */}
+                    <div className="absolute top-2 right-4 text-yellow-400 animate-pulse">
+                        <Sparkles size={20} />
+                    </div>
+                    <div className="absolute bottom-3 left-6 text-pink-400 animate-pulse delay-150">
+                        <Sparkles size={16} />
+                    </div>
 
-                            {/* Cancel Button */}
-                            <button
-                                onClick={() => setShowTierModal(false)}
-                                className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
-                            >
-                                Cancel
-                            </button>
+                    {/* Title */}
+                    <div className="text-center mb-6">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Trophy className="text-yellow-400" size={24} />
+                            <h2 className="text-2xl font-black text-white">LUCKY SPIN</h2>
+                            <Trophy className="text-yellow-400" size={24} />
+                        </div>
+                        <p className="text-zinc-400 text-sm">Match 3 symbols to win big!</p>
+                    </div>
+
+                    {/* Reels */}
+                    <div className="bg-zinc-900/50 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-zinc-800">
+                        <div className="flex gap-3 justify-center">
+                            {[0, 1, 2].map((index) => (
+                                <div key={index} className="bg-zinc-950 rounded-xl shadow-lg p-4 w-24 h-28 flex items-center justify-center border-2 border-zinc-800">
+                                    <span className={`text-6xl transition-all duration-100 ${spinning ? 'blur-sm scale-110' : 'scale-100'}`}>
+                                        {symbols[reels[index]]}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                )}
 
-                {/* Wallet Selection Modal */}
-                {showWalletModal && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-purple-500/50">
-                            <h2 className="text-3xl font-bold text-white mb-2 text-center">💰 Choose Wallet</h2>
-                            <p className="text-gray-300 text-center mb-2">Select which balance to use for playing</p>
-                            {selectedTier && (
-                                <p className="text-yellow-300 text-center mb-4 font-semibold">
-                                    {selectedTier.name}: Bet {selectedTier.betAmount} ETB • Win {selectedTier.winAmount} ETB
+                    {/* Play Button */}
+                    <button
+                        onClick={handlePlayClick}
+                        disabled={spinning || tiers.length === 0}
+                        className={`w-full py-4 rounded-xl text-lg font-bold transition-all transform active:scale-95 flex items-center justify-center gap-2 ${
+                            spinning || tiers.length === 0
+                                ? 'bg-zinc-700 cursor-not-allowed text-zinc-400'
+                                : 'bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:shadow-lg hover:shadow-pink-500/50 text-white'
+                        }`}
+                    >
+                        {spinning ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                SPINNING...
+                            </>
+                        ) : tiers.length === 0 ? (
+                            'No Tiers Available'
+                        ) : (
+                            <>
+                                <Zap size={20} />
+                                PLAY NOW
+                            </>
+                        )}
+                    </button>
+
+                    {/* Result Display */}
+                    {showResult && lastResult && (
+                        <div className="mt-4 bg-zinc-900/80 backdrop-blur-sm rounded-xl p-4 text-center border border-zinc-800 animate-fadeIn">
+                            <p className={`text-xl font-bold mb-1 ${lastResult.amountWon > 0 ? 'text-yellow-400' : 'text-zinc-400'}`}>
+                                {lastResult.amountWon > 0 ? '🎉 JACKPOT!' : '❌ No Match'}
+                            </p>
+                            {lastResult.amountWon > 0 && (
+                                <p className="text-2xl font-black text-yellow-400">
+                                    +{lastResult.amountWon} ETB
                                 </p>
                             )}
-                            
-                            <div className="space-y-4">
-                                {/* Personal Wallet Option */}
-                                <button
-                                    onClick={() => handleWalletSelect('personal')}
-                                    disabled={!selectedTier || personalBalance < selectedTier.betAmount}
-                                    className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
-                                        !selectedTier || personalBalance < selectedTier.betAmount
-                                            ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
-                                            : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 shadow-lg'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-left">
-                                            <p className="text-white font-bold text-xl">💰 Personal Balance</p>
-                                            <p className="text-yellow-100 text-sm mt-1">Use your personal wallet</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-white font-bold text-2xl">{personalBalance.toFixed(2)}</p>
-                                            <p className="text-yellow-100 text-sm">ETB</p>
-                                        </div>
-                                    </div>
-                                </button>
+                        </div>
+                    )}
+                </div>
 
-                                {/* Income Wallet Option */}
-                                <button
-                                    onClick={() => handleWalletSelect('income')}
-                                    disabled={!selectedTier || incomeBalance < selectedTier.betAmount}
-                                    className={`w-full p-6 rounded-xl transition-all transform hover:scale-105 ${
-                                        !selectedTier || incomeBalance < selectedTier.betAmount
-                                            ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
-                                            : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-left">
-                                            <p className="text-white font-bold text-xl">💵 Income Balance</p>
-                                            <p className="text-green-100 text-sm mt-1">Use your income wallet</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-white font-bold text-2xl">{incomeBalance.toFixed(2)}</p>
-                                            <p className="text-green-100 text-sm">ETB</p>
-                                        </div>
-                                    </div>
-                                </button>
+                {/* Stats */}
+                {stats && (
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                            <TrendingUp size={20} className="text-primary-500" />
+                            <h3 className="text-lg font-bold text-white">Your Stats</h3>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                                <p className="text-xs text-zinc-400 mb-1">Total Plays</p>
+                                <p className="text-2xl font-bold text-white">{stats.totalSpins}</p>
                             </div>
-
-                            {/* Cancel Button */}
-                            <button
-                                onClick={() => setShowWalletModal(false)}
-                                className="w-full mt-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
-                            >
-                                Cancel
-                            </button>
+                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                                <p className="text-xs text-zinc-400 mb-1">Jackpots</p>
+                                <p className="text-2xl font-bold text-emerald-400">{stats.wins}</p>
+                            </div>
+                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                                <p className="text-xs text-zinc-400 mb-1">Total Paid</p>
+                                <p className="text-xl font-bold text-red-400">{stats.totalPaid} ETB</p>
+                            </div>
+                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
+                                <p className="text-xs text-zinc-400 mb-1">Total Won</p>
+                                <p className="text-xl font-bold text-yellow-400">{stats.totalWon} ETB</p>
+                            </div>
                         </div>
                     </div>
                 )}
+
+                {/* Recent History */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                    <h3 className="text-lg font-bold text-white mb-4">Recent Plays</h3>
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {history.length === 0 ? (
+                            <p className="text-zinc-500 text-center py-8 text-sm">No plays yet. Start spinning!</p>
+                        ) : (
+                            history.map((spin) => (
+                                <div
+                                    key={spin._id}
+                                    className="bg-zinc-950 rounded-xl p-3 flex justify-between items-center border border-zinc-800"
+                                >
+                                    <div>
+                                        <p className={`font-semibold text-sm ${
+                                            spin.result.includes('Win') ? 'text-yellow-400' : 'text-zinc-400'
+                                        }`}>
+                                            {spin.result.includes('Win') ? '🎰 JACKPOT!' : '❌ No Match'}
+                                        </p>
+                                        <p className="text-xs text-zinc-500 mt-0.5">
+                                            {new Date(spin.createdAt).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={`font-bold ${
+                                            spin.amountWon > 0 ? 'text-emerald-400' : 'text-red-400'
+                                        }`}>
+                                            {spin.amountWon > 0 ? `+${spin.amountWon}` : `-${spin.amountPaid}`} ETB
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
             </div>
+
+            {/* Tier Selection Modal */}
+            {showTierModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-zinc-900 rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-zinc-800 max-h-[90vh] overflow-y-auto">
+                        <div className="text-center mb-6">
+                            <h2 className="text-2xl font-black text-white mb-1">Choose Your Bet</h2>
+                            <p className="text-zinc-400 text-sm">Select a tier to start playing</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                            {tiers.map((tier) => (
+                                <button
+                                    key={tier._id}
+                                    onClick={() => handleTierSelect(tier)}
+                                    disabled={personalBalance < tier.betAmount && incomeBalance < tier.betAmount}
+                                    className={`p-5 rounded-2xl transition-all transform active:scale-95 text-left border-2 ${
+                                        personalBalance < tier.betAmount && incomeBalance < tier.betAmount
+                                            ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                            : 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500/30 hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20'
+                                    }`}
+                                >
+                                    
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-zinc-400 text-sm">Bet Amount:</span>
+                                            <span className="text-white font-bold">{tier.betAmount} ETB</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-zinc-400 text-sm">Win Amount:</span>
+                                            <span className="text-yellow-400 font-bold text-lg">{tier.winAmount} ETB</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {tier.description && (
+                                        <p className="text-zinc-500 text-xs mt-3">{tier.description}</p>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => setShowTierModal(false)}
+                            className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-colors font-semibold"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Wallet Selection Modal */}
+            {showWalletModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-zinc-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-zinc-800">
+                        <div className="text-center mb-2">
+                            <h2 className="text-2xl font-black text-white mb-1">Choose Wallet</h2>
+                            <p className="text-zinc-400 text-sm">Select which balance to use</p>
+                        </div>
+                        {selectedTier && (
+                            <div className="bg-zinc-950 rounded-xl p-3 mb-4 border border-zinc-800">
+                                <p className="text-yellow-400 text-center font-semibold text-sm">
+                                    {selectedTier.name}: Bet {selectedTier.betAmount} ETB • Win {selectedTier.winAmount} ETB
+                                </p>
+                            </div>
+                        )}
+                        
+                        <div className="space-y-3 mb-4">
+                            <button
+                                onClick={() => handleWalletSelect('personal')}
+                                disabled={!selectedTier || personalBalance < selectedTier.betAmount}
+                                className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${
+                                    !selectedTier || personalBalance < selectedTier.betAmount
+                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                        : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="text-left">
+                                        <p className="text-white font-bold">Personal Balance</p>
+                                        <p className="text-emerald-400 text-xs mt-0.5">Use personal wallet</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-white font-bold text-xl">{personalBalance.toFixed(2)}</p>
+                                        <p className="text-zinc-400 text-xs">ETB</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => handleWalletSelect('income')}
+                                disabled={!selectedTier || incomeBalance < selectedTier.betAmount}
+                                className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${
+                                    !selectedTier || incomeBalance < selectedTier.betAmount
+                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                        : 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="text-left">
+                                        <p className="text-white font-bold">Income Balance</p>
+                                        <p className="text-blue-400 text-xs mt-0.5">Use income wallet</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-white font-bold text-xl">{incomeBalance.toFixed(2)}</p>
+                                        <p className="text-zinc-400 text-xs">ETB</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setShowWalletModal(false)}
+                            className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-colors font-semibold"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
