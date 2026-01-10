@@ -65,6 +65,7 @@ export default function AdminLayout() {
         { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals' },
         { path: '/tasks', icon: HiVideoCamera, label: 'Tasks' },
         { path: '/courses', icon: HiAcademicCap, label: 'Courses' },
+        { path: '/wealth-funds', icon: HiTrendingUp, label: 'Wealth Funds' },
         { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
         { path: '/messages', icon: HiChat, label: 'Messages' },
         { path: '/news', icon: HiNewspaper, label: 'News' },

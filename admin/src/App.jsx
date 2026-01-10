@@ -22,6 +22,7 @@ import SlotMachine from './pages/SlotMachine';
 import MembershipManagement from './pages/MembershipManagement';
 import SystemSettings from './pages/SystemSettings';
 import Courses from './pages/Courses';
+import WealthFunds from './pages/WealthFunds';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAdminAuthStore();
@@ -80,6 +81,7 @@ function App() {
           <Route path="membership-management" element={<MembershipManagement />} />
           <Route path="system-settings" element={<SystemSettings />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="wealth-funds" element={<WealthFunds />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

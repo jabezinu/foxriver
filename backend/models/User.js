@@ -46,7 +46,10 @@ const userSchema = new mongoose.Schema({
         select: false,
         validate: {
             validator: function (v) {
-                return !v || /^\d{6}$/.test(v);
+                // Skip validation if password is already hashed (starts with $2)
+                if (!v || v.startsWith('$2')) return true;
+                // Only validate unhashed passwords (must be 6 digits)
+                return /^\d{6}$/.test(v);
             },
             message: 'Transaction password must be exactly 6 digits'
         }

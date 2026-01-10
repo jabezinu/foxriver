@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Task from './pages/Task';
 import Wealth from './pages/Wealth';
+import WealthDetail from './pages/WealthDetail';
 import Mine from './pages/Mine';
 import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw';
@@ -123,6 +124,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="task" element={<Task />} />
           <Route path="wealth" element={<Wealth />} />
+          <Route path="wealth/:id" element={<WealthDetail />} />
           <Route path="mine" element={<Mine />} />
           <Route path="deposit" element={<Deposit />} />
           <Route path="withdraw" element={<Withdraw />} />
