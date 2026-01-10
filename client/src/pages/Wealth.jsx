@@ -41,13 +41,14 @@ export default function Wealth() {
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-12 -mt-12 blur-2xl pointer-events-none"></div>
 
                 <div className="relative z-10">
-                    <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/10">
-                        <TrendingUp className="text-primary-400" size={40} />
-                    </div>
                     <h2 className="text-2xl font-bold mb-2 tracking-tight">Wealth Fund</h2>
-                    <p className="text-zinc-300 text-sm font-medium leading-relaxed max-w-xs mx-auto">
-                        High yield asset management exclusively for Foxriver members.
-                    </p>
+
+                    <button
+                        onClick={() => navigate('/my-investments')}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors border border-white/20"
+                    >
+                        View My Investments
+                    </button>
                 </div>
             </div>
 

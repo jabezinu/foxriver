@@ -268,50 +268,77 @@ export default function WealthDetail() {
 
             {/* Funding Source Modal */}
             {showFundingModal && (
-                <div className="fixed inset-0 bg-black/80 flex items-end z-50 animate-fade-in">
-                    <div className="bg-zinc-900 w-full rounded-t-3xl p-6 animate-slide-up">
-                        <h3 className="text-xl font-bold text-white mb-6">Select Funding Source</h3>
+                <div className="fixed inset-0 bg-black/80 flex items-end md:items-center md:justify-center z-[100] animate-fade-in">
+                    <div className="bg-zinc-900 w-full md:w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-4 pb-6 animate-slide-up max-h-[92vh] overflow-y-auto">
+                        {/* Header */}
+                        <div className="mb-4">
+                            <h3 className="text-xl font-bold text-white mb-1">Select Funding Source</h3>
+                            <p className="text-xs text-zinc-400">Choose how to fund your investment</p>
+                        </div>
                         
-                        <div className="space-y-4 mb-6">
-                            <div>
-                                <label className="text-sm text-zinc-400 mb-2 block">
-                                    From Income Wallet (Available: {user.incomeWallet.toFixed(2)} ETB)
-                                </label>
+                        <div className="space-y-3 mb-4">
+                            {/* Income Wallet */}
+                            <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-semibold text-white">
+                                        Income Wallet
+                                    </label>
+                                    <span className="text-xs text-zinc-400 bg-zinc-800 px-3 py-1 rounded-full">
+                                        Available: {user.incomeWallet.toFixed(2)} ETB
+                                    </span>
+                                </div>
                                 <input
                                     type="number"
                                     value={fundingSource.incomeWallet}
                                     onChange={(e) => adjustFunding('income', e.target.value)}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    placeholder="0.00"
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3.5 text-white text-lg font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                 />
                             </div>
 
-                            <div>
-                                <label className="text-sm text-zinc-400 mb-2 block">
-                                    From Personal Wallet (Available: {user.personalWallet.toFixed(2)} ETB)
-                                </label>
+                            {/* Personal Wallet */}
+                            <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-semibold text-white">
+                                        Personal Wallet
+                                    </label>
+                                    <span className="text-xs text-zinc-400 bg-zinc-800 px-3 py-1 rounded-full">
+                                        Available: {user.personalWallet.toFixed(2)} ETB
+                                    </span>
+                                </div>
                                 <input
                                     type="number"
                                     value={fundingSource.personalWallet}
                                     onChange={(e) => adjustFunding('personal', e.target.value)}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    placeholder="0.00"
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3.5 text-white text-lg font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                 />
                             </div>
 
-                            <div className="bg-zinc-800/50 rounded-xl p-4">
-                                <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-zinc-400">Total</span>
-                                    <span className="text-white font-semibold">
+                            {/* Summary Card */}
+                            <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 rounded-2xl p-5 border border-indigo-500/20">
+                                <div className="flex justify-between items-center mb-3">
+                                    <span className="text-sm text-zinc-300">Total Selected</span>
+                                    <span className="text-2xl font-bold text-white">
                                         {(fundingSource.incomeWallet + fundingSource.personalWallet).toFixed(2)} ETB
                                     </span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-zinc-400">Required</span>
-                                    <span className="text-orange-400 font-semibold">{amount} ETB</span>
+                                <div className="flex justify-between items-center pt-3 border-t border-zinc-700/50">
+                                    <span className="text-sm text-zinc-300">Required Amount</span>
+                                    <span className="text-lg font-bold text-orange-400">{amount} ETB</span>
                                 </div>
+                                {(fundingSource.incomeWallet + fundingSource.personalWallet) !== parseFloat(amount) && (
+                                    <div className="mt-3 pt-3 border-t border-zinc-700/50">
+                                        <p className="text-xs text-red-400 text-center">
+                                            ⚠️ Total must equal required amount
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
-                            <div>
-                                <label className="text-sm text-zinc-400 mb-2 block">
+                            {/* Transaction Password */}
+                            <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
+                                <label className="text-sm font-semibold text-white mb-3 block">
                                     Transaction Password
                                 </label>
                                 <input
@@ -320,18 +347,19 @@ export default function WealthDetail() {
                                     onChange={(e) => setTransactionPassword(e.target.value)}
                                     placeholder="Enter 6-digit password"
                                     maxLength={6}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500"
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3.5 text-white text-lg font-semibold tracking-widest focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-2">
                             <button
                                 onClick={() => {
                                     setShowFundingModal(false);
                                     setTransactionPassword('');
                                 }}
-                                className="flex-1 bg-zinc-800 text-white font-semibold py-4 rounded-xl"
+                                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-4 rounded-xl transition-all active:scale-95"
                             >
                                 Cancel
                             </button>
@@ -342,7 +370,7 @@ export default function WealthDetail() {
                                     (fundingSource.incomeWallet + fundingSource.personalWallet) !== parseFloat(amount) ||
                                     !transactionPassword
                                 }
-                                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-orange-500/20"
                             >
                                 {investing ? 'Processing...' : 'Confirm Investment'}
                             </button>
