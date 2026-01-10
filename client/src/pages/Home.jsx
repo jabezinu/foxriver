@@ -6,7 +6,7 @@ import { formatNumber } from '../utils/formatNumber';
 import {
     Download, Upload, LayoutGrid, Zap,
     Briefcase,
-    HelpCircle, Share2, Globe, Settings, Bell, Newspaper
+    HelpCircle, Share2, Globe, Settings, Bell, Newspaper, GraduationCap
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
@@ -74,6 +74,7 @@ export default function Home() {
         { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
         { icon: Zap, label: 'Wealth', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
         { icon: Globe, label: 'Slot Machine', color: 'bg-pink-500/10 text-pink-400 border border-pink-500/20', path: '/spin' },
+        { icon: GraduationCap, label: 'Courses', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
         { icon: Newspaper, label: 'News', color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
         { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
         {
@@ -148,15 +149,15 @@ export default function Home() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                    {menuItems.slice(0, 7).map((item, index) => (
+                    {menuItems.slice(0, 8).map((item, index) => (
                         <MenuItem key={index} item={item} navigate={navigate} />
                     ))}
                 </div>
 
                 {/* Featured Large Card */}
                 <div className="grid grid-cols-1">
-                    {menuItems.slice(7, 8).map((item, index) => (
-                        <MenuItem key={index + 7} item={item} navigate={navigate} isLarge={true} />
+                    {menuItems.slice(8, 9).map((item, index) => (
+                        <MenuItem key={index + 8} item={item} navigate={navigate} isLarge={true} />
                     ))}
                 </div>
             </div>

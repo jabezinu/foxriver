@@ -138,4 +138,10 @@ export const spinAPI = {
     getBalance: () => api.get('/users/wallet'),
 };
 
+// Courses endpoints
+export const coursesAPI = {
+    getCategories: () => api.get('/courses/categories'),
+    getCoursesByCategory: (categoryId) => api.get(`/courses/category/${categoryId}`),
+};
+
 export default api;

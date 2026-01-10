@@ -16,6 +16,7 @@ router.get('/settings', async (req, res) => {
         // Return public settings for user information
         res.status(200).json({
             success: true,
+            frontendDisabled: settings.frontendDisabled || false,
             settings: {
                 commissionPercentA: settings.commissionPercentA,
                 commissionPercentB: settings.commissionPercentB,
@@ -35,6 +36,7 @@ router.get('/settings', async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('System settings error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Server error'

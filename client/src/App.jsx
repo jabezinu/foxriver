@@ -20,6 +20,7 @@ import TierList from './pages/TierList';
 import Team from './pages/Team';
 import SpinWheel from './pages/SpinWheel';
 import AppRules from './pages/AppRules';
+import Courses from './pages/Courses';
 
 
 // Layout
@@ -56,14 +57,22 @@ function App() {
 
   const checkSystemSettings = async () => {
     try {
-      const response = await fetch('/api/system/settings');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/system/settings`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch system settings');
+      }
+      
       const data = await response.json();
       
       if (data.success) {
-        setFrontendDisabled(data.frontendDisabled);
+        setFrontendDisabled(data.settings?.frontendDisabled || false);
       }
     } catch (error) {
       console.error('Failed to check system settings:', error);
+      // Don't block the app if system settings fail to load
+      setFrontendDisabled(false);
     } finally {
       setSystemSettingsLoading(false);
     }
@@ -125,6 +134,7 @@ function App() {
           <Route path="team" element={<Team />} />
           <Route path="spin" element={<SpinWheel />} />
           <Route path="app-rules" element={<AppRules />} />
+          <Route path="courses" element={<Courses />} />
         </Route>
 
 

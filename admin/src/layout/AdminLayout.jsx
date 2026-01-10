@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
 import {
     HiChartBar, HiUsers, HiCurrencyDollar, HiBriefcase,
-    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck, HiChat, HiDesktopComputer
+    HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck, HiChat, HiDesktopComputer, HiAcademicCap
 } from 'react-icons/hi';
 import AdminProfileModal from '../components/AdminProfileModal';
 
@@ -64,6 +64,7 @@ export default function AdminLayout() {
         { path: '/deposits', icon: HiCurrencyDollar, label: 'Deposits' },
         { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals' },
         { path: '/tasks', icon: HiVideoCamera, label: 'Tasks' },
+        { path: '/courses', icon: HiAcademicCap, label: 'Courses' },
         { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
         { path: '/messages', icon: HiChat, label: 'Messages' },
         { path: '/news', icon: HiNewspaper, label: 'News' },

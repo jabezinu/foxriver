@@ -134,4 +134,15 @@ export const adminMembershipAPI = {
     clearRestrictedRange: () => api.delete('/memberships/admin/restricted-range'),
 };
 
+export const adminCoursesAPI = {
+    getCategories: () => api.get('/courses/admin/categories'),
+    createCategory: (data) => api.post('/courses/admin/categories', data),
+    updateCategory: (id, data) => api.put(`/courses/admin/categories/${id}`, data),
+    deleteCategory: (id) => api.delete(`/courses/admin/categories/${id}`),
+    getCourses: () => api.get('/courses/admin/courses'),
+    createCourse: (data) => api.post('/courses/admin/courses', data),
+    updateCourse: (id, data) => api.put(`/courses/admin/courses/${id}`, data),
+    deleteCourse: (id) => api.delete(`/courses/admin/courses/${id}`),
+};
+
 export default api;
