@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, Fingerprint } from 'lucide-react';
+import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, Fingerprint, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import Loading from '../components/Loading';
@@ -109,6 +109,13 @@ export default function Settings() {
     if (loading) return <Loading />;
 
     const settingsItems = [
+        {
+            label: 'App Rules & Guide',
+            icon: BookOpen,
+            desc: 'Learn how the platform works',
+            action: () => navigate('/app-rules'),
+            color: 'text-primary-500 bg-primary-500/10 border-primary-500/20'
+        },
         {
             label: 'Bank Account',
             icon: Landmark,

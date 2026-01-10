@@ -13,10 +13,26 @@ router.get('/settings', async (req, res) => {
             settings = await SystemSetting.create({});
         }
 
-        // Only return the frontendDisabled field for public access
+        // Return public settings for user information
         res.status(200).json({
             success: true,
-            frontendDisabled: settings.frontendDisabled || false
+            settings: {
+                commissionPercentA: settings.commissionPercentA,
+                commissionPercentB: settings.commissionPercentB,
+                commissionPercentC: settings.commissionPercentC,
+                salaryDirect10Threshold: settings.salaryDirect10Threshold,
+                salaryDirect10Amount: settings.salaryDirect10Amount,
+                salaryDirect15Threshold: settings.salaryDirect15Threshold,
+                salaryDirect15Amount: settings.salaryDirect15Amount,
+                salaryDirect20Threshold: settings.salaryDirect20Threshold,
+                salaryDirect20Amount: settings.salaryDirect20Amount,
+                salaryNetwork40Threshold: settings.salaryNetwork40Threshold,
+                salaryNetwork40Amount: settings.salaryNetwork40Amount,
+                videoPaymentAmount: settings.videoPaymentAmount,
+                videosPerDay: settings.videosPerDay,
+                videoWatchTimeRequired: settings.videoWatchTimeRequired,
+                frontendDisabled: settings.frontendDisabled || false
+            }
         });
     } catch (error) {
         res.status(500).json({

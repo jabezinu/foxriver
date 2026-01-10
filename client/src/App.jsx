@@ -19,6 +19,7 @@ import QnA from './pages/QnA';
 import TierList from './pages/TierList';
 import Team from './pages/Team';
 import SpinWheel from './pages/SpinWheel';
+import AppRules from './pages/AppRules';
 
 
 // Layout
@@ -123,6 +124,7 @@ function App() {
           <Route path="tiers" element={<TierList />} />
           <Route path="team" element={<Team />} />
           <Route path="spin" element={<SpinWheel />} />
+          <Route path="app-rules" element={<AppRules />} />
         </Route>
 
 

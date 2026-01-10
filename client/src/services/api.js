@@ -57,6 +57,7 @@ export const userAPI = {
     setTransactionPassword: (data) => api.put('/users/transaction-password', data),
     changeLoginPassword: (data) => api.put('/users/login-password', data),
     getReferralLink: () => api.get('/users/referral-link'),
+    getSystemSettings: () => api.get('/system/settings'),
 };
 
 // Deposit endpoints
