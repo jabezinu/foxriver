@@ -18,6 +18,10 @@ const newsSchema = new mongoose.Schema({
         enum: ['active', 'inactive'],
         default: 'active'
     },
+    showAsPopup: {
+        type: Boolean,
+        default: false
+    },
     publishedDate: {
         type: Date,
         default: Date.now
@@ -32,5 +36,6 @@ const newsSchema = new mongoose.Schema({
 
 // Index for querying active news
 newsSchema.index({ status: 1, publishedDate: -1 });
+newsSchema.index({ status: 1, showAsPopup: 1, publishedDate: -1 });
 
 module.exports = mongoose.model('News', newsSchema);

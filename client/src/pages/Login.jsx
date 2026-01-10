@@ -60,7 +60,6 @@ export default function Login() {
 
         if (result.success) {
             toast.success('Welcome back!');
-            sessionStorage.setItem('showWelcome', 'true');
             navigate('/', { replace: true });
         } else {
             toast.error(result.message || 'Login failed');

@@ -49,6 +49,29 @@ exports.getNews = async (req, res) => {
     }
 };
 
+// @desc    Get latest popup news
+// @route   GET /api/news/popup
+// @access  Public
+exports.getPopupNews = async (req, res) => {
+    try {
+        const news = await News.findOne({ 
+            status: 'active', 
+            showAsPopup: true 
+        })
+            .sort({ publishedDate: -1 });
+
+        res.status(200).json({
+            success: true,
+            news
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
 // @desc    Create news (admin)
 // @route   POST /api/news
 // @access  Private/Admin
@@ -90,7 +113,7 @@ exports.createNews = [
 // @access  Private/Admin
 exports.updateNews = async (req, res) => {
     try {
-        const { title, content, status } = req.body;
+        const { title, content, status, showAsPopup } = req.body;
 
         const news = await News.findById(req.params.id);
 
@@ -104,6 +127,7 @@ exports.updateNews = async (req, res) => {
         if (title) news.title = title;
         if (content) news.content = content;
         if (status) news.status = status;
+        if (showAsPopup !== undefined) news.showAsPopup = showAsPopup;
 
         await news.save();
 

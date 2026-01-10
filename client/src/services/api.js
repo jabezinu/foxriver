@@ -118,6 +118,7 @@ export const qnaAPI = {
 // News endpoints
 export const newsAPI = {
     getNews: () => api.get('/news'),
+    getPopupNews: () => api.get('/news/popup'),
 };
 
 // Chat endpoints

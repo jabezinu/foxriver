@@ -8,6 +8,8 @@ export const useAuthStore = create((set) => ({
     loading: false,
     isInitializing: true,
     error: null,
+    shouldShowNewsPopup: false,
+    latestNews: null,
 
     login: async (credentials) => {
         set({ loading: true, error: null });
@@ -17,7 +19,14 @@ export const useAuthStore = create((set) => ({
 
             localStorage.setItem('foxriver_token', token);
             localStorage.setItem('foxriver_last_activity', Date.now().toString());
-            set({ user, token, isAuthenticated: true, loading: false, isInitializing: false });
+            set({ 
+                user, 
+                token, 
+                isAuthenticated: true, 
+                loading: false, 
+                isInitializing: false,
+                shouldShowNewsPopup: true // Trigger news popup on login
+            });
             return { success: true };
         } catch (error) {
             const message = error.response?.data?.message || 'Login failed';
@@ -33,7 +42,13 @@ export const useAuthStore = create((set) => ({
             const { token, user } = response.data;
 
             localStorage.setItem('foxriver_token', token);
-            set({ user, token, isAuthenticated: true, loading: false });
+            set({ 
+                user, 
+                token, 
+                isAuthenticated: true, 
+                loading: false,
+                shouldShowNewsPopup: true // Trigger news popup on register
+            });
             return { success: true };
         } catch (error) {
             const message = error.response?.data?.message || 'Registration failed';
@@ -45,7 +60,14 @@ export const useAuthStore = create((set) => ({
     logout: () => {
         localStorage.removeItem('foxriver_token');
         localStorage.removeItem('foxriver_last_activity');
-        set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
+        set({ 
+            user: null, 
+            token: null, 
+            isAuthenticated: false, 
+            isInitializing: false,
+            shouldShowNewsPopup: false,
+            latestNews: null
+        });
     },
 
     verifyToken: async () => {
@@ -84,5 +106,13 @@ export const useAuthStore = create((set) => ({
 
     updateUser: (userData) => {
         set((state) => ({ user: { ...state.user, ...userData } }));
+    },
+
+    setLatestNews: (news) => {
+        set({ latestNews: news });
+    },
+
+    hideNewsPopup: () => {
+        set({ shouldShowNewsPopup: false });
     },
 }));

@@ -9,7 +9,7 @@ export default function News() {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [formData, setFormData] = useState({ title: '', content: '' });
+    const [formData, setFormData] = useState({ title: '', content: '', showAsPopup: false });
     const [editingId, setEditingId] = useState(null);
     const [deleteId, setDeleteId] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -72,14 +72,15 @@ export default function News() {
     const handleEdit = (newsItem) => {
         setFormData({
             title: newsItem.title,
-            content: newsItem.content
+            content: newsItem.content,
+            showAsPopup: newsItem.showAsPopup || false
         });
         setEditingId(newsItem._id);
         setShowForm(true);
     };
 
     const resetForm = () => {
-        setFormData({ title: '', content: '' });
+        setFormData({ title: '', content: '', showAsPopup: false });
         setEditingId(null);
     };
 
@@ -137,6 +138,18 @@ export default function News() {
                             value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })}
                             required
                         />
+                        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <input
+                                type="checkbox"
+                                id="showAsPopup"
+                                checked={formData.showAsPopup}
+                                onChange={e => setFormData({ ...formData, showAsPopup: e.target.checked })}
+                                className="w-5 h-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                            <label htmlFor="showAsPopup" className="text-sm font-bold text-gray-700 cursor-pointer">
+                                Show as popup notification when users sign in
+                            </label>
+                        </div>
                         <div className="flex gap-3">
                             <button
                                 type="submit" disabled={submitting}
@@ -198,6 +211,14 @@ export default function News() {
                                             {item.status}
                                         </span>
                                     </div>
+                                    {item.showAsPopup && (
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[8px] font-bold text-blue-400 uppercase">Popup:</span>
+                                            <span className="text-[10px] font-bold text-blue-600">
+                                                Enabled
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

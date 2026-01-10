@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/authStore';
+import { newsAPI } from './services/api';
 
 // Pages
 import Login from './pages/Login';
@@ -24,6 +25,8 @@ import SpinWheel from './pages/SpinWheel';
 import AppRules from './pages/AppRules';
 import Courses from './pages/Courses';
 
+// Components
+import NewsPopup from './components/NewsPopup';
 
 // Layout
 import MainLayout from './layout/MainLayout';
@@ -48,7 +51,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const { verifyToken } = useAuthStore();
+  const { verifyToken, isAuthenticated, shouldShowNewsPopup, latestNews, setLatestNews, hideNewsPopup } = useAuthStore();
   const [frontendDisabled, setFrontendDisabled] = useState(false);
   const [systemSettingsLoading, setSystemSettingsLoading] = useState(true);
 
@@ -56,6 +59,28 @@ function App() {
     verifyToken();
     checkSystemSettings();
   }, [verifyToken]);
+
+  // Fetch latest popup news when user logs in
+  useEffect(() => {
+    if (isAuthenticated && shouldShowNewsPopup) {
+      fetchPopupNews();
+    }
+  }, [isAuthenticated, shouldShowNewsPopup]);
+
+  const fetchPopupNews = async () => {
+    try {
+      const response = await newsAPI.getPopupNews();
+      if (response.data.success && response.data.news) {
+        setLatestNews(response.data.news);
+      }
+    } catch (error) {
+      console.error('Failed to fetch popup news:', error);
+    }
+  };
+
+  const handleCloseNewsPopup = () => {
+    hideNewsPopup();
+  };
 
   const checkSystemSettings = async () => {
     try {
@@ -111,6 +136,12 @@ function App() {
           },
         }}
       />
+      
+      {/* News Popup - Shows on login/register */}
+      {shouldShowNewsPopup && latestNews && (
+        <NewsPopup news={latestNews} onClose={handleCloseNewsPopup} />
+      )}
+
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

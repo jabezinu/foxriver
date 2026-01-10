@@ -17,19 +17,13 @@ export default function MainLayout() {
     const showBottomNav = !['/login', '/register'].includes(location.pathname) && messageQueue.length === 0;
 
     useEffect(() => {
-        // Fetch unread messages count and check for welcome messages
+        // Fetch unread messages count
         const fetchMessages = async () => {
             try {
-                const shouldShowWelcome = sessionStorage.getItem('showWelcome');
                 const response = await messageAPI.getUserMessages();
                 const messages = response.data.messages;
                 const unread = messages.filter(msg => !msg.isRead).length;
                 setUnreadMessages(unread);
-
-                if (shouldShowWelcome === 'true') {
-                    setMessageQueue(messages);
-                    sessionStorage.removeItem('showWelcome');
-                }
             } catch (error) {
                 // Silent fail for UX unless critical
                 console.error('Error fetching messages:', error);
@@ -39,7 +33,7 @@ export default function MainLayout() {
         if (user) {
             fetchMessages();
         }
-    }, [user, setUnreadMessages, setMessageQueue]);
+    }, [user, setUnreadMessages]);
 
     const handleNextMessage = () => {
         nextMessage();
