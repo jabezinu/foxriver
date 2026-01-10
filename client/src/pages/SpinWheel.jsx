@@ -180,14 +180,9 @@ const SpinWheel = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-red-900 via-purple-900 to-pink-900 p-4">
             <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="text-center mb-8 pt-6">
-                    <h1 className="text-5xl font-bold text-white mb-2">🎰 Slot Machine</h1>
-                    <p className="text-gray-300">Pay 10 ETB per play • Match 3 symbols to win 100 ETB!</p>
-                </div>
 
                 {/* Balance Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 text-center">
                         <p className="text-gray-300 mb-2">💰 Personal Balance</p>
                         <p className="text-3xl font-bold text-yellow-400">{personalBalance.toFixed(2)} ETB</p>
@@ -196,7 +191,7 @@ const SpinWheel = () => {
                         <p className="text-gray-300 mb-2">💵 Income Balance</p>
                         <p className="text-3xl font-bold text-green-400">{incomeBalance.toFixed(2)} ETB</p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Slot Machine Container */}
                 <div className="flex flex-col lg:flex-row gap-8 mb-8">
