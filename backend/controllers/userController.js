@@ -16,15 +16,27 @@ exports.getProfile = async (req, res) => {
             const timeDiff = Date.now() - new Date(user.bankChangeRequestDate).getTime();
 
             if (timeDiff >= threeDaysInMillis) {
-                // Auto-approve after 3 days
-                user.bankAccount = {
-                    ...user.pendingBankAccount,
-                    isSet: true
-                };
-                user.bankChangeStatus = 'none';
-                user.pendingBankAccount = undefined;
-                user.bankChangeRequestDate = undefined;
-                await user.save();
+                // Check if another user already has this bank account before auto-approving
+                const existingUser = await User.findOne({
+                    _id: { $ne: user._id },
+                    $or: [
+                        { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
+                        { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
+                    ]
+                });
+
+                if (!existingUser) {
+                    // Auto-approve after 3 days if no duplicate found
+                    user.bankAccount = {
+                        ...user.pendingBankAccount,
+                        isSet: true
+                    };
+                    user.bankChangeStatus = 'none';
+                    user.pendingBankAccount = undefined;
+                    user.bankChangeRequestDate = undefined;
+                    await user.save();
+                }
+                // If duplicate found, keep it pending for admin review
             }
         }
 
@@ -230,6 +242,22 @@ exports.setBankAccount = async (req, res) => {
         const { accountName, bank, accountNumber, phone } = req.body;
 
         const user = await User.findById(req.user.id);
+
+        // Check if another user already has this bank account
+        const existingUser = await User.findOne({
+            _id: { $ne: user._id },
+            $or: [
+                { 'bankAccount.accountNumber': accountNumber, 'bankAccount.bank': bank },
+                { 'pendingBankAccount.accountNumber': accountNumber, 'pendingBankAccount.bank': bank }
+            ]
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'This bank account is already registered to another user'
+            });
+        }
 
         // If bank account is already set, handle as change request
         if (user.bankAccount.isSet) {

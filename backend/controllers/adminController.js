@@ -198,6 +198,22 @@ exports.updateUser = async (req, res) => {
 
         // Handle bank change approval
         if (req.body.approveBankChange && user.bankChangeStatus === 'pending') {
+            // Check if another user already has this bank account
+            const existingUser = await User.findOne({
+                _id: { $ne: user._id },
+                $or: [
+                    { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
+                    { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
+                ]
+            });
+
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This bank account is already registered to another user'
+                });
+            }
+
             user.bankAccount = {
                 ...user.pendingBankAccount,
                 isSet: true

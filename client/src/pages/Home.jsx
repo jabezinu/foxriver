@@ -79,7 +79,7 @@ const SlotMachineButton = ({ onClick }) => (
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
                         <span className="font-black text-white text-xl tracking-tight drop-shadow-lg">
-                            Slot Machine
+                            Games
                         </span>
                         <Trophy size={20} className="text-yellow-300 animate-bounce" />
                     </div>
