@@ -43,10 +43,11 @@ const membershipSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Calculate daily income: price / 30 (except Intern)
+// Calculate daily income: price / 26 (except Intern)
+// 26 days = 30 days - 4 Sundays per month (tasks are not available on Sundays)
 membershipSchema.methods.getDailyIncome = function () {
     if (this.level === 'Intern') return 50;
-    return this.price / 30;
+    return this.price / 26;
 };
 
 // Calculate per video income: daily income / 4

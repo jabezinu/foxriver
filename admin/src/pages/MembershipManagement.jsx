@@ -505,7 +505,7 @@ export default function MembershipManagement() {
                             <p className="font-semibold mb-1">Important Notes:</p>
                             <ul className="list-disc list-inside space-y-1 ml-2">
                                 <li>Price changes take effect immediately across the entire system</li>
-                                <li>Daily income is automatically calculated as: Price ÷ 30 days</li>
+                                <li>Daily income is automatically calculated as: Price ÷ 26 days (excluding Sundays)</li>
                                 <li>Per video income is: Daily Income ÷ 4 videos</li>
                                 <li>Intern membership must remain free (0 ETB)</li>
                                 <li>All users will see updated prices when upgrading memberships</li>

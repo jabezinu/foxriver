@@ -22,6 +22,35 @@ exports.getDailyTasks = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // Check if today is Sunday (0 = Sunday in JavaScript)
+        const isSunday = today.getDay() === 0;
+
+        // If it's Sunday, return empty tasks with a message
+        if (isSunday) {
+            const membership = await Membership.findOne({ level: user.membershipLevel });
+            
+            return res.status(200).json({
+                success: true,
+                count: 0,
+                tasks: [],
+                dailyIncome: membership && canInternEarn ? membership.getDailyIncome() : 0,
+                perVideoIncome: membership && canInternEarn ? membership.getPerVideoIncome() : 0,
+                earningsStats: {
+                    todayEarnings: 0,
+                    completedTasks: 0,
+                    remainingTasks: 0,
+                    totalPossibleEarnings: 0
+                },
+                isSunday: true,
+                message: 'Tasks are not available on Sundays. Come back tomorrow!',
+                internRestriction: user.membershipLevel === 'Intern' ? {
+                    canEarn: canInternEarn,
+                    daysRemaining: internDaysRemaining,
+                    activatedAt: user.membershipActivatedAt || user.createdAt
+                } : null
+            });
+        }
+
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -134,6 +163,17 @@ exports.getDailyTasks = async (req, res) => {
 // @access  Private
 exports.completeTask = async (req, res) => {
     try {
+        // Check if today is Sunday
+        const today = new Date();
+        const isSunday = today.getDay() === 0;
+
+        if (isSunday) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tasks cannot be completed on Sundays. Please come back tomorrow!'
+            });
+        }
+
         const task = await Task.findById(req.params.id);
 
         if (!task) {

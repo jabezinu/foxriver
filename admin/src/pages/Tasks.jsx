@@ -391,6 +391,7 @@ export default function TaskManagement() {
                                     <li>Connected playlists are automatically scanned for videos.</li>
                                     <li>Every 24 hours (or when current tasks expire), the system selects 4 random videos from the pool.</li>
                                     <li>Videos used today will not be repeated tomorrow (consecutive day filter).</li>
+                                    <li>Tasks are not available on Sundays - users get a rest day.</li>
                                     <li>Manual tasks always take priority over auto-rotated tasks for a specific date.</li>
                                 </ul>
                             </div>

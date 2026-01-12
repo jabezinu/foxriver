@@ -44,7 +44,7 @@ export default function AppRules() {
                 },
                 {
                     subtitle: 'Daily Income',
-                    text: 'Intern members earn 50 ETB per day. For paid memberships (Rank 1-10), daily income is calculated as: Membership Price ÷ 30 days.'
+                    text: 'Intern members earn 50 ETB per day. For paid memberships (Rank 1-10), daily income is calculated as: Membership Price ÷ 26 days (excluding Sundays).'
                 },
                 {
                     subtitle: 'Video Task Income',

@@ -22,6 +22,7 @@ export default function Task() {
         totalPossibleEarnings: 0 
     });
     const [internRestriction, setInternRestriction] = useState(null);
+    const [isSunday, setIsSunday] = useState(false);
 
     useEffect(() => {
         fetchTasks();
@@ -42,6 +43,7 @@ export default function Task() {
         try {
             const response = await taskAPI.getDailyTasks();
             setTasks(response.data.tasks);
+            setIsSunday(response.data.isSunday || false);
             setDailyStats({
                 dailyIncome: response.data.dailyIncome,
                 perVideoIncome: response.data.perVideoIncome
@@ -114,6 +116,28 @@ export default function Task() {
 
     return (
         <div className="animate-fade-in px-4 py-8 pb-24 bg-zinc-950 min-h-screen">
+            {/* Sunday Rest Day Banner */}
+            {isSunday && (
+                <Card className="p-4 mb-6 border-2 bg-blue-900/20 border-blue-600/50">
+                    <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-500/20 text-blue-400">
+                            <Clock size={16} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-sm mb-1 text-blue-300">
+                                Sunday Rest Day
+                            </h3>
+                            <p className="text-xs text-zinc-300 mb-2">
+                                Tasks are not available on Sundays. Enjoy your day off!
+                            </p>
+                            <p className="text-xs text-zinc-400">
+                                Come back tomorrow to continue earning. Your progress is saved.
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Intern Restriction Warning */}
             {internRestriction && (
                 <Card className={`p-4 mb-6 border-2 ${
