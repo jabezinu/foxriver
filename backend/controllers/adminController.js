@@ -106,10 +106,21 @@ exports.getAllUsers = async (req, res) => {
             .select('-password -transactionPassword')
             .sort({ createdAt: -1 });
 
+        // Calculate salary for each user
+        const usersWithSalary = await Promise.all(
+            users.map(async (user) => {
+                const { salary } = await calculateMonthlySalary(user._id);
+                return {
+                    ...user.toObject(),
+                    monthlySalary: salary
+                };
+            })
+        );
+
         res.status(200).json({
             success: true,
-            count: users.length,
-            users
+            count: usersWithSalary.length,
+            users: usersWithSalary
         });
     } catch (error) {
         res.status(500).json({
