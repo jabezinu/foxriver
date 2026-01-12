@@ -389,7 +389,7 @@ export default function TaskManagement() {
                                 <h4 className="text-[10px] font-bold text-yellow-700 uppercase mb-2">How Rotation Works</h4>
                                 <ul className="text-xs text-yellow-600 space-y-2 list-disc ml-4">
                                     <li>Connected playlists are automatically scanned for videos.</li>
-                                    <li>Every 24 hours (or when current tasks expire), the system selects 5 random videos from the pool.</li>
+                                    <li>Every 24 hours (or when current tasks expire), the system selects 4 random videos from the pool.</li>
                                     <li>Videos used today will not be repeated tomorrow (consecutive day filter).</li>
                                     <li>Manual tasks always take priority over auto-rotated tasks for a specific date.</li>
                                 </ul>

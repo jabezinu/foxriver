@@ -48,7 +48,7 @@ export default function AppRules() {
                 },
                 {
                     subtitle: 'Video Task Income',
-                    text: 'Intern members earn 10 ETB per video. For paid memberships, income per video is: Daily Income ÷ 5 videos.'
+                    text: 'Intern members earn 12.5 ETB per video. For paid memberships, income per video is: Daily Income ÷ 4 videos.'
                 },
                 {
                     subtitle: 'Withdrawal Rights',

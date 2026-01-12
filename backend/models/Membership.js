@@ -49,10 +49,10 @@ membershipSchema.methods.getDailyIncome = function () {
     return this.price / 30;
 };
 
-// Calculate per video income: daily income / 5
+// Calculate per video income: daily income / 4
 membershipSchema.methods.getPerVideoIncome = function () {
-    if (this.level === 'Intern') return 10;
-    return this.getDailyIncome() / 5;
+    if (this.level === 'Intern') return 12.5;
+    return this.getDailyIncome() / 4;
 };
 
 // Calculate 4-day income

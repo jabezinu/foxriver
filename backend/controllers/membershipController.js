@@ -21,7 +21,7 @@ exports.getTiers = async (req, res) => {
             dailyIncome: membership.getDailyIncome(),
             perVideoIncome: membership.getPerVideoIncome(),
             fourDayIncome: membership.getFourDayIncome(),
-            dailyTasks: 5
+            dailyTasks: 4
         }));
 
         res.status(200).json({
@@ -138,7 +138,7 @@ exports.getAllTiers = async (req, res) => {
             dailyIncome: membership.getDailyIncome(),
             perVideoIncome: membership.getPerVideoIncome(),
             fourDayIncome: membership.getFourDayIncome(),
-            dailyTasks: 5
+            dailyTasks: 4
         }));
 
         res.status(200).json({

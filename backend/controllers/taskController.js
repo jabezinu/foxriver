@@ -36,8 +36,8 @@ exports.getDailyTasks = async (req, res) => {
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
 
-            // Fetch 5 videos from pool that weren't used yesterday (if possible)
-            // Strategy: Randomize and pick 5. If we have enough videos, filter out yesterday's.
+            // Fetch 4 videos from pool that weren't used yesterday (if possible)
+            // Strategy: Randomize and pick 4. If we have enough videos, filter out yesterday's.
             let availableVideos = await VideoPool.find({
                 $or: [
                     { lastUsed: { $lt: today, $ne: yesterday } },
@@ -46,7 +46,7 @@ exports.getDailyTasks = async (req, res) => {
             });
 
             // If we don't have enough that weren't used yesterday, just get anything but today (which should be none anyway)
-            if (availableVideos.length < 5) {
+            if (availableVideos.length < 4) {
                 availableVideos = await VideoPool.find({
                     $or: [
                         { lastUsed: { $lt: today } },
@@ -57,7 +57,7 @@ exports.getDailyTasks = async (req, res) => {
 
             // Shuffle available videos
             availableVideos = availableVideos.sort(() => 0.5 - Math.random());
-            const selectedVideos = availableVideos.slice(0, 5);
+            const selectedVideos = availableVideos.slice(0, 4);
 
             if (selectedVideos.length > 0) {
                 // Create tasks for selected videos
@@ -77,8 +77,8 @@ exports.getDailyTasks = async (req, res) => {
             }
         }
 
-        // Limit to 5 (should already be 5 or less)
-        tasks = tasks.slice(0, 5);
+        // Limit to 4 (should already be 4 or less)
+        tasks = tasks.slice(0, 4);
 
         // Get user's membership to calculate earnings
         const membership = await Membership.findOne({ level: user.membershipLevel });
