@@ -1,13 +1,16 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Home, ClipboardList, Wallet, User, Users } from 'lucide-react';
 
 export default function BottomNav() {
+    const { t } = useTranslation();
+    
     const navItems = [
-        { path: '/', icon: Home, label: 'Home' },
-        { path: '/task', icon: ClipboardList, label: 'Task' },
-        { path: '/team', icon: Users, label: 'Team' },
-        { path: '/wealth', icon: Wallet, label: 'Wealth' },
-        { path: '/mine', icon: User, label: 'Account' },
+        { path: '/', icon: Home, label: t('nav.home') },
+        { path: '/task', icon: ClipboardList, label: t('nav.task') },
+        { path: '/team', icon: Users, label: t('nav.team') },
+        { path: '/wealth', icon: Wallet, label: t('nav.wealth') },
+        { path: '/mine', icon: User, label: t('nav.account') },
     ];
 
     return (

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { Phone, Lock, Eye, EyeOff } from 'lucide-react';
@@ -10,6 +11,7 @@ import Card from '../components/ui/Card';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { login, loading } = useAuthStore();
     const captchaRef = useRef(null);
 
@@ -42,12 +44,12 @@ export default function Login() {
         }
 
         if (!phone.startsWith('+251') || phone.length !== 13) {
-            toast.error('Please enter a valid Ethiopian phone number (+251XXXXXXXXX)');
+            toast.error(t('errors.invalidPhone'));
             return;
         }
 
         if (formData.captcha.toUpperCase() !== realCaptchaValue) {
-            toast.error('Incorrect CAPTCHA');
+            toast.error(t('errors.incorrectCaptcha'));
             setFormData(prev => ({ ...prev, captcha: '' }));
             captchaRef.current?.refreshCaptcha();
             return;
@@ -59,10 +61,10 @@ export default function Login() {
         });
 
         if (result.success) {
-            toast.success('Welcome back!');
+            toast.success(t('success.welcomeBack'));
             navigate('/', { replace: true });
         } else {
-            toast.error(result.message || 'Login failed');
+            toast.error(result.message || t('errors.loginFailed'));
             setFormData(prev => ({ ...prev, captcha: '' }));
             captchaRef.current?.refreshCaptcha();
         }
@@ -81,13 +83,13 @@ export default function Login() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 shadow-glow mb-4">
                         <span className="text-3xl font-black text-white tracking-tighter">F</span>
                     </div>
-                    <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
-                    <p className="text-zinc-500 text-sm mt-1">Sign in to manage your portable wealth</p>
+                    <h2 className="text-2xl font-bold text-white">{t('auth.welcomeBack')}</h2>
+                    <p className="text-zinc-500 text-sm mt-1">{t('auth.signInSubtitle')}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <Input
-                        label="Phone Number"
+                        label={t('auth.phoneNumber')}
                         type="tel"
                         name="phone"
                         value={formData.phone}
@@ -98,7 +100,7 @@ export default function Login() {
                     />
 
                     <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-zinc-300 ml-1">Password</label>
+                        <label className="block text-sm font-medium text-zinc-300 ml-1">{t('auth.password')}</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
@@ -123,7 +125,7 @@ export default function Login() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-zinc-300 mb-1.5 ml-1">Verification</label>
+                        <label className="block text-sm font-medium text-zinc-300 mb-1.5 ml-1">{t('auth.verification')}</label>
                         <div className="flex gap-3">
                             <input
                                 type="text"
@@ -131,7 +133,7 @@ export default function Login() {
                                 value={formData.captcha}
                                 onChange={handleChange}
                                 className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 placeholder-zinc-600"
-                                placeholder="Enter code"
+                                placeholder={t('auth.enterCode')}
                                 required
                             />
                             <div className="shrink-0 h-[50px] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
@@ -141,14 +143,14 @@ export default function Login() {
                     </div>
 
                     <Button type="submit" loading={loading} fullWidth size="lg" className="shadow-glow font-bold">
-                        Sign In
+                        {t('auth.login')}
                     </Button>
                 </form>
 
                 <p className="text-center text-zinc-500 text-sm mt-8">
-                    Don't have an account?{' '}
+                    {t('auth.dontHaveAccount')}{' '}
                     <Link to="/register" className="text-primary-500 font-bold hover:text-primary-400 hover:underline transition-colors">
-                        Register Now
+                        {t('auth.registerNow')}
                     </Link>
                 </p>
             </Card>

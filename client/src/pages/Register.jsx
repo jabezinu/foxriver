@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { Phone, Lock, Eye, EyeOff } from 'lucide-react';
@@ -11,6 +12,7 @@ import Card from '../components/ui/Card';
 export default function Register() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { t } = useTranslation();
     const { register, loading } = useAuthStore();
     const captchaRef = useRef(null);
 
