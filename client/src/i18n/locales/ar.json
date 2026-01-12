@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "close": "إغلاق",
+    "submit": "إرسال",
+    "continue": "متابعة",
+    "back": "رجوع",
+    "next": "التالي",
+    "done": "تم",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "currency": "بر"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "task": "المهام",
+    "team": "الفريق",
+    "wealth": "الثروة",
+    "account": "الحساب",
+    "mine": "حسابي"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "logout": "تسجيل الخروج",
+    "welcomeBack": "مرحباً بعودتك",
+    "joinFoxriver": "انضم إلى Foxriver",
+    "signInSubtitle": "سجل الدخول لإدارة ثروتك المحمولة",
+    "registerSubtitle": "ابدأ رحلة ثروتك اليوم",
+    "phoneNumber": "رقم الهاتف",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "verification": "التحقق",
+    "enterCode": "أدخل الرمز"
+  },
+  "home": {
+    "totalBalance": "الرصيد الإجمالي",
+    "incomeWallet": "محفظة الدخل",
+    "personalWallet": "المحفظة الشخصية",
+    "quickActions": "إجراءات سريعة",
+    "deposit": "إيداع",
+    "withdraw": "سحب",
+    "tiers": "المستويات",
+    "games": "الألعاب",
+    "wealth": "الثروة",
+    "courses": "الدورات",
+    "news": "الأخبار",
+    "inviteFriends": "دعوة الأصدقاء",
+    "copyLink": "نسخ الرابط"
+  },
+  "task": {
+    "title": "مهام اليوم",
+    "dailyPotential": "الإمكانات اليومية",
+    "perVideo": "لكل فيديو",
+    "todaysProgress": "تقدم اليوم",
+    "completed": "مكتمل",
+    "remaining": "متبقي",
+    "taskCompleted": "اكتملت المهمة!",
+    "earned": "تم الكسب"
+  },
+  "wealth": {
+    "title": "صندوق الثروة",
+    "viewMyInvestments": "عرض استثماراتي",
+    "days": "أيام",
+    "dailyProfit": "الربح اليومي",
+    "minimumDeposit": "الحد الأدنى للإيداع"
+  }
+}

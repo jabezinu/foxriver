@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { formatNumber } from '../utils/formatNumber';
 import {
     Download, Upload, LayoutGrid, Zap,
     Briefcase,
-    HelpCircle, Share2, Globe, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy
+    HelpCircle, Share2, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import LanguageSelector from '../components/LanguageSelector';
 
 const MenuItem = ({ item, navigate, isLarge = false }) => (
     <div
@@ -106,6 +108,7 @@ const SlotMachineButton = ({ onClick }) => (
 
 export default function Home() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
     const [showInvitation, setShowInvitation] = useState(false);
@@ -127,23 +130,23 @@ export default function Home() {
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
-        toast.success('Link copied to clipboard');
+        toast.success(t('home.linkCopied'));
     };
 
     const menuItems = [
-        { icon: Download, label: 'Deposit', color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
-        { icon: Upload, label: 'Withdraw', color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
-        { icon: LayoutGrid, label: 'Tiers', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
-        { icon: Gamepad2, label: 'Slot Machine', color: 'bg-gradient-to-br from-pink-500 to-purple-600 text-white border-0 shadow-lg shadow-pink-500/50', path: '/spin', description: 'Spin to win amazing prizes!' },
-        { icon: Zap, label: 'Wealth', color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
-        { icon: GraduationCap, label: 'Courses', color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
-        { icon: Newspaper, label: 'News', color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
-        { icon: HelpCircle, label: 'Q&A', color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
+        { icon: Download, label: t('home.deposit'), color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
+        { icon: Upload, label: t('home.withdraw'), color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
+        { icon: LayoutGrid, label: t('home.tiers'), color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
+        { icon: Gamepad2, label: t('home.slotMachine'), color: 'bg-gradient-to-br from-pink-500 to-purple-600 text-white border-0 shadow-lg shadow-pink-500/50', path: '/spin', description: t('home.spinToWin') },
+        { icon: Zap, label: t('home.wealth'), color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
+        { icon: GraduationCap, label: t('home.courses'), color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
+        { icon: Newspaper, label: t('home.news'), color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
+        { icon: HelpCircle, label: t('home.qna'), color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
         {
             icon: Share2,
-            label: 'Invite Friends',
+            label: t('home.inviteFriends'),
             color: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-            description: 'Invite friends and earn commission together',
+            description: t('home.inviteFriendsDesc'),
             action: async () => {
                 try {
                     const res = await userAPI.getReferralLink();
@@ -167,9 +170,7 @@ export default function Home() {
                     <span className="font-bold text-white text-lg tracking-tight">Foxriver</span>
                 </div>
                 <div className="flex gap-3">
-                    <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => toast('Language: English')}>
-                        <Globe size={20} />
-                    </button>
+                    <LanguageSelector />
                     <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => navigate('/settings')}>
                         <Settings size={20} />
                     </button>
@@ -184,20 +185,20 @@ export default function Home() {
 
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-2 opacity-80">
-                            <span className="text-sm font-bold uppercase tracking-wide">Total Balance</span>
+                            <span className="text-sm font-bold uppercase tracking-wide">{t('home.totalBalance')}</span>
                             <EyeToggle />
                         </div>
                         <h2 className="text-4xl font-black mb-8 tracking-tight text-white drop-shadow-sm">
-                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">ETB</span>
+                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">{t('common.currency')}</span>
                         </h2>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Income Wallet</p>
+                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">{t('home.incomeWallet')}</p>
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.incomeWallet)}</p>
                             </div>
                             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">Personal Wallet</p>
+                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">{t('home.personalWallet')}</p>
                                 <p className="font-bold text-lg text-white">{formatNumber(wallet.personalWallet)}</p>
                             </div>
                         </div>
@@ -208,7 +209,7 @@ export default function Home() {
             {/* Menu Grid */}
             <div className="px-5 py-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-white text-lg">Quick Actions</h3>
+                    <h3 className="font-bold text-white text-lg">{t('home.quickActions')}</h3>
                 </div>
 
                 {/* First Row - 3 items */}
@@ -240,15 +241,15 @@ export default function Home() {
 
             {/* News / Updates */}
             <div className="px-5 mb-8">
-                <h3 className="font-bold text-white text-lg mb-4">Latest Updates</h3>
+                <h3 className="font-bold text-white text-lg mb-4">{t('home.latestUpdates')}</h3>
                 <Card className="flex items-start gap-4 p-4 bg-zinc-900 border-zinc-800" hover onClick={() => navigate('/news')}>
                     <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center shrink-0 text-primary-500 border border-primary-500/20">
                         <Bell size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-white text-sm mb-1">System Upgrade Notice</h4>
+                        <h4 className="font-bold text-white text-sm mb-1">{t('home.systemUpgradeNotice')}</h4>
                         <p className="text-xs text-zinc-400 leading-relaxed">
-                            We have upgraded the tier system. Check out the new VIP levels for higher returns!
+                            {t('home.systemUpgradeDesc')}
                         </p>
                     </div>
                 </Card>
@@ -258,20 +259,20 @@ export default function Home() {
             <Modal
                 isOpen={showInvitation}
                 onClose={() => setShowInvitation(false)}
-                title="Invite Friends"
+                title={t('home.inviteTitle')}
             >
                 <div className="text-center pt-2">
                     <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500 border border-rose-500/20">
                         <Share2 size={32} />
                     </div>
                     <p className="text-zinc-400 mb-6 text-sm">
-                        Share your unique link. Earn commisions when your friends join and deposit!
+                        {t('home.inviteDesc')}
                     </p>
                     <div className="bg-white/30 p-4 rounded-xl break-all mb-6 text-xs font-mono text-primary-500 border border-zinc-800 selection:bg-primary-500 selection:text-white">
                         {referralLink}
                     </div>
                     <Button onClick={handleCopyLink} fullWidth>
-                        Copy Link
+                        {t('home.copyLink')}
                     </Button>
                 </div>
             </Modal>

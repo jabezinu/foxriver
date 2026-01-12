@@ -1,0 +1,71 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "close": "关闭",
+    "submit": "提交",
+    "continue": "继续",
+    "back": "返回",
+    "next": "下一步",
+    "done": "完成",
+    "edit": "编辑",
+    "delete": "删除",
+    "currency": "比尔"
+  },
+  "nav": {
+    "home": "首页",
+    "task": "任务",
+    "team": "团队",
+    "wealth": "财富",
+    "account": "账户",
+    "mine": "我的"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出",
+    "welcomeBack": "欢迎回来",
+    "joinFoxriver": "加入Foxriver",
+    "signInSubtitle": "登录管理您的便携财富",
+    "registerSubtitle": "今天开始您的财富之旅",
+    "phoneNumber": "电话号码",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "verification": "验证",
+    "enterCode": "输入代码"
+  },
+  "home": {
+    "totalBalance": "总余额",
+    "incomeWallet": "收入钱包",
+    "personalWallet": "个人钱包",
+    "quickActions": "快速操作",
+    "deposit": "存款",
+    "withdraw": "提款",
+    "tiers": "等级",
+    "games": "游戏",
+    "wealth": "财富",
+    "courses": "课程",
+    "news": "新闻",
+    "inviteFriends": "邀请朋友",
+    "copyLink": "复制链接"
+  },
+  "task": {
+    "title": "今日任务",
+    "dailyPotential": "每日潜力",
+    "perVideo": "每视频",
+    "todaysProgress": "今日进度",
+    "completed": "已完成",
+    "remaining": "剩余",
+    "taskCompleted": "任务完成！",
+    "earned": "已赚取"
+  },
+  "wealth": {
+    "title": "财富基金",
+    "viewMyInvestments": "查看我的投资",
+    "days": "天",
+    "dailyProfit": "每日利润",
+    "minimumDeposit": "最低存款金额"
+  }
+}
