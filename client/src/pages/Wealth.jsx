@@ -21,9 +21,10 @@ export default function Wealth() {
             const response = await axios.get(`${import.meta.env.VITE_API_URL}/wealth/funds`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setFunds(response.data.data);
+            setFunds(response.data.data || []);
         } catch (error) {
             console.error('Error fetching funds:', error);
+            setFunds([]);
         } finally {
             setLoading(false);
         }
