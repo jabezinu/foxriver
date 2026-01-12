@@ -13,7 +13,8 @@ const {
     getSystemSettings,
     updateSystemSettings,
     getAllCommissions,
-    processMonthlySalaries
+    processMonthlySalaries,
+    processUserSalary
 } = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middlewares/auth');
 
@@ -31,5 +32,6 @@ router.get('/settings', protect, adminOnly, getSystemSettings);
 router.put('/settings', protect, adminOnly, updateSystemSettings);
 router.get('/commissions', protect, adminOnly, getAllCommissions);
 router.post('/salaries/process', protect, adminOnly, processMonthlySalaries);
+router.post('/salaries/process/:userId', protect, adminOnly, processUserSalary);
 
 module.exports = router;

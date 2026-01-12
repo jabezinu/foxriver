@@ -10,6 +10,7 @@ const Membership = require('../models/Membership');
 const Salary = require('../models/Salary');
 const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
 const { calculateMonthlySalary } = require('../utils/salary');
+const { processAllSalaries, processSalaryForUserById } = require('../services/salaryScheduler');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -531,61 +532,49 @@ exports.getAllCommissions = async (req, res) => {
 // @access  Private/Admin
 exports.processMonthlySalaries = async (req, res) => {
     try {
-        const users = await User.find({ role: 'user', isActive: true });
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        let processedCount = 0;
-        let totalPaid = 0;
-
-        for (const user of users) {
-            // Check if user has already been paid this month
-            if (user.lastSalaryDate) {
-                const lastPay = new Date(user.lastSalaryDate);
-                if (lastPay.getMonth() === currentMonth && lastPay.getFullYear() === currentYear) {
-                    continue; // Already paid this month
-                }
-            }
-
-            const { salary, breakdown } = await calculateMonthlySalary(user._id);
-
-            if (salary > 0) {
-                // Credit income wallet
-                user.incomeWallet = (user.incomeWallet || 0) + salary;
-                user.lastSalaryDate = now;
-                await user.save();
-
-                // Log salary payment
-                await Salary.create({
-                    user: user._id,
-                    amount: salary,
-                    month: currentMonth + 1, // 1-indexed
-                    year: currentYear,
-                    breakdown: {
-                        aLevel: breakdown.aLevel,
-                        bLevel: breakdown.bLevel,
-                        cLevel: breakdown.cLevel,
-                        total: breakdown.total
-                    },
-                    ruleApplied: breakdown.salaryComponents[0].rule
-                });
-
-                processedCount++;
-                totalPaid += salary;
-            }
-        }
+        const result = await processAllSalaries();
 
         res.status(200).json({
             success: true,
-            message: `Successfully processed salaries for ${processedCount} users`,
-            totalPaid
+            message: `Successfully processed salaries for ${result.processedCount} users`,
+            processedCount: result.processedCount,
+            totalPaid: result.totalPaid
         });
     } catch (error) {
         console.error('Error processing salaries:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Error processing salaries'
+        });
+    }
+};
+
+// @desc    Process salary for a specific user
+// @route   POST /api/admin/salaries/process/:userId
+// @access  Private/Admin
+exports.processUserSalary = async (req, res) => {
+    try {
+        const salaryRecord = await processSalaryForUserById(req.params.userId);
+
+        if (!salaryRecord) {
+            return res.status(200).json({
+                success: true,
+                message: 'User either already paid this month or does not qualify for salary',
+                paid: false
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Salary of ${salaryRecord.amount} ETB paid successfully`,
+            paid: true,
+            salary: salaryRecord
+        });
+    } catch (error) {
+        console.error('Error processing user salary:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error processing salary'
         });
     }
 };

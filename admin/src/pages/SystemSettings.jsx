@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { HiCog, HiRefresh } from 'react-icons/hi';
+import { HiCog, HiRefresh, HiCash } from 'react-icons/hi';
 
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [processingSalaries, setProcessingSalaries] = useState(false);
 
     useEffect(() => {
         fetchSettings();
@@ -85,6 +86,36 @@ export default function SystemSettings() {
         }
     };
 
+    const processSalaries = async () => {
+        if (!confirm('Are you sure you want to process monthly salaries for all eligible users? This will credit their income wallets.')) {
+            return;
+        }
+
+        setProcessingSalaries(true);
+        try {
+            const token = localStorage.getItem('foxriver_admin_token');
+            const response = await fetch('/api/admin/salaries/process', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(`${data.message}\nTotal Paid: ${data.totalPaid} ETB`);
+            } else {
+                toast.error(data.message || 'Failed to process salaries');
+            }
+        } catch (error) {
+            console.error('Error processing salaries:', error);
+            toast.error('Failed to process salaries');
+        } finally {
+            setProcessingSalaries(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-8 text-center text-gray-500">
@@ -153,6 +184,69 @@ export default function SystemSettings() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Salary Processing */}
+                <div className="admin-card">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold text-gray-800">Salary Processing</h3>
+                        <HiCash className="text-2xl text-gray-400" />
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <p className="text-sm text-blue-800 mb-3">
+                                <span className="font-bold">Automatic Processing:</span> The system automatically processes salaries daily at 00:01 AM (Ethiopian Time). Users who meet the salary requirements will receive their monthly payment automatically.
+                            </p>
+                            <p className="text-xs text-blue-600">
+                                ✓ Runs daily to check eligibility<br/>
+                                ✓ Prevents duplicate payments per month<br/>
+                                ✓ Credits income wallet automatically
+                            </p>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-3">
+                                You can manually trigger salary processing for all eligible users. This is useful for testing or if you need to process salaries immediately.
+                            </p>
+                            
+                            <button
+                                onClick={processSalaries}
+                                disabled={processingSalaries}
+                                className={`
+                                    w-full py-3 px-4 rounded-xl font-bold text-sm uppercase tracking-wider
+                                    flex items-center justify-center gap-2
+                                    ${processingSalaries 
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-lg'
+                                    }
+                                    transition-all
+                                `}
+                            >
+                                {processingSalaries ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <HiCash className="text-lg" />
+                                        Process All Salaries Now
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="p-3 rounded-lg text-sm bg-yellow-50 text-yellow-700 border border-yellow-100">
+                            <p className="font-semibold">⚠️ Important Notes</p>
+                            <ul className="text-xs mt-2 space-y-1 list-disc list-inside">
+                                <li>Users are only paid once per month</li>
+                                <li>Only users meeting salary requirements are paid</li>
+                                <li>Payment is credited to income wallet</li>
+                                <li>All transactions are logged in the database</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Frontend Control */}
                 <div className="admin-card">
                     <div className="flex items-center justify-between mb-6">

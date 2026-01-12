@@ -2,11 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
+const { initializeSalaryScheduler } = require('./services/salaryScheduler');
 
 const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize salary scheduler after DB connection
+initializeSalaryScheduler();
 
 // Middleware
 app.use(cors());
