@@ -8,6 +8,7 @@ import Loading from '../components/Loading';
 import Modal from '../components/Modal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import { getServerUrl } from '../config/api.config';
 
 export default function Settings() {
     const navigate = useNavigate();
@@ -159,7 +160,7 @@ export default function Settings() {
                 <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-8 flex items-center gap-4 border border-zinc-800">
                     {profile.profilePhoto ? (
                         <img
-                            src={profile.profilePhoto.startsWith('http') ? profile.profilePhoto : `${(import.meta.env.VITE_API_URL || 'http://localhost:5002/api').replace(/\/api$/, '')}${profile.profilePhoto}`}
+                            src={profile.profilePhoto.startsWith('http') ? profile.profilePhoto : `${getServerUrl()}${profile.profilePhoto}`}
                             alt="Profile"
                             className="w-14 h-14 rounded-full object-cover border-2 border-zinc-700"
                         />

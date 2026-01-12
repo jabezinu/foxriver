@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { HiCog, HiRefresh, HiCash } from 'react-icons/hi';
+import { getApiUrl } from '../config/api.config';
 
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
@@ -14,7 +15,7 @@ export default function SystemSettings() {
     const fetchSettings = async () => {
         try {
             const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch('/api/admin/settings', {
+            const response = await fetch(`${getApiUrl()}/admin/settings`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -54,7 +55,7 @@ export default function SystemSettings() {
         setProcessingSalaries(true);
         try {
             const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch('/api/admin/salaries/process', {
+            const response = await fetch(`${getApiUrl()}/admin/salaries/process`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

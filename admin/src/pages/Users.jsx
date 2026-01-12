@@ -3,6 +3,7 @@ import { adminUserAPI } from '../services/api';
 import { HiSearch, HiIdentification, HiExternalLink, HiPencil, HiTrash, HiX, HiClipboardList } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading';
+import { getServerUrl } from '../config/api.config';
 
 import ConfirmModal from '../components/ConfirmModal';
 import UserHistoryModal from '../components/UserHistoryModal';
@@ -201,7 +202,7 @@ export default function UserManagement() {
                                             <div className="flex items-center gap-3">
                                                 {user.profilePhoto ? (
                                                     <img
-                                                        src={user.profilePhoto.startsWith('http') ? user.profilePhoto : `${(import.meta.env.VITE_API_URL || 'http://localhost:5002/api').replace(/\/api$/, '')}${user.profilePhoto}`}
+                                                        src={user.profilePhoto.startsWith('http') ? user.profilePhoto : `${getServerUrl()}${user.profilePhoto}`}
                                                         alt={user.name || 'User'}
                                                         className="w-8 h-8 rounded-lg object-cover"
                                                     />

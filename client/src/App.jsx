@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/authStore';
 import { newsAPI } from './services/api';
+import { getApiUrl } from './config/api.config';
 
 // Pages
 import Login from './pages/Login';
@@ -84,8 +85,7 @@ function App() {
 
   const checkSystemSettings = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API_URL}/system/settings`);
+      const response = await fetch(`${getApiUrl()}/system/settings`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch system settings');

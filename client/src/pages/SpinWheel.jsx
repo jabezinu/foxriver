@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { spinAPI } from '../services/api';
 import { ArrowLeft, TrendingUp, Trophy, Zap, Sparkles } from 'lucide-react';
+import { getApiUrl } from '../config/api.config';
 
 const SpinWheel = () => {
     const navigate = useNavigate();
@@ -37,7 +38,7 @@ const SpinWheel = () => {
 
     const fetchTiers = async () => {
         try {
-            const response = await fetch('http://localhost:5002/api/slot-tiers');
+            const response = await fetch(`${getApiUrl()}/slot-tiers`);
             const data = await response.json();
             if (data.success) {
                 setTiers(data.data);

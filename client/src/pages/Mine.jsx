@@ -8,6 +8,7 @@ import Card from '../components/ui/Card';
 import { formatNumber } from '../utils/formatNumber';
 import { useAuthStore } from '../store/authStore';
 import Modal from '../components/Modal';
+import { getServerUrl } from '../config/api.config';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 
@@ -132,9 +133,7 @@ export default function Mine() {
             return profile.profilePhoto;
         }
         // Otherwise, construct URL for legacy local files
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
-        const baseURL = API_URL.replace(/\/api$/, '');
-        return `${baseURL}${profile.profilePhoto}`;
+        return `${getServerUrl()}${profile.profilePhoto}`;
     };
 
     if (loading) return <Loading />;

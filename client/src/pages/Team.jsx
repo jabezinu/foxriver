@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { referralAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
+import { getServerUrl } from '../config/api.config';
 import {
     ChevronLeft,
     Users,
@@ -78,7 +79,7 @@ export default function Team() {
             return <p className="text-center py-4 text-zinc-500 text-xs italic">No users in this level yet</p>;
         }
 
-        const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5002/api').replace(/\/api$/, '');
+        const serverUrl = getServerUrl();
 
         return (
             <div className="space-y-2 mt-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
@@ -87,7 +88,7 @@ export default function Team() {
                         <div className="flex items-center gap-3">
                             {u.profilePhoto ? (
                                 <img
-                                    src={u.profilePhoto.startsWith('http') ? u.profilePhoto : `${API_URL}${u.profilePhoto}`}
+                                    src={u.profilePhoto.startsWith('http') ? u.profilePhoto : `${serverUrl}${u.profilePhoto}`}
                                     alt={u.name || 'User'}
                                     className="w-8 h-8 rounded-full object-cover"
                                 />

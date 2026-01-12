@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { adminSpinAPI } from '../services/api';
 import { FiPlus, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight, FiRefreshCw, FiFilter } from 'react-icons/fi';
+import { getApiUrl } from '../config/api.config';
 
 const SlotMachine = () => {
     const [activeTab, setActiveTab] = useState('results'); // 'results' or 'tiers'
@@ -108,7 +109,7 @@ const SlotMachine = () => {
         setLoadingTiers(true);
         try {
             const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch('http://localhost:5002/api/slot-tiers/admin/all', {
+            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/all`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -134,8 +135,8 @@ const SlotMachine = () => {
         try {
             const token = localStorage.getItem('foxriver_admin_token');
             const url = editingTier
-                ? `http://localhost:5002/api/slot-tiers/admin/${editingTier._id}`
-                : 'http://localhost:5002/api/slot-tiers/admin';
+                ? `${getApiUrl()}/slot-tiers/admin/${editingTier._id}`
+                : `${getApiUrl()}/slot-tiers/admin`;
             
             const method = editingTier ? 'PUT' : 'POST';
             
@@ -190,7 +191,7 @@ const SlotMachine = () => {
         
         try {
             const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`http://localhost:5002/api/slot-tiers/admin/${id}`, {
+            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -214,7 +215,7 @@ const SlotMachine = () => {
     const handleToggleStatus = async (id) => {
         try {
             const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`http://localhost:5002/api/slot-tiers/admin/${id}/toggle`, {
+            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/${id}/toggle`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`
