@@ -23,9 +23,10 @@ app.use(sanitizeInput);
 // Compression middleware
 app.use(compression());
 
-// CORS configuration
+// CORS configuration - Allow all origins (development mode)
+// WARNING: In production, restrict this to specific domains
 const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: true, // Allow all origins
     credentials: true,
     optionsSuccessStatus: 200
 };
