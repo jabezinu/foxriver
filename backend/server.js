@@ -1,8 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const connectDB = require('./config/database');
+const logger = require('./config/logger');
 const { initializeSalaryScheduler } = require('./services/salaryScheduler');
+const { errorHandler, notFound } = require('./middlewares/errorHandler');
+const { securityHeaders, sanitizeInput, apiLimiter } = require('./middlewares/security');
 
 const app = express();
 
@@ -12,10 +16,27 @@ connectDB();
 // Initialize salary scheduler after DB connection
 initializeSalaryScheduler();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Security middleware
+app.use(securityHeaders);
+app.use(sanitizeInput);
+
+// Compression middleware
+app.use(compression());
+
+// CORS configuration
+const corsOptions = {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Rate limiting for API routes
+app.use('/api/', apiLimiter);
 
 // Static folder for uploads
 app.use('/uploads', express.static('uploads'));
@@ -43,28 +64,51 @@ app.use('/api/wealth', require('./routes/wealth'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Foxriver API is running' });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error',
+    res.json({ 
+        status: 'OK', 
+        message: 'Foxriver API is running',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
     });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found',
-    });
-});
+// 404 handler (must be before error handler)
+app.use(notFound);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+const server = app.listen(PORT, () => {
+    logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    logger.info('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    logger.info('SIGINT signal received: closing HTTP server');
+    server.close(() => {
+        logger.info('HTTP server closed');
+        process.exit(0);
+    });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    logger.error('Unhandled Promise Rejection', { error: err.message, stack: err.stack });
+    server.close(() => process.exit(1));
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+    process.exit(1);
 });

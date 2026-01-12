@@ -1,63 +1,61 @@
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 const { isValidTransactionPassword } = require('../utils/validators');
 const cloudinary = require('../config/cloudinary');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
+const logger = require('../config/logger');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
-exports.getProfile = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('+transactionPassword');
+exports.getProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id).select('+transactionPassword');
 
-        // Check for pending bank account change
-        if (user.bankChangeStatus === 'pending') {
-            const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
-            const timeDiff = Date.now() - new Date(user.bankChangeRequestDate).getTime();
+    if (!user) {
+        throw new AppError('User not found', 404);
+    }
 
-            if (timeDiff >= threeDaysInMillis) {
-                // Check if another user already has this bank account before auto-approving
-                const existingUser = await User.findOne({
-                    _id: { $ne: user._id },
-                    $or: [
-                        { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
-                        { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
-                    ]
-                });
+    // Check for pending bank account change
+    if (user.bankChangeStatus === 'pending') {
+        const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+        const timeDiff = Date.now() - new Date(user.bankChangeRequestDate).getTime();
 
-                if (!existingUser) {
-                    // Auto-approve after 3 days if no duplicate found
-                    user.bankAccount = {
-                        ...user.pendingBankAccount,
-                        isSet: true
-                    };
-                    user.bankChangeStatus = 'none';
-                    user.pendingBankAccount = undefined;
-                    user.bankChangeRequestDate = undefined;
-                    await user.save();
-                }
-                // If duplicate found, keep it pending for admin review
+        if (timeDiff >= threeDaysInMillis) {
+            // Check if another user already has this bank account before auto-approving
+            const existingUser = await User.findOne({
+                _id: { $ne: user._id },
+                $or: [
+                    { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
+                    { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
+                ]
+            }).lean();
+
+            if (!existingUser) {
+                // Auto-approve after 3 days if no duplicate found
+                user.bankAccount = {
+                    ...user.pendingBankAccount,
+                    isSet: true
+                };
+                user.bankChangeStatus = 'none';
+                user.pendingBankAccount = undefined;
+                user.bankChangeRequestDate = undefined;
+                await user.save();
+                logger.info('Bank account auto-approved', { userId: user._id });
             }
         }
-
-        const userObj = user.toObject();
-        const hasTransactionPassword = !!userObj.transactionPassword;
-        delete userObj.transactionPassword;
-
-        res.status(200).json({
-            success: true,
-            user: {
-                ...userObj,
-                hasTransactionPassword
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
     }
-};
+
+    const userObj = user.toObject();
+    const hasTransactionPassword = !!userObj.transactionPassword;
+    delete userObj.transactionPassword;
+
+    res.status(200).json({
+        success: true,
+        user: {
+            ...userObj,
+            hasTransactionPassword
+        }
+    });
+});
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
