@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminMembershipAPI } from '../services/api';
 import Loading from '../components/Loading';
-import { Eye, EyeOff, Lock, Unlock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Unlock, AlertCircle, Edit2, Save, X, DollarSign } from 'lucide-react';
 
 export default function MembershipManagement() {
     const [tiers, setTiers] = useState([]);
@@ -15,6 +15,10 @@ export default function MembershipManagement() {
     const [restrictStartRank, setRestrictStartRank] = useState('');
     const [restrictEndRank, setRestrictEndRank] = useState('');
     const [restrictionLoading, setRestrictionLoading] = useState(false);
+
+    // Price editing states
+    const [editingPrices, setEditingPrices] = useState({});
+    const [savingPrices, setSavingPrices] = useState({});
 
     useEffect(() => {
         fetchTiers();
@@ -150,6 +154,59 @@ export default function MembershipManagement() {
             alert(error.response?.data?.message || 'Failed to clear rank progression restriction');
         } finally {
             setRestrictionLoading(false);
+        }
+    };
+
+    const handleEditPrice = (tierId, currentPrice) => {
+        setEditingPrices(prev => ({
+            ...prev,
+            [tierId]: currentPrice
+        }));
+    };
+
+    const handleCancelEdit = (tierId) => {
+        setEditingPrices(prev => {
+            const newState = { ...prev };
+            delete newState[tierId];
+            return newState;
+        });
+    };
+
+    const handlePriceChange = (tierId, value) => {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue) && numValue >= 0) {
+            setEditingPrices(prev => ({
+                ...prev,
+                [tierId]: numValue
+            }));
+        }
+    };
+
+    const handleSavePrice = async (tier) => {
+        const newPrice = editingPrices[tier._id];
+        
+        if (newPrice === undefined || newPrice === tier.price) {
+            handleCancelEdit(tier._id);
+            return;
+        }
+
+        // Prevent changing Intern price
+        if (tier.level === 'Intern' && newPrice !== 0) {
+            alert('Intern membership must remain free (price = 0)');
+            return;
+        }
+
+        try {
+            setSavingPrices(prev => ({ ...prev, [tier._id]: true }));
+            const res = await adminMembershipAPI.updatePrice(tier._id, { price: newPrice });
+            alert(res.data.message);
+            fetchTiers();
+            handleCancelEdit(tier._id);
+        } catch (error) {
+            console.error('Error updating price:', error);
+            alert(error.response?.data?.message || 'Failed to update price');
+        } finally {
+            setSavingPrices(prev => ({ ...prev, [tier._id]: false }));
         }
     };
 
@@ -323,7 +380,16 @@ export default function MembershipManagement() {
 
             {/* Membership Tiers Table */}
             <div className="admin-card">
-                <h2 className="text-lg font-bold text-gray-800 mb-6">All Membership Tiers</h2>
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">All Membership Tiers</h2>
+                        <p className="text-sm text-gray-600 mt-1">Click the edit icon to modify membership prices</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                        <DollarSign size={16} />
+                        <span className="font-semibold">Dynamic Pricing Enabled</span>
+                    </div>
+                </div>
                 
                 <div className="overflow-x-auto">
                     <table className="admin-table">
@@ -333,7 +399,7 @@ export default function MembershipManagement() {
                                     Level
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Price
+                                    Price (ETB)
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                     Daily Income
@@ -344,40 +410,108 @@ export default function MembershipManagement() {
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                     Status
                                 </th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {tiers.map((tier) => (
-                                <tr key={tier._id} className={tier.hidden ? 'bg-gray-50' : ''}>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="font-semibold text-gray-800">{tier.level}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-gray-700">{tier.price.toLocaleString()} ETB</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-gray-700">{tier.dailyIncome.toFixed(2)} ETB</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-gray-700">{tier.perVideoIncome.toFixed(2)} ETB</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {tier.hidden ? (
-                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 flex items-center gap-1 w-fit">
-                                                <EyeOff size={14} />
-                                                Hidden
-                                            </span>
-                                        ) : (
-                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 flex items-center gap-1 w-fit">
-                                                <Eye size={14} />
-                                                Visible
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
+                            {tiers.map((tier) => {
+                                const isEditing = editingPrices.hasOwnProperty(tier._id);
+                                const isSaving = savingPrices[tier._id];
+                                const isIntern = tier.level === 'Intern';
+
+                                return (
+                                    <tr key={tier._id} className={tier.hidden ? 'bg-gray-50' : ''}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="font-semibold text-gray-800">{tier.level}</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {isEditing ? (
+                                                <input
+                                                    type="number"
+                                                    value={editingPrices[tier._id]}
+                                                    onChange={(e) => handlePriceChange(tier._id, e.target.value)}
+                                                    disabled={isSaving || isIntern}
+                                                    className="w-32 px-3 py-1.5 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
+                                                    min="0"
+                                                    step="100"
+                                                />
+                                            ) : (
+                                                <span className="text-gray-700 font-semibold">{tier.price.toLocaleString()} ETB</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-gray-700">{tier.dailyIncome.toFixed(2)} ETB</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="text-gray-700">{tier.perVideoIncome.toFixed(2)} ETB</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {tier.hidden ? (
+                                                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800 flex items-center gap-1 w-fit">
+                                                    <EyeOff size={14} />
+                                                    Hidden
+                                                </span>
+                                            ) : (
+                                                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 flex items-center gap-1 w-fit">
+                                                    <Eye size={14} />
+                                                    Visible
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {isEditing ? (
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleSavePrice(tier)}
+                                                        disabled={isSaving}
+                                                        className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title="Save price"
+                                                    >
+                                                        <Save size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleCancelEdit(tier._id)}
+                                                        disabled={isSaving}
+                                                        className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title="Cancel"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleEditPrice(tier._id, tier.price)}
+                                                    disabled={isIntern}
+                                                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title={isIntern ? 'Intern price cannot be changed' : 'Edit price'}
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                        <AlertCircle className="text-yellow-600 mt-0.5 flex-shrink-0" size={18} />
+                        <div className="text-sm text-yellow-800">
+                            <p className="font-semibold mb-1">Important Notes:</p>
+                            <ul className="list-disc list-inside space-y-1 ml-2">
+                                <li>Price changes take effect immediately across the entire system</li>
+                                <li>Daily income is automatically calculated as: Price ÷ 30 days</li>
+                                <li>Per video income is: Daily Income ÷ 5 videos</li>
+                                <li>Intern membership must remain free (0 ETB)</li>
+                                <li>All users will see updated prices when upgrading memberships</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

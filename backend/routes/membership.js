@@ -8,7 +8,9 @@ const {
     unhideMembershipsByRange,
     setRestrictedRange,
     getRestrictedRange,
-    clearRestrictedRange
+    clearRestrictedRange,
+    updateMembershipPrice,
+    bulkUpdatePrices
 } = require('../controllers/membershipController');
 const { protect, adminOnly } = require('../middlewares/auth');
 
@@ -22,5 +24,7 @@ router.put('/admin/unhide-range', protect, adminOnly, unhideMembershipsByRange);
 router.put('/admin/set-restricted-range', protect, adminOnly, setRestrictedRange);
 router.get('/admin/restricted-range', protect, adminOnly, getRestrictedRange);
 router.delete('/admin/restricted-range', protect, adminOnly, clearRestrictedRange);
+router.put('/admin/update-price/:id', protect, adminOnly, updateMembershipPrice);
+router.put('/admin/bulk-update-prices', protect, adminOnly, bulkUpdatePrices);
 
 module.exports = router;

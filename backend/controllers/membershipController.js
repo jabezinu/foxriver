@@ -374,3 +374,138 @@ exports.clearRestrictedRange = async (req, res) => {
         });
     }
 };
+
+// @desc    Update membership price
+// @route   PUT /api/memberships/admin/update-price/:id
+// @access  Private/Admin
+exports.updateMembershipPrice = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { price } = req.body;
+
+        // Validate price
+        if (price === undefined || price === null) {
+            return res.status(400).json({
+                success: false,
+                message: 'Price is required'
+            });
+        }
+
+        if (price < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Price cannot be negative'
+            });
+        }
+
+        // Find and update membership
+        const membership = await Membership.findById(id);
+        
+        if (!membership) {
+            return res.status(404).json({
+                success: false,
+                message: 'Membership level not found'
+            });
+        }
+
+        // Prevent changing Intern price from 0
+        if (membership.level === 'Intern' && price !== 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Intern membership must remain free (price = 0)'
+            });
+        }
+
+        membership.price = price;
+        await membership.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully updated ${membership.level} price to ${price} ETB`,
+            membership: {
+                _id: membership._id,
+                level: membership.level,
+                price: membership.price,
+                dailyIncome: membership.getDailyIncome(),
+                perVideoIncome: membership.getPerVideoIncome(),
+                fourDayIncome: membership.getFourDayIncome()
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Bulk update membership prices
+// @route   PUT /api/memberships/admin/bulk-update-prices
+// @access  Private/Admin
+exports.bulkUpdatePrices = async (req, res) => {
+    try {
+        const { updates } = req.body; // Array of { id, price }
+
+        if (!Array.isArray(updates) || updates.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Updates array is required'
+            });
+        }
+
+        const results = [];
+        const errors = [];
+
+        for (const update of updates) {
+            try {
+                const { id, price } = update;
+
+                if (!id || price === undefined || price === null) {
+                    errors.push({ id, error: 'Missing id or price' });
+                    continue;
+                }
+
+                if (price < 0) {
+                    errors.push({ id, error: 'Price cannot be negative' });
+                    continue;
+                }
+
+                const membership = await Membership.findById(id);
+                
+                if (!membership) {
+                    errors.push({ id, error: 'Membership not found' });
+                    continue;
+                }
+
+                // Prevent changing Intern price from 0
+                if (membership.level === 'Intern' && price !== 0) {
+                    errors.push({ id, error: 'Intern membership must remain free' });
+                    continue;
+                }
+
+                membership.price = price;
+                await membership.save();
+
+                results.push({
+                    id: membership._id,
+                    level: membership.level,
+                    price: membership.price
+                });
+            } catch (err) {
+                errors.push({ id: update.id, error: err.message });
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully updated ${results.length} membership price(s)`,
+            updated: results,
+            errors: errors.length > 0 ? errors : undefined
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};

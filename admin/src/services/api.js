@@ -132,6 +132,8 @@ export const adminMembershipAPI = {
     setRestrictedRange: (data) => api.put('/memberships/admin/set-restricted-range', data),
     getRestrictedRange: () => api.get('/memberships/admin/restricted-range'),
     clearRestrictedRange: () => api.delete('/memberships/admin/restricted-range'),
+    updatePrice: (id, data) => api.put(`/memberships/admin/update-price/${id}`, data),
+    bulkUpdatePrices: (data) => api.put('/memberships/admin/bulk-update-prices', data),
 };
 
 export const adminCoursesAPI = {
