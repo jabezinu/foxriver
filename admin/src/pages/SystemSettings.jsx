@@ -5,7 +5,6 @@ import { HiCog, HiRefresh, HiCash } from 'react-icons/hi';
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [updating, setUpdating] = useState(false);
     const [processingSalaries, setProcessingSalaries] = useState(false);
 
     useEffect(() => {
@@ -45,46 +44,7 @@ export default function SystemSettings() {
         }
     };
 
-    const toggleFrontend = async () => {
-        setUpdating(true);
-        try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch('/api/admin/settings', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    frontendDisabled: !settings?.frontendDisabled
-                })
-            });
 
-            // Check if response is HTML (backend not running)
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Backend server is not running or API endpoint not found');
-            }
-
-            const data = await response.json();
-
-            if (data.success && data.settings) {
-                setSettings(data.settings);
-                toast.success(`Frontend ${!settings?.frontendDisabled ? 'disabled' : 'enabled'} successfully`);
-            } else if (data.success && data.data) {
-                setSettings(data.data);
-                toast.success(`Frontend ${!settings?.frontendDisabled ? 'disabled' : 'enabled'} successfully`);
-            } else {
-                toast.error('Failed to update frontend status');
-                console.error('API Response:', data);
-            }
-        } catch (error) {
-            console.error('Error updating frontend status:', error);
-            toast.error(error.message || 'Failed to update frontend status. Please ensure the backend server is running.');
-        } finally {
-            setUpdating(false);
-        }
-    };
 
     const processSalaries = async () => {
         if (!confirm('Are you sure you want to process monthly salaries for all eligible users? This will credit their income wallets.')) {
@@ -243,61 +203,6 @@ export default function SystemSettings() {
                                 <li>Payment is credited to income wallet</li>
                                 <li>All transactions are logged in the database</li>
                             </ul>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Frontend Control */}
-                <div className="admin-card">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-gray-800">Frontend Control</h3>
-                        <HiCog className="text-2xl text-gray-400" />
-                    </div>
-                    
-                    <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-3">
-                                Control the visibility of the user-facing frontend. When disabled, users will see a blank white page instead of the application.
-                            </p>
-                            
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold text-gray-800">User Frontend</p>
-                                    <p className="text-xs text-gray-500">
-                                        Current Status: <span className={`font-bold ${settings?.frontendDisabled ? 'text-red-600' : 'text-green-600'}`}>
-                                            {settings?.frontendDisabled ? 'DISABLED' : 'ENABLED'}
-                                        </span>
-                                    </p>
-                                </div>
-                                
-                                <button
-                                    onClick={toggleFrontend}
-                                    disabled={updating}
-                                    className={`
-                                        relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                                        ${settings?.frontendDisabled ? 'bg-red-600' : 'bg-green-600'}
-                                        ${updating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                                    `}
-                                >
-                                    <span
-                                        className={`
-                                            inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                                            ${settings?.frontendDisabled ? 'translate-x-6' : 'translate-x-1'}
-                                        `}
-                                    />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={`p-3 rounded-lg text-sm ${settings?.frontendDisabled ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                            <p className="font-semibold">
-                                {settings?.frontendDisabled ? '⚠️ Frontend is DISABLED' : '✅ Frontend is ENABLED'}
-                            </p>
-                            <p className="text-xs mt-1">
-                                {settings?.frontendDisabled 
-                                    ? 'Users cannot access the application. They will see a white page.' 
-                                    : 'Users can access the application normally.'}
-                            </p>
                         </div>
                     </div>
                 </div>
