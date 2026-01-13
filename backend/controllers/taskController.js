@@ -69,17 +69,17 @@ exports.getDailyTasks = async (req, res) => {
             // Strategy: Randomize and pick 4. If we have enough videos, filter out yesterday's.
             let availableVideos = await VideoPool.find({
                 $or: [
-                    { lastUsed: { $lt: today, $ne: yesterday } },
-                    { lastUsed: null }
+                    { lastUsed: { $lt: yesterday } }, // Used before yesterday
+                    { lastUsed: null } // Never used
                 ]
             });
 
-            // If we don't have enough that weren't used yesterday, just get anything but today (which should be none anyway)
+            // If we don't have enough that weren't used yesterday, just get anything not used today
             if (availableVideos.length < 4) {
                 availableVideos = await VideoPool.find({
                     $or: [
-                        { lastUsed: { $lt: today } },
-                        { lastUsed: null }
+                        { lastUsed: { $lt: today } }, // Used before today
+                        { lastUsed: null } // Never used
                     ]
                 });
             }
