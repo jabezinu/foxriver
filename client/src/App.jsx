@@ -1,36 +1,43 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import { newsAPI } from './services/api';
 import { getApiUrl } from './config/api.config';
 
-// Pages
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Home from './pages/Home';
-import Task from './pages/Task';
-import Wealth from './pages/Wealth';
-import WealthDetail from './pages/WealthDetail';
-import MyInvestments from './pages/MyInvestments';
-import Mine from './pages/Mine';
-import Deposit from './pages/Deposit';
-import Withdraw from './pages/Withdraw';
-import Mail from './pages/Mail';
-import Settings from './pages/Settings';
-import CompanyNews from './pages/CompanyNews';
-import QnA from './pages/QnA';
-import TierList from './pages/TierList';
-import Team from './pages/Team';
-import SpinWheel from './pages/SpinWheel';
-import AppRules from './pages/AppRules';
-import Courses from './pages/Courses';
+// Lazy load pages for better performance
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Home = lazy(() => import('./pages/Home'));
+const Task = lazy(() => import('./pages/Task'));
+const Wealth = lazy(() => import('./pages/Wealth'));
+const WealthDetail = lazy(() => import('./pages/WealthDetail'));
+const MyInvestments = lazy(() => import('./pages/MyInvestments'));
+const Mine = lazy(() => import('./pages/Mine'));
+const Deposit = lazy(() => import('./pages/Deposit'));
+const Withdraw = lazy(() => import('./pages/Withdraw'));
+const Mail = lazy(() => import('./pages/Mail'));
+const Settings = lazy(() => import('./pages/Settings'));
+const CompanyNews = lazy(() => import('./pages/CompanyNews'));
+const QnA = lazy(() => import('./pages/QnA'));
+const TierList = lazy(() => import('./pages/TierList'));
+const Team = lazy(() => import('./pages/Team'));
+const SpinWheel = lazy(() => import('./pages/SpinWheel'));
+const AppRules = lazy(() => import('./pages/AppRules'));
+const Courses = lazy(() => import('./pages/Courses'));
 
 // Components
 import NewsPopup from './components/NewsPopup';
 
 // Layout
 import MainLayout from './layout/MainLayout';
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  </div>
+);
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -142,40 +149,42 @@ function App() {
         <NewsPopup news={latestNews} onClose={handleCloseNewsPopup} />
       )}
 
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Protected Routes with Layout */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <MainLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<Home />} />
-          <Route path="task" element={<Task />} />
-          <Route path="wealth" element={<Wealth />} />
-          <Route path="wealth/:id" element={<WealthDetail />} />
-          <Route path="my-investments" element={<MyInvestments />} />
-          <Route path="mine" element={<Mine />} />
-          <Route path="deposit" element={<Deposit />} />
-          <Route path="withdraw" element={<Withdraw />} />
-          <Route path="mail" element={<Mail />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="news" element={<CompanyNews />} />
-          <Route path="qna" element={<QnA />} />
-          <Route path="tiers" element={<TierList />} />
-          <Route path="team" element={<Team />} />
-          <Route path="spin" element={<SpinWheel />} />
-          <Route path="app-rules" element={<AppRules />} />
-          <Route path="courses" element={<Courses />} />
-        </Route>
+          {/* Protected Routes with Layout */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Home />} />
+            <Route path="task" element={<Task />} />
+            <Route path="wealth" element={<Wealth />} />
+            <Route path="wealth/:id" element={<WealthDetail />} />
+            <Route path="my-investments" element={<MyInvestments />} />
+            <Route path="mine" element={<Mine />} />
+            <Route path="deposit" element={<Deposit />} />
+            <Route path="withdraw" element={<Withdraw />} />
+            <Route path="mail" element={<Mail />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="news" element={<CompanyNews />} />
+            <Route path="qna" element={<QnA />} />
+            <Route path="tiers" element={<TierList />} />
+            <Route path="team" element={<Team />} />
+            <Route path="spin" element={<SpinWheel />} />
+            <Route path="app-rules" element={<AppRules />} />
+            <Route path="courses" element={<Courses />} />
+          </Route>
 
 
-        {/* Catch all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
