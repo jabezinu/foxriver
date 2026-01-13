@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5002',
-        // target: 'https://everest-db.kalgemstones.com',
+        // target: 'http://localhost:5002',
+        target: 'https://everest-db.kalgemstones.com',
         changeOrigin: true,
         secure: false,
       }
