@@ -99,6 +99,8 @@ export default function Task() {
             if (response.data.success) {
                 const newEarnings = earningsStats.todayEarnings + response.data.earningsAmount;
                 toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
+                
+                // Close video and redirect back to tasks
                 setActiveVideo(null);
                 setCountdown(null);
                 fetchTasks();
@@ -340,60 +342,59 @@ export default function Task() {
 
             {/* Video Preview Overlay */}
             {activeVideo && (
-                <div className="fixed inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 animate-fade-in backdrop-blur-md">
-                    <div className="w-full aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/10 max-w-2xl relative">
-                        {/* Countdown Overlay - Positioned over the video */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="bg-black/70 backdrop-blur-sm border-2 border-primary-500 px-8 py-6 rounded-2xl flex items-center gap-6 shadow-2xl animate-pulse-slow">
-                                <div className="relative">
-                                    <div className="w-16 h-16 rounded-full border-4 border-primary-500 flex items-center justify-center text-white font-bold text-3xl relative z-10 bg-black/50">
-                                        {countdown || 8}
+                <div className="fixed inset-0 bg-black z-[60] flex flex-col items-center justify-center animate-fade-in">
+                    <div className="w-full h-full relative flex flex-col">
+                        {/* Countdown Timer - At the top */}
+                        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 via-black/70 to-transparent p-4">
+                            <div className="flex items-center justify-between max-w-2xl mx-auto">
+                                <div className="flex items-center gap-3">
+                                    <div className="relative">
+                                        <div className="w-12 h-12 rounded-full border-3 border-primary-500 flex items-center justify-center text-white font-bold text-xl bg-black/50">
+                                            {countdown || 8}
+                                        </div>
+                                        <div className="absolute inset-0 rounded-full border-3 border-primary-500 blur-sm animate-pulse"></div>
                                     </div>
-                                    <div className="absolute inset-0 rounded-full border-4 border-primary-500 blur-md animate-pulse"></div>
+                                    <div>
+                                        <p className="text-white font-bold text-sm">Watching Ad</p>
+                                        <p className="text-primary-400 text-xs">+{formatNumber(dailyStats.perVideoIncome)} ETB</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-white font-bold uppercase tracking-widest text-lg mb-1">Watching Ad</p>
-                                    <p className="text-primary-400 text-sm font-medium">Reward: +{formatNumber(dailyStats.perVideoIncome)} ETB</p>
-                                    <p className="text-zinc-300 text-xs mt-1">Total Today: {formatNumber(earningsStats.todayEarnings + dailyStats.perVideoIncome)} ETB</p>
-                                </div>
+                                <button
+                                    onClick={() => {
+                                        setActiveVideo(null);
+                                        setCountdown(null);
+                                    }}
+                                    className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors bg-black/50 px-3 py-2 rounded-lg"
+                                >
+                                    <X size={16} />
+                                    <span className="text-xs font-medium">Cancel</span>
+                                </button>
                             </div>
                         </div>
                         
-                        {/* Video Player */}
-                        <ReactPlayer
-                            url={activeVideo.url.startsWith('http') ? activeVideo.url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${activeVideo.url}`}
-                            controls={false}
-                            width="100%"
-                            height="100%"
-                            playing={true}
-                            muted={false}
-                            onReady={() => {
-                                // Video is ready but don't start countdown yet
-                            }}
-                            onStart={() => {
-                                // Start countdown exactly when video starts playing
-                                setCountdown(8);
-                            }}
-                            config={{
-                                file: {
-                                    attributes: {
-                                        style: { objectFit: 'cover', width: '100%', height: '100%' }
+                        {/* Video Player - Full screen */}
+                        <div className="flex-1 flex items-center justify-center bg-black">
+                            <ReactPlayer
+                                url={activeVideo.url.startsWith('http') ? activeVideo.url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${activeVideo.url}`}
+                                controls={false}
+                                width="100%"
+                                height="100%"
+                                playing={true}
+                                muted={false}
+                                onStart={() => {
+                                    // Start countdown exactly when video starts playing
+                                    setCountdown(8);
+                                }}
+                                config={{
+                                    file: {
+                                        attributes: {
+                                            style: { objectFit: 'contain', width: '100%', height: '100%' }
+                                        }
                                     }
-                                }
-                            }}
-                        />
+                                }}
+                            />
+                        </div>
                     </div>
-
-                    <button
-                        onClick={() => {
-                            setActiveVideo(null);
-                            setCountdown(null);
-                        }}
-                        className="mt-12 flex items-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-[0.2em] hover:text-white transition-colors group"
-                    >
-                        <X size={16} className="group-hover:rotate-90 transition-transform" />
-                        Cancel Task
-                    </button>
                 </div>
             )}
         </div>

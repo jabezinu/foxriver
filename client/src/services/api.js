@@ -4,7 +4,11 @@ import API_CONFIG from '../config/api.config';
 const api = axios.create({
     baseURL: API_CONFIG.baseURL,
     timeout: API_CONFIG.timeout,
-    headers: API_CONFIG.headers,
+    headers: {
+        ...API_CONFIG.headers,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+    },
 });
 
 // Request interceptor to add token
