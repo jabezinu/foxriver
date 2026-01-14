@@ -7,13 +7,14 @@ import { formatNumber } from '../utils/formatNumber';
 import {
     Download, Upload, LayoutGrid, Zap,
     Briefcase,
-    HelpCircle, Share2, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy
+    HelpCircle, Share2, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy, RotateCw
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import LanguageSelector from '../components/LanguageSelector';
+import { useUserStore } from '../store/userStore';
 
 const MenuItem = ({ item, navigate, isLarge = false }) => (
     <div
@@ -51,10 +52,10 @@ const SlotMachineButton = ({ onClick }) => (
     >
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 animate-gradient-x"></div>
-        
+
         {/* Glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-yellow-500/50 blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-        
+
         {/* Sparkle effects */}
         <div className="absolute top-2 right-4 text-yellow-300 animate-pulse">
             <Sparkles size={20} />
@@ -65,7 +66,7 @@ const SlotMachineButton = ({ onClick }) => (
         <div className="absolute top-1/2 right-8 text-purple-300 animate-pulse delay-300">
             <Sparkles size={14} />
         </div>
-        
+
         {/* Content */}
         <div className="relative flex items-center justify-between px-6 py-6 bg-gradient-to-br from-pink-600/90 via-purple-600/90 to-yellow-600/90 backdrop-blur-sm">
             <div className="flex items-center gap-4">
@@ -76,7 +77,7 @@ const SlotMachineButton = ({ onClick }) => (
                         <Gamepad2 size={32} className="text-white drop-shadow-lg" strokeWidth={2.5} />
                     </div>
                 </div>
-                
+
                 {/* Text content */}
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
@@ -90,15 +91,15 @@ const SlotMachineButton = ({ onClick }) => (
                     </span>
                 </div>
             </div>
-            
+
             {/* Arrow indicator */}
             <div className="text-white/80 group-hover:translate-x-1 transition-transform duration-300">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                    <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
             </div>
         </div>
-        
+
         {/* Shine effect on hover */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-shine"></div>
@@ -109,24 +110,35 @@ const SlotMachineButton = ({ onClick }) => (
 export default function Home() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [loading, setLoading] = useState(true);
-    const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
+    const { wallet, fetchWallet, syncData, loading: storeLoading } = useUserStore();
+
+    // Local loading state just for initial mount if we want to show a spinner
+    // However, with the new store, we might want to just show the skeleton or cached data immediately.
+    // Let's keep a simple effective loading state for the very first fetch if wallet is empty.
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [showInvitation, setShowInvitation] = useState(false);
     const [referralLink, setReferralLink] = useState('');
+    const [isSyncing, setIsSyncing] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const walletRes = await userAPI.getWallet();
-                setWallet(walletRes.data.wallet);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoading(false);
-            }
+        const init = async () => {
+            await fetchWallet();
+            setIsInitialLoad(false);
         };
-        fetchData();
-    }, []);
+        init();
+    }, [fetchWallet]);
+
+    const handleSync = async () => {
+        setIsSyncing(true);
+        try {
+            await syncData();
+            toast.success(t('common.synced', 'Data synced successfully'));
+        } catch (error) {
+            toast.error('Sync failed');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(referralLink);
@@ -159,7 +171,7 @@ export default function Home() {
         },
     ];
 
-    if (loading) return <Loading />;
+    if (isInitialLoad && wallet.incomeWallet === 0 && wallet.personalWallet === 0) return <Loading />;
 
     return (
         <div className="min-h-screen pb-6">
@@ -169,7 +181,20 @@ export default function Home() {
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-black text-sm shadow-glow">F</div>
                     <span className="font-bold text-white text-lg tracking-tight">Everest</span>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        className={`
+                            flex items-center gap-2 px-3 py-1.5 rounded-full 
+                            bg-zinc-800 text-zinc-400 text-xs font-bold
+                            hover:bg-zinc-700 hover:text-white transition-colors
+                            ${isSyncing ? 'opacity-70 cursor-not-allowed' : ''}
+                        `}
+                    >
+                        <RotateCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                        <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
+                    </button>
                     <LanguageSelector />
                     <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => navigate('/settings')}>
                         <Settings size={20} />

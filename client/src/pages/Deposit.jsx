@@ -9,10 +9,18 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import { formatNumber } from '../utils/formatNumber';
 
+import { useUserStore } from '../store/userStore';
+
 export default function Deposit() {
     const navigate = useNavigate();
+    const { wallet, fetchWallet } = useUserStore();
+
+    // Initial loading state mapping
     const [loading, setLoading] = useState(true);
-    const [balance, setBalance] = useState(0);
+
+    // We can derive balance from store wallet
+    const balance = wallet.personalWallet;
+
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -31,11 +39,14 @@ export default function Deposit() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [walletRes, bankRes] = await Promise.all([
-                    userAPI.getWallet(),
+                // Fetch wallet (cached) and banks (fresh)
+                // We run them in parallel
+                const [_, bankRes] = await Promise.all([
+                    fetchWallet(),
                     bankAPI.getBanks()
                 ]);
-                setBalance(walletRes.data.wallet.personalWallet);
+
+                // setBalance(walletRes.data.wallet.personalWallet); // No longer needed, derived from store
 
                 const bankMethods = bankRes.data.data.map(bank => ({
                     id: bank._id,
@@ -66,7 +77,7 @@ export default function Deposit() {
 
         fetchData();
         fetchHistory();
-    }, []);
+    }, [fetchWallet]);
 
 
     const handleCreateDeposit = async () => {
@@ -397,7 +408,7 @@ export default function Deposit() {
                         <div className="mb-8">
                             <Card className="p-5 border-zinc-800 shadow-sm bg-zinc-900">
                                 <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Upload Transaction Screenshot</label>
-                                
+
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -405,12 +416,12 @@ export default function Deposit() {
                                     className="hidden"
                                     id="screenshot-upload"
                                 />
-                                
+
                                 {screenshotPreview ? (
                                     <div className="relative">
-                                        <img 
-                                            src={screenshotPreview} 
-                                            alt="Transaction screenshot" 
+                                        <img
+                                            src={screenshotPreview}
+                                            alt="Transaction screenshot"
                                             className="w-full rounded-xl border-2 border-zinc-800 mb-3"
                                         />
                                         <button
@@ -433,7 +444,7 @@ export default function Deposit() {
                                         <span className="text-xs text-zinc-600 mt-1">PNG, JPG, GIF up to 5MB</span>
                                     </label>
                                 )}
-                                
+
                                 <p className="text-[10px] text-zinc-500 mt-2 text-center">
                                     Upload a clear screenshot of your transaction confirmation.
                                 </p>

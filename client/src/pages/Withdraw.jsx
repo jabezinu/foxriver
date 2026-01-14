@@ -1,19 +1,16 @@
-import { useState, useEffect } from 'react';
-import { userAPI, withdrawalAPI } from '../services/api';
-import { toast } from 'react-hot-toast';
-import { ArrowLeft, Wallet, Eye, EyeOff, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import Loading from '../components/Loading';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
-import { formatNumber } from '../utils/formatNumber';
+import { useUserStore } from '../store/userStore';
 
 export default function Withdraw() {
     const navigate = useNavigate();
+    // Use store data
+    const { wallet, fetchWallet } = useUserStore();
+
     const [loading, setLoading] = useState(true);
-    const [wallets, setWallets] = useState({ incomeWallet: 0, personalWallet: 0 });
-    const [profile, setProfile] = useState(null);
+    // wallets state is replaced by store wallet
+
+    // We don't really need profile here based on the code shown (it was fetched but not obviously used in render, checked: line 36 sets it, line 16 defines it. line 36 is the only usage. It's not used in JSX. Wait, let me check JSX again. 
+    // I see no usage of `profile` in JSX of Withdraw.jsx. It seems unused. I'll remove it.)
+
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [walletType, setWalletType] = useState('income');
     const [transactionPassword, setTransactionPassword] = useState('');
@@ -23,24 +20,21 @@ export default function Withdraw() {
     const amounts = [100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000];
 
     useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            const [walletRes, profileRes] = await Promise.all([
-                userAPI.getWallet(),
-                userAPI.getProfile()
-            ]);
-            setWallets(walletRes.data.wallet);
-            setProfile(profileRes.data.user);
-        } catch (error) {
-            toast.error('Failed to load withdrawal data');
-            console.error(error);
-        } finally {
+        const init = async () => {
+            await fetchWallet();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchWallet]);
+
+    // Derived values using store wallet
+    // Renaming usages of 'wallets' to 'wallet' in the rest of the file via this replacer? 
+    // No, I need to do that separately or mapping it here.
+    // Let's alias it for minimal diffs if possible, or just update usages.
+    // Updating usages is better practice. I will do it in next steps.
+    // For now, let's just alias it.
+    const wallets = wallet;
+
 
     const handleWithdraw = async () => {
         if (!selectedAmount || !transactionPassword) {

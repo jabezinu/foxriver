@@ -8,25 +8,44 @@ import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
+import { useUserStore } from '../store/userStore';
+
 export default function Task() {
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [dailyStats, setDailyStats] = useState({ dailyIncome: 0, perVideoIncome: 0 });
+    // Use store data
+    const {
+        tasks,
+        fetchTasks,
+        dailyStats,
+        internRestriction,
+        isSunday,
+        earningsStats: storeEarningsStats,
+        loading: { tasks: loading } // Map store loading.tasks to local loading
+    } = useUserStore();
+
     const [activeVideo, setActiveVideo] = useState(null);
     const [countdown, setCountdown] = useState(null);
     const [isCompleting, setIsCompleting] = useState(false);
-    const [earningsStats, setEarningsStats] = useState({ 
-        todayEarnings: 0, 
-        completedTasks: 0, 
-        remainingTasks: 0,
-        totalPossibleEarnings: 0 
-    });
-    const [internRestriction, setInternRestriction] = useState(null);
-    const [isSunday, setIsSunday] = useState(false);
+
+    // Derived or local earnings stats if not provided by backend
+    // The store has earningsStats, but if it is null, we calculate locally.
+    // We can use a derived state here.
+    const earningsStats = storeEarningsStats || (() => {
+        const completedTasks = tasks.filter(task => task.isCompleted).length;
+        const remainingTasks = tasks.length - completedTasks;
+        const todayEarnings = completedTasks * dailyStats.perVideoIncome;
+        const totalPossibleEarnings = tasks.length * dailyStats.perVideoIncome;
+
+        return {
+            todayEarnings,
+            completedTasks,
+            remainingTasks,
+            totalPossibleEarnings
+        };
+    })();
 
     useEffect(() => {
         fetchTasks();
-    }, []);
+    }, [fetchTasks]);
 
     // Timer logic
     useEffect(() => {
@@ -39,52 +58,15 @@ export default function Task() {
         return () => clearTimeout(timer);
     }, [countdown, activeVideo]);
 
-    const fetchTasks = async () => {
-        try {
-            const response = await taskAPI.getDailyTasks();
-            setTasks(response.data.tasks);
-            setIsSunday(response.data.isSunday || false);
-            setDailyStats({
-                dailyIncome: response.data.dailyIncome,
-                perVideoIncome: response.data.perVideoIncome
-            });
-            
-            // Set intern restriction info
-            setInternRestriction(response.data.internRestriction);
-            
-            // Use backend-calculated earnings statistics if available, otherwise calculate locally
-            if (response.data.earningsStats) {
-                setEarningsStats(response.data.earningsStats);
-            } else {
-                // Fallback to local calculation
-                const completedTasks = response.data.tasks.filter(task => task.isCompleted).length;
-                const remainingTasks = response.data.tasks.length - completedTasks;
-                const todayEarnings = completedTasks * response.data.perVideoIncome;
-                const totalPossibleEarnings = response.data.tasks.length * response.data.perVideoIncome;
-                
-                setEarningsStats({
-                    todayEarnings,
-                    completedTasks,
-                    remainingTasks,
-                    totalPossibleEarnings
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleViewVideo = (task) => {
         if (task.isCompleted) return;
-        
+
         // Check if Intern user can earn
         if (internRestriction && !internRestriction.canEarn) {
             toast.error('Your Intern trial period has ended. Please upgrade to Rank 1 to continue earning.');
             return;
         }
-        
+
         setActiveVideo({ url: task.videoUrl, id: task._id });
         // Don't start countdown here - wait for video to actually start playing
         setCountdown(null);
@@ -99,11 +81,13 @@ export default function Task() {
             if (response.data.success) {
                 const newEarnings = earningsStats.todayEarnings + response.data.earningsAmount;
                 toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
-                
+
                 // Close video and redirect back to tasks
                 setActiveVideo(null);
                 setCountdown(null);
-                fetchTasks();
+
+                // Force refresh tasks to update status and earnings
+                await fetchTasks(true);
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to complete task');
@@ -142,33 +126,30 @@ export default function Task() {
 
             {/* Intern Restriction Warning */}
             {internRestriction && (
-                <Card className={`p-4 mb-6 border-2 ${
-                    internRestriction.canEarn 
-                        ? 'bg-amber-900/20 border-amber-600/50' 
+                <Card className={`p-4 mb-6 border-2 ${internRestriction.canEarn
+                        ? 'bg-amber-900/20 border-amber-600/50'
                         : 'bg-red-900/20 border-red-600/50'
-                }`}>
+                    }`}>
                     <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            internRestriction.canEarn 
-                                ? 'bg-amber-500/20 text-amber-400' 
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${internRestriction.canEarn
+                                ? 'bg-amber-500/20 text-amber-400'
                                 : 'bg-red-500/20 text-red-400'
-                        }`}>
+                            }`}>
                             <Clock size={16} />
                         </div>
                         <div className="flex-1">
-                            <h3 className={`font-bold text-sm mb-1 ${
-                                internRestriction.canEarn ? 'text-amber-300' : 'text-red-300'
-                            }`}>
+                            <h3 className={`font-bold text-sm mb-1 ${internRestriction.canEarn ? 'text-amber-300' : 'text-red-300'
+                                }`}>
                                 {internRestriction.canEarn ? 'Intern Trial Period' : 'Trial Period Ended'}
                             </h3>
                             <p className="text-xs text-zinc-300 mb-2">
-                                {internRestriction.canEarn 
+                                {internRestriction.canEarn
                                     ? `You have ${internRestriction.daysRemaining} day${internRestriction.daysRemaining !== 1 ? 's' : ''} remaining to earn from tasks as an Intern member.`
                                     : 'Your 4-day Intern trial period has ended. Task earning is no longer available.'
                                 }
                             </p>
                             <p className="text-xs text-zinc-400">
-                                {internRestriction.canEarn 
+                                {internRestriction.canEarn
                                     ? 'Upgrade to Rank 1 before your trial ends to continue earning without interruption.'
                                     : 'Upgrade to Rank 1 membership to resume earning from tasks.'
                                 }
@@ -210,7 +191,7 @@ export default function Task() {
                         <p className="text-xs text-zinc-500">of {formatNumber(earningsStats.totalPossibleEarnings)} ETB</p>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between text-sm mb-3">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5">
@@ -226,13 +207,13 @@ export default function Task() {
                         {tasks.length > 0 ? Math.round((earningsStats.completedTasks / tasks.length) * 100) : 0}% complete
                     </div>
                 </div>
-                
+
                 {/* Progress Bar */}
                 <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-                    <div 
+                    <div
                         className="h-full bg-gradient-to-r from-emerald-500 to-primary-500 transition-all duration-500 ease-out"
-                        style={{ 
-                            width: tasks.length > 0 ? `${(earningsStats.completedTasks / tasks.length) * 100}%` : '0%' 
+                        style={{
+                            width: tasks.length > 0 ? `${(earningsStats.completedTasks / tasks.length) * 100}%` : '0%'
                         }}
                     ></div>
                 </div>
@@ -257,47 +238,43 @@ export default function Task() {
                     </div>
                 ) : (
                     tasks.map((task) => (
-                        <Card key={task._id} className={`p-4 flex items-center gap-4 transition-all border-zinc-800 group ${
-                            internRestriction && !internRestriction.canEarn 
-                                ? 'bg-zinc-900/50 opacity-60' 
+                        <Card key={task._id} className={`p-4 flex items-center gap-4 transition-all border-zinc-800 group ${internRestriction && !internRestriction.canEarn
+                                ? 'bg-zinc-900/50 opacity-60'
                                 : 'hover:bg-zinc-800/80 bg-zinc-900'
-                        }`}>
+                            }`}>
                             <div className="relative">
-                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${
-                                    task.isCompleted 
-                                        ? 'bg-zinc-950 text-zinc-600 border border-zinc-800' 
+                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted
+                                        ? 'bg-zinc-950 text-zinc-600 border border-zinc-800'
                                         : internRestriction && !internRestriction.canEarn
                                             ? 'bg-zinc-950/50 text-zinc-700 border border-zinc-800'
                                             : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
-                                }`}>
+                                    }`}>
                                     <Video size={32} strokeWidth={1.5} className={
-                                        internRestriction && !internRestriction.canEarn 
-                                            ? '' 
+                                        internRestriction && !internRestriction.canEarn
+                                            ? ''
                                             : 'group-hover:scale-110 transition-transform'
                                     } />
                                 </div>
-                                {(task.isCompleted || (internRestriction && !internRestriction.canEarn)) && 
+                                {(task.isCompleted || (internRestriction && !internRestriction.canEarn)) &&
                                     <div className="absolute inset-0 bg-black/40 rounded-2xl" />
                                 }
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <p className={`font-bold text-sm leading-tight mb-2 truncate transition-colors ${
-                                    internRestriction && !internRestriction.canEarn 
-                                        ? 'text-zinc-500' 
+                                <p className={`font-bold text-sm leading-tight mb-2 truncate transition-colors ${internRestriction && !internRestriction.canEarn
+                                        ? 'text-zinc-500'
                                         : 'text-zinc-200 group-hover:text-primary-400'
-                                }`}>
+                                    }`}>
                                     {task.title}
                                 </p>
                                 <div className="flex items-center gap-2">
-                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                                        internRestriction && !internRestriction.canEarn
+                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${internRestriction && !internRestriction.canEarn
                                             ? 'bg-zinc-950/50 text-zinc-600 border-zinc-800'
                                             : 'bg-zinc-950 text-zinc-400 border-zinc-800'
-                                    }`}>
+                                        }`}>
                                         <span>
-                                            {internRestriction && !internRestriction.canEarn 
-                                                ? 'No Earnings' 
+                                            {internRestriction && !internRestriction.canEarn
+                                                ? 'No Earnings'
                                                 : `+${formatNumber(task.earnings)} ETB`
                                             }
                                         </span>
@@ -371,7 +348,7 @@ export default function Task() {
                                 </button>
                             </div>
                         </div>
-                        
+
                         {/* Video Player - Full screen */}
                         <div className="flex-1 flex items-center justify-center bg-black">
                             <ReactPlayer

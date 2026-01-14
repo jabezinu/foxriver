@@ -7,6 +7,7 @@ import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
 import { formatNumber } from '../utils/formatNumber';
 import { useAuthStore } from '../store/authStore';
+import { useUserStore } from '../store/userStore';
 import Modal from '../components/Modal';
 import { getServerUrl } from '../config/api.config';
 import Button from '../components/ui/Button';
@@ -14,55 +15,45 @@ import Input from '../components/ui/Input';
 
 export default function Mine() {
     const navigate = useNavigate();
-    const { user } = useAuthStore();
-    const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState(null);
-    const [wallet, setWallet] = useState({ incomeWallet: 0, personalWallet: 0 });
+    // const { user } = useAuthStore(); // We can probably use profile from userStore now, or keep authStore for auth state. 
+    // Actually, userStore profile is detailed profile, authStore user might be lighter. Let's see. 
+    // The previous code used userAPI.getProfile() to set 'profile' state.
+    // So we should use userStore.profile.
+
+    const { user: authUser } = useAuthStore();
+    const { profile, wallet, fetchProfile, fetchWallet } = useUserStore();
+
+    // Local state for UI interactions only
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileName, setProfileName] = useState('');
     const [updating, setUpdating] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-    // Calculate Intern restriction info
-    const getInternRestrictionInfo = () => {
-        if (!user || user.membershipLevel !== 'Intern') return null;
-        
-        const now = new Date();
-        const activationDate = new Date(user.membershipActivatedAt || user.createdAt);
-        const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, 4 - daysSinceActivation);
-        const canEarn = daysSinceActivation < 4;
-        
-        return {
-            canEarn,
-            daysRemaining,
-            daysSinceActivation,
-            activationDate
-        };
-    };
-
-    const internInfo = getInternRestrictionInfo();
+    // Initial load logic
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        try {
-            const [profileRes, walletRes] = await Promise.all([
-                userAPI.getProfile(),
-                userAPI.getWallet()
+        const init = async () => {
+            await Promise.all([
+                fetchProfile(),
+                fetchWallet()
             ]);
-            setProfile(profileRes.data.user);
-            setProfileName(profileRes.data.user.name || '');
-            setWallet(walletRes.data.wallet);
-        } catch (error) {
-            toast.error('Failed to load profile data');
-            console.error(error);
-        } finally {
-            setLoading(false);
+            setIsInitialLoad(false);
+        };
+        init();
+    }, [fetchProfile, fetchWallet]);
+
+    // Sync profile name when profile loads
+    useEffect(() => {
+        if (profile) {
+            setProfileName(profile.name || '');
         }
-    };
+    }, [profile]);
+
+    // We can use isInitialLoad to show the skeleton/spinner only on the VERY first visit 
+    // or if we really have no data.
+    // If we have profile data in store, we render immediately.
+    const isLoading = isInitialLoad && !profile;
 
     const handleUpdateProfile = async () => {
         if (!profileName.trim()) {
@@ -75,7 +66,7 @@ export default function Mine() {
             await userAPI.updateProfile({ name: profileName.trim() });
             toast.success('Profile updated successfully');
             setShowProfileModal(false);
-            fetchData();
+            refreshData();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update profile');
         } finally {
@@ -106,7 +97,7 @@ export default function Mine() {
 
             await userAPI.uploadProfilePhoto(formData);
             toast.success('Profile photo updated successfully');
-            fetchData();
+            refreshData();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to upload photo');
         } finally {
@@ -120,7 +111,7 @@ export default function Mine() {
         try {
             await userAPI.deleteProfilePhoto();
             toast.success('Profile photo deleted successfully');
-            fetchData();
+            refreshData();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete photo');
         }
@@ -136,7 +127,38 @@ export default function Mine() {
         return `${getServerUrl()}${profile.profilePhoto}`;
     };
 
-    if (loading) return <Loading />;
+    // Calculate Intern restriction info
+    // Use profile if available, otherwise authUser
+    const currentUser = profile || authUser;
+
+    const getInternRestrictionInfo = () => {
+        if (!currentUser || currentUser.membershipLevel !== 'Intern') return null;
+
+        const now = new Date();
+        const activationDate = new Date(currentUser.membershipActivatedAt || currentUser.createdAt);
+        const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.max(0, 4 - daysSinceActivation);
+        const canEarn = daysSinceActivation < 4;
+
+        return {
+            canEarn,
+            daysRemaining,
+            daysSinceActivation,
+            activationDate
+        };
+    };
+
+    const internInfo = getInternRestrictionInfo();
+
+    // Helper to refresh data after updates
+    const refreshData = async () => {
+        await Promise.all([
+            fetchProfile(true), // Force refresh
+            fetchWallet(true)
+        ]);
+    };
+
+    if (isLoading) return <Loading />;
 
     return (
         <div className="animate-fade-in min-h-screen pb-24">
@@ -214,33 +236,30 @@ export default function Mine() {
 
                 {/* Intern Restriction Info */}
                 {internInfo && (
-                    <Card className={`p-4 mb-6 border-2 ${
-                        internInfo.canEarn 
-                            ? 'bg-amber-900/20 border-amber-600/50' 
-                            : 'bg-red-900/20 border-red-600/50'
-                    }`}>
+                    <Card className={`p-4 mb-6 border-2 ${internInfo.canEarn
+                        ? 'bg-amber-900/20 border-amber-600/50'
+                        : 'bg-red-900/20 border-red-600/50'
+                        }`}>
                         <div className="flex items-start gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                internInfo.canEarn 
-                                    ? 'bg-amber-500/20 text-amber-400' 
-                                    : 'bg-red-500/20 text-red-400'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${internInfo.canEarn
+                                ? 'bg-amber-500/20 text-amber-400'
+                                : 'bg-red-500/20 text-red-400'
+                                }`}>
                                 {internInfo.canEarn ? <Clock size={16} /> : <AlertTriangle size={16} />}
                             </div>
                             <div className="flex-1">
-                                <h3 className={`font-bold text-sm mb-1 ${
-                                    internInfo.canEarn ? 'text-amber-300' : 'text-red-300'
-                                }`}>
+                                <h3 className={`font-bold text-sm mb-1 ${internInfo.canEarn ? 'text-amber-300' : 'text-red-300'
+                                    }`}>
                                     {internInfo.canEarn ? 'Intern Trial Period' : 'Trial Period Ended'}
                                 </h3>
                                 <p className="text-xs text-zinc-300 mb-2">
-                                    {internInfo.canEarn 
+                                    {internInfo.canEarn
                                         ? `You have ${internInfo.daysRemaining} day${internInfo.daysRemaining !== 1 ? 's' : ''} remaining to earn from tasks.`
                                         : 'Your 4-day Intern trial period has ended. Task earning is no longer available.'
                                     }
                                 </p>
                                 <p className="text-xs text-zinc-400">
-                                    {internInfo.canEarn 
+                                    {internInfo.canEarn
                                         ? 'Upgrade to Rank 1 before your trial ends to continue earning.'
                                         : 'Upgrade to Rank 1 membership to resume earning from tasks.'
                                     }
@@ -359,9 +378,9 @@ export default function Mine() {
                     />
                     <p className="text-xs text-zinc-500">This name will be displayed on your profile.</p>
                     <div className="pt-2">
-                        <Button 
-                            onClick={handleUpdateProfile} 
-                            fullWidth 
+                        <Button
+                            onClick={handleUpdateProfile}
+                            fullWidth
                             className="shadow-glow"
                             disabled={updating}
                         >
