@@ -14,24 +14,33 @@ const {
     updateSystemSettings,
     getAllCommissions,
     processMonthlySalaries,
-    processUserSalary
+    processUserSalary,
+    getAllAdmins,
+    updateAdminPermissions,
+    createAdmin
 } = require('../controllers/adminController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, superAdminOnly, checkPermission } = require('../middlewares/auth');
 
 router.get('/stats', protect, adminOnly, getStats);
-router.get('/users', protect, adminOnly, getAllUsers);
-router.put('/users/restrict-all', protect, adminOnly, restrictAllUsers);
-router.get('/users/:id', protect, adminOnly, getUserDetails);
-router.put('/users/:id', protect, adminOnly, updateUser);
-router.delete('/users/:id', protect, adminOnly, deleteUser);
-router.get('/users/:id/deposits', protect, adminOnly, getUserDepositHistory);
-router.get('/users/:id/withdrawals', protect, adminOnly, getUserWithdrawalHistory);
+router.get('/users', protect, adminOnly, checkPermission('manage_users'), getAllUsers);
+router.put('/users/restrict-all', protect, adminOnly, checkPermission('manage_users'), restrictAllUsers);
+router.get('/users/:id', protect, adminOnly, checkPermission('manage_users'), getUserDetails);
+router.put('/users/:id', protect, adminOnly, checkPermission('manage_users'), updateUser);
+router.delete('/users/:id', protect, adminOnly, checkPermission('manage_users'), deleteUser);
+router.get('/users/:id/deposits', protect, adminOnly, checkPermission('manage_users'), getUserDepositHistory);
+router.get('/users/:id/withdrawals', protect, adminOnly, checkPermission('manage_users'), getUserWithdrawalHistory);
 router.put('/profile', protect, adminOnly, updateAdminProfile);
 
-router.get('/settings', protect, adminOnly, getSystemSettings);
-router.put('/settings', protect, adminOnly, updateSystemSettings);
-router.get('/commissions', protect, adminOnly, getAllCommissions);
-router.post('/salaries/process', protect, adminOnly, processMonthlySalaries);
-router.post('/salaries/process/:userId', protect, adminOnly, processUserSalary);
+router.get('/settings', protect, adminOnly, checkPermission('manage_system_settings'), getSystemSettings);
+router.put('/settings', protect, adminOnly, checkPermission('manage_system_settings'), updateSystemSettings);
+router.get('/commissions', protect, adminOnly, checkPermission('manage_referrals'), getAllCommissions);
+router.post('/salaries/process', protect, adminOnly, checkPermission('manage_membership'), processMonthlySalaries);
+router.post('/salaries/process/:userId', protect, adminOnly, checkPermission('manage_membership'), processUserSalary);
+
+// Super Admin Only routes for Admin Management
+router.get('/admins', protect, superAdminOnly, getAllAdmins);
+router.post('/admins', protect, superAdminOnly, createAdmin);
+router.put('/admins/:id/permissions', protect, superAdminOnly, updateAdminPermissions);
+router.delete('/admins/:id', protect, superAdminOnly, deleteUser); // Use existing deleteUser but only for superadmin access here
 
 module.exports = router;

@@ -36,9 +36,9 @@ exports.protect = async (req, res, next) => {
     }
 };
 
-// Admin only middleware
+// Admin only middleware (allows admin and superadmin)
 exports.adminOnly = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'superadmin')) {
         next();
     } else {
         res.status(403).json({
@@ -46,6 +46,44 @@ exports.adminOnly = (req, res, next) => {
             message: 'Access denied. Admin only.',
         });
     }
+};
+
+// Super Admin only middleware
+exports.superAdminOnly = (req, res, next) => {
+    if (req.user && req.user.role === 'superadmin') {
+        next();
+    } else {
+        res.status(403).json({
+            success: false,
+            message: 'Access denied. Super Admin only.',
+        });
+    }
+};
+
+// Permission check middleware
+exports.checkPermission = (permission) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        // Super Admin has all permissions
+        if (req.user.role === 'superadmin') {
+            return next();
+        }
+
+        if (req.user.role === 'admin' && req.user.permissions && req.user.permissions.includes(permission)) {
+            return next();
+        }
+
+        res.status(403).json({
+            success: false,
+            message: `Access denied. Missing permission: ${permission}`,
+        });
+    };
 };
 
 // Check if user is Rank 1 or higher (Now allows Interns too)

@@ -15,7 +15,7 @@ export const useAdminAuthStore = create((set) => ({
             const response = await adminAuthAPI.login(credentials);
             const { token, user } = response.data;
 
-            if (user.role !== 'admin') {
+            if (user.role !== 'admin' && user.role !== 'superadmin') {
                 throw new Error('Not authorized as admin');
             }
 
@@ -67,7 +67,7 @@ export const useAdminAuthStore = create((set) => ({
             localStorage.setItem('foxriver_admin_last_active', now.toString());
 
             const response = await adminAuthAPI.verify();
-            if (response.data.user.role === 'admin') {
+            if (response.data.user.role === 'admin' || response.data.user.role === 'superadmin') {
                 set({
                     admin: response.data.user,
                     isAuthenticated: true,

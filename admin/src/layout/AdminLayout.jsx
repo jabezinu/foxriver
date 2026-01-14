@@ -60,21 +60,33 @@ export default function AdminLayout() {
 
     const menuItems = [
         { path: '/', icon: HiChartBar, label: 'Dashboard' },
-        { path: '/users', icon: HiUsers, label: 'Users' },
-        { path: '/deposits', icon: HiCurrencyDollar, label: 'Deposits' },
-        { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals' },
-        { path: '/tasks', icon: HiVideoCamera, label: 'Tasks' },
-        { path: '/courses', icon: HiAcademicCap, label: 'Courses' },
-        { path: '/wealth-funds', icon: HiTrendingUp, label: 'Wealth Funds' },
-        { path: '/qna', icon: HiPhotograph, label: 'Q&A' },
-        { path: '/messages', icon: HiChat, label: 'Messages' },
-        { path: '/news', icon: HiNewspaper, label: 'News' },
-        { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine' },
-        { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings' },
-        { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management' },
-        { path: '/membership-management', icon: HiShieldCheck, label: 'Membership Management' },
-        { path: '/system-settings', icon: HiDesktopComputer, label: 'System Settings' },
+        { path: '/users', icon: HiUsers, label: 'Users', permission: 'manage_users' },
+        { path: '/deposits', icon: HiCurrencyDollar, label: 'Deposits', permission: 'manage_deposits' },
+        { path: '/withdrawals', icon: HiBriefcase, label: 'Withdrawals', permission: 'manage_withdrawals' },
+        { path: '/tasks', icon: HiVideoCamera, label: 'Tasks', permission: 'manage_tasks' },
+        { path: '/courses', icon: HiAcademicCap, label: 'Courses', permission: 'manage_courses' },
+        { path: '/wealth-funds', icon: HiTrendingUp, label: 'Wealth Funds', permission: 'manage_wealth' },
+        { path: '/qna', icon: HiPhotograph, label: 'Q&A', permission: 'manage_qna' },
+        { path: '/messages', icon: HiChat, label: 'Messages', permission: 'manage_messages' },
+        { path: '/news', icon: HiNewspaper, label: 'News', permission: 'manage_news' },
+        { path: '/slot-machine', icon: HiRefresh, label: 'Slot Machine', permission: 'manage_slot_machine' },
+        { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings', permission: 'manage_bank_settings' },
+        { path: '/referral-management', icon: HiAdjustments, label: 'Referral Management', permission: 'manage_referrals' },
+        { path: '/membership-management', icon: HiShieldCheck, label: 'Membership Management', permission: 'manage_membership' },
+        { path: '/system-settings', icon: HiDesktopComputer, label: 'System Settings', permission: 'manage_system_settings' },
     ];
+
+    // Filter menu items based on permissions
+    const filteredMenuItems = menuItems.filter(item => {
+        if (!item.permission) return true; // Always allow dashboard
+        if (admin?.role === 'superadmin') return true;
+        return admin?.permissions?.includes(item.permission);
+    });
+
+    // Add Admin Management for superadmins
+    if (admin?.role === 'superadmin') {
+        filteredMenuItems.push({ path: '/admin-management', icon: HiShieldCheck, label: 'Admin Management' });
+    }
 
     const handleLogout = () => {
         logout();
@@ -136,7 +148,7 @@ export default function AdminLayout() {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
-                    {menuItems.map((item) => (
+                    {filteredMenuItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
@@ -158,7 +170,9 @@ export default function AdminLayout() {
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-xs font-bold truncate">{admin?.phone}</p>
-                            <p className="text-[10px] text-gray-400 uppercase">Super Admin</p>
+                            <p className="text-[10px] text-gray-400 uppercase">
+                                {admin?.role === 'superadmin' ? 'Super Admin' : 'Administrator'}
+                            </p>
                         </div>
                     </div>
                     <button

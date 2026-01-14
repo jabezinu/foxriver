@@ -39,7 +39,7 @@ const seedDatabase = async () => {
             await User.create({
                 phone: adminPhone,
                 password: adminPassword,
-                role: 'admin',
+                role: 'superadmin',
                 membershipLevel: 'Rank 10',
                 invitationCode: 'FXRADMIN001'
             });

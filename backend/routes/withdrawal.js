@@ -7,12 +7,12 @@ const {
     approveWithdrawal,
     rejectWithdrawal
 } = require('../controllers/withdrawalController');
-const { protect, adminOnly, isV1OrHigher } = require('../middlewares/auth');
+const { protect, adminOnly, isV1OrHigher, checkPermission } = require('../middlewares/auth');
 
 router.post('/create', protect, isV1OrHigher, createWithdrawal);
 router.get('/user', protect, getUserWithdrawals);
-router.get('/all', protect, adminOnly, getAllWithdrawals);
-router.put('/:id/approve', protect, adminOnly, approveWithdrawal);
-router.put('/:id/reject', protect, adminOnly, rejectWithdrawal);
+router.get('/all', protect, adminOnly, checkPermission('manage_withdrawals'), getAllWithdrawals);
+router.put('/:id/approve', protect, adminOnly, checkPermission('manage_withdrawals'), approveWithdrawal);
+router.put('/:id/reject', protect, adminOnly, checkPermission('manage_withdrawals'), rejectWithdrawal);
 
 module.exports = router;

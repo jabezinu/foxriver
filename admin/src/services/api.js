@@ -138,6 +138,13 @@ export const adminMembershipAPI = {
     bulkUpdatePrices: (data) => api.put('/memberships/admin/bulk-update-prices', data),
 };
 
+export const adminManagementAPI = {
+    getAdmins: () => api.get('/admin/admins'),
+    createAdmin: (data) => api.post('/admin/admins', data),
+    updatePermissions: (id, data) => api.put(`/admin/admins/${id}/permissions`, data),
+    deleteAdmin: (id) => api.delete(`/admin/admins/${id}`),
+};
+
 export const adminCoursesAPI = {
     getCategories: () => api.get('/courses/admin/categories'),
     createCategory: (data) => api.post('/courses/admin/categories', data),

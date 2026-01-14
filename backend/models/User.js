@@ -25,9 +25,28 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin', 'superadmin'],
         default: 'user'
     },
+    permissions: [{
+        type: String,
+        enum: [
+            'manage_users',
+            'manage_deposits',
+            'manage_withdrawals',
+            'manage_tasks',
+            'manage_courses',
+            'manage_wealth',
+            'manage_qna',
+            'manage_messages',
+            'manage_news',
+            'manage_slot_machine',
+            'manage_bank_settings',
+            'manage_referrals',
+            'manage_membership',
+            'manage_system_settings'
+        ]
+    }],
     membershipLevel: {
         type: String,
         enum: ['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'],
@@ -158,11 +177,11 @@ userSchema.methods.canInternEarn = function () {
     if (this.membershipLevel !== 'Intern') {
         return true; // Non-interns can always earn
     }
-    
+
     const now = new Date();
     const activationDate = this.membershipActivatedAt || this.createdAt;
     const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
-    
+
     return daysSinceActivation < 4;
 };
 
@@ -171,11 +190,11 @@ userSchema.methods.getInternDaysRemaining = function () {
     if (this.membershipLevel !== 'Intern') {
         return null;
     }
-    
+
     const now = new Date();
     const activationDate = this.membershipActivatedAt || this.createdAt;
     const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
-    
+
     return Math.max(0, 4 - daysSinceActivation);
 };
 

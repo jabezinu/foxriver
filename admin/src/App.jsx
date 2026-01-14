@@ -23,6 +23,7 @@ const MembershipManagement = lazy(() => import('./pages/MembershipManagement'));
 const SystemSettings = lazy(() => import('./pages/SystemSettings'));
 const Courses = lazy(() => import('./pages/Courses'));
 const WealthFunds = lazy(() => import('./pages/WealthFunds'));
+const AdminManagement = lazy(() => import('./pages/AdminManagement'));
 
 // Loading component
 const PageLoader = () => (
@@ -90,6 +91,7 @@ function App() {
             <Route path="system-settings" element={<SystemSettings />} />
             <Route path="courses" element={<Courses />} />
             <Route path="wealth-funds" element={<WealthFunds />} />
+            <Route path="admin-management" element={<AdminManagement />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

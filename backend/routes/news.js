@@ -7,12 +7,12 @@ const {
     updateNews,
     deleteNews
 } = require('../controllers/newsController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
 router.get('/', getNews);
 router.get('/popup', getPopupNews);
-router.post('/', protect, adminOnly, createNews);
-router.put('/:id', protect, adminOnly, updateNews);
-router.delete('/:id', protect, adminOnly, deleteNews);
+router.post('/', protect, adminOnly, checkPermission('manage_news'), createNews);
+router.put('/:id', protect, adminOnly, checkPermission('manage_news'), updateNews);
+router.delete('/:id', protect, adminOnly, checkPermission('manage_news'), deleteNews);
 
 module.exports = router;

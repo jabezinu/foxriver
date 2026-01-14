@@ -300,6 +300,14 @@ exports.deleteUser = async (req, res) => {
             });
         }
 
+        // Prevent admins from deleting themselves
+        if (userId === req.user.id.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot delete your own account'
+            });
+        }
+
         // 1. Delete user's deposits
         await Deposit.deleteMany({ user: userId });
 
@@ -575,6 +583,126 @@ exports.processUserSalary = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Error processing salary'
+        });
+    }
+};
+// @desc    Get all admins
+// @route   GET /api/admin/admins
+// @access  Private/SuperAdmin
+exports.getAllAdmins = async (req, res) => {
+    try {
+        const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } })
+            .select('-password -transactionPassword')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: admins.length,
+            admins
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Update admin permissions or role
+// @route   PUT /api/admin/admins/:id/permissions
+// @access  Private/SuperAdmin
+exports.updateAdminPermissions = async (req, res) => {
+    try {
+        const { role, permissions } = req.body;
+        const adminId = req.params.id;
+
+        // Prevent superadmin from downgrading themselves via this route
+        // (though they could technically do it via profile update if not careful, 
+        // but here we restrict the admin management route)
+        if (adminId === req.user.id.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot change your own permissions or role via this route'
+            });
+        }
+
+        const admin = await User.findById(adminId);
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
+
+        if (role) {
+            if (!['admin', 'superadmin', 'user'].includes(role)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid role'
+                });
+            }
+            admin.role = role;
+        }
+
+        if (permissions) {
+            admin.permissions = permissions;
+        }
+
+        await admin.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Admin updated successfully',
+            admin
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
+// @desc    Create new admin
+// @route   POST /api/admin/admins
+// @access  Private/SuperAdmin
+exports.createAdmin = async (req, res) => {
+    try {
+        const { phone, password, role, permissions } = req.body;
+
+        // Check if user already exists
+        const userExists = await User.findOne({ phone });
+        if (userExists) {
+            return res.status(400).json({
+                success: false,
+                message: 'User with this phone number already exists'
+            });
+        }
+
+        const admin = await User.create({
+            phone,
+            password,
+            role: role || 'admin',
+            permissions: permissions || [],
+            membershipLevel: 'Rank 10', // Admins get max rank
+            isActive: true
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Admin created successfully',
+            admin: {
+                id: admin._id,
+                phone: admin.phone,
+                role: admin.role,
+                permissions: admin.permissions
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error'
         });
     }
 };

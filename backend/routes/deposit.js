@@ -8,13 +8,13 @@ const {
     approveDeposit,
     rejectDeposit
 } = require('../controllers/depositController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
 router.post('/create', protect, createDeposit);
 router.post('/submit-ft', protect, submitTransactionFT);
 router.get('/user', protect, getUserDeposits);
-router.get('/all', protect, adminOnly, getAllDeposits);
-router.put('/:id/approve', protect, adminOnly, approveDeposit);
-router.put('/:id/reject', protect, adminOnly, rejectDeposit);
+router.get('/all', protect, adminOnly, checkPermission('manage_deposits'), getAllDeposits);
+router.put('/:id/approve', protect, adminOnly, checkPermission('manage_deposits'), approveDeposit);
+router.put('/:id/reject', protect, adminOnly, checkPermission('manage_deposits'), rejectDeposit);
 
 module.exports = router;
