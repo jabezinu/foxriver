@@ -1,6 +1,36 @@
 const WealthFund = require('../models/WealthFund');
 const WealthInvestment = require('../models/WealthInvestment');
 const User = require('../models/User');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/wealth');
+    },
+    filename: function (req, file, cb) {
+        cb(null, `wealth-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5000000 }, // 5MB
+    fileFilter: function (req, file, cb) {
+        const filetypes = /jpeg|jpg|png|gif|webp/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    }
+});
+
+exports.uploadWealthImage = upload.single('image');
 
 // @desc    Get all active wealth funds
 // @route   GET /api/wealth/funds
@@ -8,7 +38,7 @@ const User = require('../models/User');
 exports.getWealthFunds = async (req, res) => {
     try {
         const funds = await WealthFund.find({ isActive: true }).sort({ createdAt: -1 });
-        
+
         res.status(200).json({
             success: true,
             data: funds
@@ -27,14 +57,14 @@ exports.getWealthFunds = async (req, res) => {
 exports.getWealthFund = async (req, res) => {
     try {
         const fund = await WealthFund.findById(req.params.id);
-        
+
         if (!fund) {
             return res.status(404).json({
                 success: false,
                 message: 'Wealth fund not found'
             });
         }
-        
+
         res.status(200).json({
             success: true,
             data: fund
@@ -54,7 +84,7 @@ exports.createInvestment = async (req, res) => {
     try {
         console.log('Investment request body:', req.body);
         const { wealthFundId, amount, fundingSource, transactionPassword } = req.body;
-        
+
         // Validate input
         if (!wealthFundId || !amount || !fundingSource) {
             return res.status(400).json({
@@ -62,7 +92,7 @@ exports.createInvestment = async (req, res) => {
                 message: 'Please provide all required fields'
             });
         }
-        
+
         // Get wealth fund
         const fund = await WealthFund.findById(wealthFundId);
         if (!fund || !fund.isActive) {
@@ -71,7 +101,7 @@ exports.createInvestment = async (req, res) => {
                 message: 'Wealth fund not found or inactive'
             });
         }
-        
+
         // Check minimum deposit
         if (parseFloat(amount) < fund.minimumDeposit) {
             return res.status(400).json({
@@ -79,10 +109,10 @@ exports.createInvestment = async (req, res) => {
                 message: `Minimum deposit is ${fund.minimumDeposit} ETB`
             });
         }
-        
+
         // Get user with transaction password
         const user = await User.findById(req.user.id).select('+transactionPassword');
-        
+
         // Verify transaction password if provided
         if (transactionPassword) {
             if (!user.transactionPassword) {
@@ -91,7 +121,7 @@ exports.createInvestment = async (req, res) => {
                     message: 'Please set up your transaction password first'
                 });
             }
-            
+
             const isPasswordValid = await user.matchTransactionPassword(transactionPassword);
             if (!isPasswordValid) {
                 return res.status(400).json({
@@ -100,14 +130,14 @@ exports.createInvestment = async (req, res) => {
                 });
             }
         }
-        
+
         // Validate funding source
         const { incomeWallet = 0, personalWallet = 0 } = fundingSource;
         const incomeAmount = parseFloat(incomeWallet) || 0;
         const personalAmount = parseFloat(personalWallet) || 0;
         const investAmount = parseFloat(amount);
         const totalFunding = incomeAmount + personalAmount;
-        
+
         // Use a small epsilon for floating point comparison
         if (Math.abs(totalFunding - investAmount) > 0.01) {
             return res.status(400).json({
@@ -115,7 +145,7 @@ exports.createInvestment = async (req, res) => {
                 message: 'Funding source amounts must equal investment amount'
             });
         }
-        
+
         // Check if user has sufficient balance
         if (user.incomeWallet < incomeAmount) {
             return res.status(400).json({
@@ -123,14 +153,14 @@ exports.createInvestment = async (req, res) => {
                 message: 'Insufficient income wallet balance'
             });
         }
-        
+
         if (user.personalWallet < personalAmount) {
             return res.status(400).json({
                 success: false,
                 message: 'Insufficient personal wallet balance'
             });
         }
-        
+
         // Calculate total revenue
         let totalRevenue;
         if (fund.profitType === 'percentage') {
@@ -139,12 +169,12 @@ exports.createInvestment = async (req, res) => {
         } else {
             totalRevenue = investAmount + (fund.dailyProfit * fund.days);
         }
-        
+
         // Deduct from user wallets
         user.incomeWallet -= incomeAmount;
         user.personalWallet -= personalAmount;
         await user.save();
-        
+
         // Create investment
         const investment = await WealthInvestment.create({
             user: req.user.id,
@@ -159,9 +189,9 @@ exports.createInvestment = async (req, res) => {
             days: fund.days,
             totalRevenue
         });
-        
+
         const populatedInvestment = await WealthInvestment.findById(investment._id).populate('wealthFund');
-        
+
         res.status(201).json({
             success: true,
             message: 'Investment created successfully',
@@ -184,7 +214,7 @@ exports.getMyInvestments = async (req, res) => {
         const investments = await WealthInvestment.find({ user: req.user.id })
             .populate('wealthFund')
             .sort({ createdAt: -1 });
-        
+
         res.status(200).json({
             success: true,
             data: investments
@@ -203,7 +233,7 @@ exports.getMyInvestments = async (req, res) => {
 exports.getAllWealthFunds = async (req, res) => {
     try {
         const funds = await WealthFund.find().sort({ createdAt: -1 });
-        
+
         res.status(200).json({
             success: true,
             data: funds
@@ -221,8 +251,14 @@ exports.getAllWealthFunds = async (req, res) => {
 // @access  Private/Admin
 exports.createWealthFund = async (req, res) => {
     try {
-        const fund = await WealthFund.create(req.body);
-        
+        const fundData = { ...req.body };
+
+        if (req.file) {
+            fundData.image = `/uploads/wealth/${req.file.filename}`;
+        }
+
+        const fund = await WealthFund.create(fundData);
+
         res.status(201).json({
             success: true,
             message: 'Wealth fund created successfully',
@@ -241,19 +277,25 @@ exports.createWealthFund = async (req, res) => {
 // @access  Private/Admin
 exports.updateWealthFund = async (req, res) => {
     try {
+        const fundData = { ...req.body };
+
+        if (req.file) {
+            fundData.image = `/uploads/wealth/${req.file.filename}`;
+        }
+
         const fund = await WealthFund.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            fundData,
             { new: true, runValidators: true }
         );
-        
+
         if (!fund) {
             return res.status(404).json({
                 success: false,
                 message: 'Wealth fund not found'
             });
         }
-        
+
         res.status(200).json({
             success: true,
             message: 'Wealth fund updated successfully',
@@ -273,14 +315,14 @@ exports.updateWealthFund = async (req, res) => {
 exports.deleteWealthFund = async (req, res) => {
     try {
         const fund = await WealthFund.findByIdAndDelete(req.params.id);
-        
+
         if (!fund) {
             return res.status(404).json({
                 success: false,
                 message: 'Wealth fund not found'
             });
         }
-        
+
         res.status(200).json({
             success: true,
             message: 'Wealth fund deleted successfully'
@@ -302,7 +344,7 @@ exports.getAllInvestments = async (req, res) => {
             .populate('user', 'name phone')
             .populate('wealthFund')
             .sort({ createdAt: -1 });
-        
+
         res.status(200).json({
             success: true,
             data: investments

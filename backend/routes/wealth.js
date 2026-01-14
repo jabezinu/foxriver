@@ -9,7 +9,8 @@ const {
     createWealthFund,
     updateWealthFund,
     deleteWealthFund,
-    getAllInvestments
+    getAllInvestments,
+    uploadWealthImage
 } = require('../controllers/wealthController');
 const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
@@ -21,8 +22,8 @@ router.get('/my-investments', protect, getMyInvestments);
 
 // Admin routes
 router.get('/admin/funds', protect, adminOnly, checkPermission('manage_wealth'), getAllWealthFunds);
-router.post('/admin/funds', protect, adminOnly, checkPermission('manage_wealth'), createWealthFund);
-router.put('/admin/funds/:id', protect, adminOnly, checkPermission('manage_wealth'), updateWealthFund);
+router.post('/admin/funds', protect, adminOnly, checkPermission('manage_wealth'), uploadWealthImage, createWealthFund);
+router.put('/admin/funds/:id', protect, adminOnly, checkPermission('manage_wealth'), uploadWealthImage, updateWealthFund);
 router.delete('/admin/funds/:id', protect, adminOnly, checkPermission('manage_wealth'), deleteWealthFund);
 router.get('/admin/investments', protect, adminOnly, checkPermission('manage_wealth'), getAllInvestments);
 

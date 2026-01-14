@@ -156,4 +156,16 @@ export const adminCoursesAPI = {
     deleteCourse: (id) => api.delete(`/courses/admin/courses/${id}`),
 };
 
+export const adminWealthAPI = {
+    getAllFunds: () => api.get('/wealth/admin/funds'),
+    createFund: (data) => api.post('/wealth/admin/funds', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    updateFund: (id, data) => api.put(`/wealth/admin/funds/${id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    deleteFund: (id) => api.delete(`/wealth/admin/funds/${id}`),
+    getAllInvestments: () => api.get('/wealth/admin/investments'),
+};
+
 export default api;
