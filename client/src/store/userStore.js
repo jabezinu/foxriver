@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { userAPI } from '../services/api';
+import { userAPI, taskAPI } from '../services/api';
 
 export const useUserStore = create((set, get) => ({
     wallet: { incomeWallet: 0, personalWallet: 0 },
@@ -100,10 +100,7 @@ export const useUserStore = create((set, get) => ({
             // We need taskAPI here. It wasn't imported. I need to update imports.
             // But wait, existing code imports userAPI. I need to check if taskAPI is exported from '../services/api'. 
             // It was used in Task.jsx.
-            const { taskAPI } = await import('../services/api'); // Dynamic import to avoid circular dep if any, or just import at top. 
-            // Better to import at top. I will do a separate edit for imports. Use dynamic for now or assume I'll fix imports.
-            // Actually, I can't easily add top-level import with replace_file_content unless I target top. 
-            // I'll assume I will fix imports in next step or use dynamic import which is safe.
+
             const response = await taskAPI.getDailyTasks();
 
             const data = response.data;
@@ -147,9 +144,15 @@ export const useUserStore = create((set, get) => ({
         set({
             wallet: { incomeWallet: 0, personalWallet: 0 },
             profile: null,
+            tasks: [],
+            dailyStats: { dailyIncome: 0, perVideoIncome: 0 },
+            internRestriction: null,
+            isSunday: false,
+            earningsStats: null,
             lastWalletFetch: 0,
             lastProfileFetch: 0,
-            loading: { wallet: false, profile: false },
+            lastTasksFetch: 0,
+            loading: { wallet: false, profile: false, tasks: false },
             error: null
         });
     }

@@ -43,17 +43,19 @@ export default function Mine() {
         init();
     }, [fetchProfile, fetchWallet]);
 
-    // Sync profile name when profile loads
     useEffect(() => {
         if (profile) {
             setProfileName(profile.name || '');
         }
     }, [profile]);
 
-    // We can use isInitialLoad to show the skeleton/spinner only on the VERY first visit 
-    // or if we really have no data.
-    // If we have profile data in store, we render immediately.
-    const isLoading = isInitialLoad && !profile;
+    // Helper to refresh data after updates
+    const refreshData = async () => {
+        await Promise.all([
+            fetchProfile(true), // Force refresh
+            fetchWallet(true)
+        ]);
+    };
 
     const handleUpdateProfile = async () => {
         if (!profileName.trim()) {
@@ -150,15 +152,24 @@ export default function Mine() {
 
     const internInfo = getInternRestrictionInfo();
 
-    // Helper to refresh data after updates
-    const refreshData = async () => {
-        await Promise.all([
-            fetchProfile(true), // Force refresh
-            fetchWallet(true)
-        ]);
-    };
+    // We can use isInitialLoad to show the skeleton/spinner only on the VERY first visit 
+    // or if we really have no data.
+    // If we have profile data in store, we render immediately.
+    const isLoading = isInitialLoad && !profile;
 
     if (isLoading) return <Loading />;
+
+    // Safety check if profile failed to load
+    if (!profile) {
+        return (
+            <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+                <div className="text-center">
+                    <p className="text-zinc-500 mb-4">Failed to load profile data.</p>
+                    <Button onClick={refreshData} size="sm">Retry</Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-fade-in min-h-screen pb-24">
