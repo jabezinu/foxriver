@@ -92,14 +92,20 @@ function App() {
 
   const checkSystemSettings = async () => {
     try {
-      const response = await fetch(`${getApiUrl()}/system/settings`);
-      
+      const response = await fetch(`${getApiUrl()}/system/settings`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
       if (!response.ok) {
         throw new Error('Failed to fetch system settings');
       }
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setFrontendDisabled(data.settings?.frontendDisabled || false);
       }
@@ -124,8 +130,8 @@ function App() {
   // Show loading spinner while checking system settings
   if (systemSettingsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
@@ -143,7 +149,7 @@ function App() {
           },
         }}
       />
-      
+
       {/* News Popup - Shows on login/register */}
       {shouldShowNewsPopup && latestNews && (
         <NewsPopup news={latestNews} onClose={handleCloseNewsPopup} />
