@@ -21,15 +21,15 @@ export default function SystemSettings() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            
+
             // Check if response is HTML (backend not running)
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 throw new Error('Backend server is not running or API endpoint not found');
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success && data.settings) {
                 setSettings(data.settings);
             } else if (data.success && data.data) {
@@ -46,7 +46,39 @@ export default function SystemSettings() {
         }
     };
 
-     const toggleFrontend = async () => {
+    const toggleTasks = async () => {
+        setUpdating(true);
+        try {
+            const token = localStorage.getItem('foxriver_admin_token');
+            const response = await fetch(`${getApiUrl()}/admin/settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    tasksDisabled: !settings?.tasksDisabled
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // The backend returns either data.settings or data.data
+                setSettings(data.settings || data.data);
+                toast.success(`Tasks ${!settings?.tasksDisabled ? 'disabled' : 'enabled'} successfully`);
+            } else {
+                toast.error('Failed to update task status');
+            }
+        } catch (error) {
+            console.error('Error updating task status:', error);
+            toast.error('Failed to update task status');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const toggleFrontend = async () => {
         setUpdating(true);
         try {
             const token = localStorage.getItem('foxriver_admin_token');
@@ -137,7 +169,7 @@ export default function SystemSettings() {
                         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
                         <p className="text-sm text-gray-500">Manage system-wide configuration and controls.</p>
                     </div>
-                    <button 
+                    <button
                         onClick={fetchSettings}
                         className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider w-full md:w-auto justify-center"
                     >
@@ -177,7 +209,7 @@ export default function SystemSettings() {
                     <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
                     <p className="text-sm text-gray-500">Manage system-wide configuration and controls.</p>
                 </div>
-                <button 
+                <button
                     onClick={fetchSettings}
                     className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider w-full md:w-auto justify-center"
                 >
@@ -193,15 +225,15 @@ export default function SystemSettings() {
                         <h3 className="text-lg font-bold text-gray-800">Salary Processing</h3>
                         <HiCash className="text-2xl text-gray-400" />
                     </div>
-                    
+
                     <div className="space-y-4">
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
                             <p className="text-sm text-blue-800 mb-3">
                                 <span className="font-bold">Automatic Processing:</span> The system automatically processes salaries daily at 00:01 AM (Ethiopian Time). Users who meet the salary requirements will receive their monthly payment automatically.
                             </p>
                             <p className="text-xs text-blue-600">
-                                ✓ Runs daily to check eligibility<br/>
-                                ✓ Prevents duplicate payments per month<br/>
+                                ✓ Runs daily to check eligibility<br />
+                                ✓ Prevents duplicate payments per month<br />
                                 ✓ Credits income wallet automatically
                             </p>
                         </div>
@@ -210,15 +242,15 @@ export default function SystemSettings() {
                             <p className="text-sm text-gray-600 mb-3">
                                 You can manually trigger salary processing for all eligible users. This is useful for testing or if you need to process salaries immediately.
                             </p>
-                            
+
                             <button
                                 onClick={processSalaries}
                                 disabled={processingSalaries}
                                 className={`
                                     w-full py-3 px-4 rounded-xl font-bold text-sm uppercase tracking-wider
                                     flex items-center justify-center gap-2
-                                    ${processingSalaries 
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                    ${processingSalaries
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                         : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-lg'
                                     }
                                     transition-all
@@ -256,13 +288,13 @@ export default function SystemSettings() {
                         <h3 className="text-lg font-bold text-gray-800">Frontend Control</h3>
                         <HiCog className="text-2xl text-gray-400" />
                     </div>
-                    
+
                     <div className="space-y-4">
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <p className="text-sm text-gray-600 mb-3">
                                 Control the visibility of the user-facing frontend. When disabled, users will see a blank white page instead of the application.
                             </p>
-                            
+
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="font-semibold text-gray-800">User Frontend</p>
@@ -272,7 +304,7 @@ export default function SystemSettings() {
                                         </span>
                                     </p>
                                 </div>
-                                
+
                                 <button
                                     onClick={toggleFrontend}
                                     disabled={updating}
@@ -297,9 +329,64 @@ export default function SystemSettings() {
                                 {settings?.frontendDisabled ? '⚠️ Frontend is DISABLED' : '✅ Frontend is ENABLED'}
                             </p>
                             <p className="text-xs mt-1">
-                                {settings?.frontendDisabled 
-                                    ? 'Users cannot access the application. They will see a white page.' 
+                                {settings?.frontendDisabled
+                                    ? 'Users cannot access the application. They will see a white page.'
                                     : 'Users can access the application normally.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Task Control */}
+                <div className="admin-card">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold text-gray-800">Task Control</h3>
+                        <HiCog className="text-2xl text-gray-400" />
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-3">
+                                Control the availability of tasks for all users. When disabled, users will not see any tasks and cannot earn for the day.
+                            </p>
+
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-semibold text-gray-800">Daily Tasks</p>
+                                    <p className="text-xs text-gray-500">
+                                        Current Status: <span className={`font-bold ${settings?.tasksDisabled ? 'text-red-600' : 'text-green-600'}`}>
+                                            {settings?.tasksDisabled ? 'DISABLED' : 'ENABLED'}
+                                        </span>
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={toggleTasks}
+                                    disabled={updating}
+                                    className={`
+                                        relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                        ${settings?.tasksDisabled ? 'bg-red-600' : 'bg-green-600'}
+                                        ${updating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                                    `}
+                                >
+                                    <span
+                                        className={`
+                                            inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                            ${settings?.tasksDisabled ? 'translate-x-6' : 'translate-x-1'}
+                                        `}
+                                    />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className={`p-3 rounded-lg text-sm ${settings?.tasksDisabled ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                            <p className="font-semibold">
+                                {settings?.tasksDisabled ? '⚠️ Tasks are DISABLED' : '✅ Tasks are ENABLED'}
+                            </p>
+                            <p className="text-xs mt-1">
+                                {settings?.tasksDisabled
+                                    ? 'Users cannot see or complete any tasks today.'
+                                    : 'Users can see and complete tasks normally (except on Sundays).'}
                             </p>
                         </div>
                     </div>
@@ -308,7 +395,7 @@ export default function SystemSettings() {
                 {/* System Information */}
                 <div className="admin-card">
                     <h3 className="text-lg font-bold text-gray-800 mb-6">System Information</h3>
-                    
+
                     <div className="space-y-4">
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm text-gray-600">Commission Rate A</span>

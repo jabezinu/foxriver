@@ -43,11 +43,11 @@ const membershipSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Calculate daily income: price / 26 (except Intern)
-// 26 days = 30 days - 4 Sundays per month (tasks are not available on Sundays)
+// Calculate daily income: price / 30 (except Intern)
+// Even though Sundays are skipped, the total amount is divided by 30 days
 membershipSchema.methods.getDailyIncome = function () {
     if (this.level === 'Intern') return 50;
-    return this.price / 26;
+    return this.price / 30;
 };
 
 // Calculate per video income: daily income / 4
@@ -77,52 +77,52 @@ membershipSchema.statics.getRestrictedRange = async function () {
 // Static method to check if rank progression is allowed
 membershipSchema.statics.isProgressionAllowed = async function (currentLevel, targetLevel) {
     const restrictedRange = await this.getRestrictedRange();
-    
+
     // Extract rank numbers from level strings
     const getCurrentRank = (level) => {
         if (level === 'Intern') return 0;
         const match = level.match(/Rank (\d+)/);
         return match ? parseInt(match[1]) : 0;
     };
-    
+
     const currentRank = getCurrentRank(currentLevel);
     const targetRank = getCurrentRank(targetLevel);
-    
+
     // Can't downgrade
     if (targetRank <= currentRank) {
         return { allowed: false, reason: 'Can only upgrade to a higher membership level' };
     }
-    
+
     // If no restriction is set, allow any progression
     if (!restrictedRange) {
         return { allowed: true };
     }
-    
+
     const { start, end } = restrictedRange;
-    
+
     // Check if current rank is within or just before the restricted range
     // and target rank is within the restricted range
     if (currentRank >= start - 1 && currentRank < end && targetRank >= start && targetRank <= end) {
         // Within restricted range, must progress sequentially
         if (targetRank !== currentRank + 1) {
-            return { 
-                allowed: false, 
-                reason: `Sequential progression is required from Rank ${start} to Rank ${end}. You must join Rank ${currentRank + 1} next.` 
+            return {
+                allowed: false,
+                reason: `Sequential progression is required from Rank ${start} to Rank ${end}. You must join Rank ${currentRank + 1} next.`
             };
         }
     }
-    
+
     // Check if trying to skip into the restricted range
     if (currentRank < start && targetRank >= start && targetRank <= end) {
         // Can only enter at the start of the restricted range
         if (targetRank !== start) {
-            return { 
-                allowed: false, 
-                reason: `You can only enter the restricted range at Rank ${start}. Cannot skip to Rank ${targetRank}.` 
+            return {
+                allowed: false,
+                reason: `You can only enter the restricted range at Rank ${start}. Cannot skip to Rank ${targetRank}.`
             };
         }
     }
-    
+
     return { allowed: true };
 };
 

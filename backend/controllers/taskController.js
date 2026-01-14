@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Membership = require('../models/Membership');
 const Playlist = require('../models/Playlist');
 const VideoPool = require('../models/VideoPool');
+const SystemSetting = require('../models/SystemSetting');
 const { calculateAndCreateCommissions } = require('../utils/commission');
 const ytpl = require('ytpl');
 
@@ -14,21 +15,49 @@ const ytpl = require('ytpl');
 exports.getDailyTasks = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-        
+
         // Check if Intern user can earn
         const canInternEarn = user.canInternEarn();
         const internDaysRemaining = user.getInternDaysRemaining();
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         // Check if today is Sunday (0 = Sunday in JavaScript)
         const isSunday = today.getDay() === 0;
 
+        // Get system settings
+        const settings = await SystemSetting.findOne() || {};
+
+        // Check if tasks are disabled by admin
+        if (settings.tasksDisabled) {
+            const membership = await Membership.findOne({ level: user.membershipLevel });
+            return res.status(200).json({
+                success: true,
+                count: 0,
+                tasks: [],
+                dailyIncome: membership && canInternEarn ? membership.getDailyIncome() : 0,
+                perVideoIncome: membership && canInternEarn ? membership.getPerVideoIncome() : 0,
+                earningsStats: {
+                    todayEarnings: 0,
+                    completedTasks: 0,
+                    remainingTasks: 0,
+                    totalPossibleEarnings: 0
+                },
+                isTasksDisabled: true,
+                message: 'Tasks are currently disabled by the administrator. Please check back later.',
+                internRestriction: user.membershipLevel === 'Intern' ? {
+                    canEarn: canInternEarn,
+                    daysRemaining: internDaysRemaining,
+                    activatedAt: user.membershipActivatedAt || user.createdAt
+                } : null
+            });
+        }
+
         // If it's Sunday, return empty tasks with a message
         if (isSunday) {
             const membership = await Membership.findOne({ level: user.membershipLevel });
-            
+
             return res.status(200).json({
                 success: true,
                 count: 0,
@@ -166,6 +195,16 @@ exports.completeTask = async (req, res) => {
         // Check if today is Sunday
         const today = new Date();
         const isSunday = today.getDay() === 0;
+
+        // Get system settings
+        const settings = await SystemSetting.findOne() || {};
+
+        if (settings.tasksDisabled) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tasks are currently disabled by the administrator. Please check back later.'
+            });
+        }
 
         if (isSunday) {
             return res.status(400).json({

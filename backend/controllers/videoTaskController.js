@@ -10,19 +10,48 @@ const { calculateAndCreateCommissions } = require('../utils/commission');
 exports.getDailyVideoTasks = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-        
+
         // Check if Intern user can earn
         const canInternEarn = user.canInternEarn();
         const internDaysRemaining = user.getInternDaysRemaining();
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // Check if today is Sunday (0 = Sunday in JavaScript)
+        const isSunday = today.getDay() === 0;
+
         // Get system settings
         const settings = await SystemSetting.findOne() || {};
-        const videosPerDay = settings.videosPerDay || 4;
-        const videoPaymentAmount = settings.videoPaymentAmount || 10;
+
+        // Check if tasks are disabled by admin
+        if (settings.tasksDisabled) {
+            return res.status(200).json({
+                success: true,
+                message: 'Tasks are currently disabled by the administrator. Please check back later.',
+                videos: [],
+                totalEarnings: 0,
+                perVideoEarning: 0,
+                isSunday: false,
+                isTasksDisabled: true
+            });
+        }
+
+        // If it's Sunday, return empty tasks
+        if (isSunday) {
+            return res.status(200).json({
+                success: true,
+                message: 'Tasks are not available on Sundays. Come back tomorrow!',
+                videos: [],
+                totalEarnings: 0,
+                perVideoEarning: 0,
+                isSunday: true
+            });
+        }
+
         const videoWatchTimeRequired = settings.videoWatchTimeRequired || 8;
+        const videoPaymentAmount = settings.videoPaymentAmount || 10;
+        const videosPerDay = settings.videosPerDay || 4;
 
         // Check if user already has assignment for today
         let assignment = await DailyVideoAssignment.findOne({
@@ -41,7 +70,7 @@ exports.getDailyVideoTasks = async (req, res) => {
                 assignmentDate: yesterday
             });
 
-            const excludeVideoIds = yesterdayAssignment ? 
+            const excludeVideoIds = yesterdayAssignment ?
                 yesterdayAssignment.videos.map(v => v.video) : [];
 
             // Get available videos (excluding yesterday's videos if possible)
@@ -209,7 +238,7 @@ exports.completeVideoTask = async (req, res) => {
 
         // Get user and check Intern restriction
         const user = await User.findById(req.user.id);
-        
+
         // Check if Intern user can earn (within 4-day window)
         if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
             return res.status(403).json({
@@ -221,6 +250,27 @@ exports.completeVideoTask = async (req, res) => {
 
         // Get system settings
         const settings = await SystemSetting.findOne() || {};
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Check if today is Sunday
+        const isSunday = today.getDay() === 0;
+
+        if (settings.tasksDisabled) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tasks are currently disabled by the administrator. Please check back later.'
+            });
+        }
+
+        if (isSunday) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tasks cannot be completed on Sundays. Please come back tomorrow!'
+            });
+        }
+
         const videoWatchTimeRequired = settings.videoWatchTimeRequired || 8;
         const videoPaymentAmount = settings.videoPaymentAmount || 10;
 
@@ -230,9 +280,6 @@ exports.completeVideoTask = async (req, res) => {
                 message: `You must watch the video for at least ${videoWatchTimeRequired} seconds`
             });
         }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
 
         // Find the assignment
         const assignment = await DailyVideoAssignment.findOne({

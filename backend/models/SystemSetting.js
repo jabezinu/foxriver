@@ -64,6 +64,10 @@ const systemSettingSchema = new mongoose.Schema({
     frontendDisabled: {
         type: Boolean,
         default: false // Whether the user frontend is disabled
+    },
+    tasksDisabled: {
+        type: Boolean,
+        default: false // Whether tasks are disabled for the day
     }
 }, {
     timestamps: true
