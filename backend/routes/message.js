@@ -8,13 +8,13 @@ const {
     updateMessage,
     deleteMessage
 } = require('../controllers/messageController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
 router.get('/user', protect, getUserMessages);
 router.put('/:id/read', protect, markAsRead);
-router.post('/send', protect, adminOnly, sendMessage);
-router.get('/all', protect, adminOnly, getAllMessages);
-router.put('/:id', protect, adminOnly, updateMessage);
-router.delete('/:id', protect, adminOnly, deleteMessage);
+router.post('/send', protect, adminOnly, checkPermission('manage_messages'), sendMessage);
+router.get('/all', protect, adminOnly, checkPermission('manage_messages'), getAllMessages);
+router.put('/:id', protect, adminOnly, checkPermission('manage_messages'), updateMessage);
+router.delete('/:id', protect, adminOnly, checkPermission('manage_messages'), deleteMessage);
 
 module.exports = router;

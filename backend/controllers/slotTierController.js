@@ -9,14 +9,13 @@ exports.getActiveTiers = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            count: tiers.length,
             data: tiers
         });
     } catch (error) {
-        console.error('Get active tiers error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching slot tiers',
-            error: error.message
+            message: error.message || 'Error fetching slot tiers'
         });
     }
 };
@@ -30,14 +29,13 @@ exports.getAllTiers = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            count: tiers.length,
             data: tiers
         });
     } catch (error) {
-        console.error('Get all tiers error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching slot tiers',
-            error: error.message
+            message: error.message || 'Error fetching slot tiers'
         });
     }
 };
@@ -47,27 +45,17 @@ exports.getAllTiers = async (req, res) => {
 // @access  Private/Admin
 exports.createTier = async (req, res) => {
     try {
-        const { name, betAmount, winAmount, winProbability, description, order } = req.body;
-
-        const tier = await SlotTier.create({
-            name,
-            betAmount,
-            winAmount,
-            winProbability: winProbability || 10,
-            description,
-            order: order || 0
-        });
+        const tier = await SlotTier.create(req.body);
 
         res.status(201).json({
             success: true,
+            message: 'Slot tier created successfully',
             data: tier
         });
     } catch (error) {
-        console.error('Create tier error:', error);
-        res.status(500).json({
+        res.status(400).json({
             success: false,
-            message: 'Error creating slot tier',
-            error: error.message
+            message: error.message || 'Error creating slot tier'
         });
     }
 };
@@ -77,12 +65,9 @@ exports.createTier = async (req, res) => {
 // @access  Private/Admin
 exports.updateTier = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name, betAmount, winAmount, winProbability, isActive, description, order } = req.body;
-
         const tier = await SlotTier.findByIdAndUpdate(
-            id,
-            { name, betAmount, winAmount, winProbability, isActive, description, order },
+            req.params.id,
+            req.body,
             { new: true, runValidators: true }
         );
 
@@ -95,14 +80,13 @@ exports.updateTier = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            message: 'Slot tier updated successfully',
             data: tier
         });
     } catch (error) {
-        console.error('Update tier error:', error);
-        res.status(500).json({
+        res.status(400).json({
             success: false,
-            message: 'Error updating slot tier',
-            error: error.message
+            message: error.message || 'Error updating slot tier'
         });
     }
 };
@@ -112,9 +96,7 @@ exports.updateTier = async (req, res) => {
 // @access  Private/Admin
 exports.deleteTier = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const tier = await SlotTier.findByIdAndDelete(id);
+        const tier = await SlotTier.findByIdAndDelete(req.params.id);
 
         if (!tier) {
             return res.status(404).json({
@@ -128,11 +110,9 @@ exports.deleteTier = async (req, res) => {
             message: 'Slot tier deleted successfully'
         });
     } catch (error) {
-        console.error('Delete tier error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error deleting slot tier',
-            error: error.message
+            message: error.message || 'Error deleting slot tier'
         });
     }
 };
@@ -142,9 +122,7 @@ exports.deleteTier = async (req, res) => {
 // @access  Private/Admin
 exports.toggleTierStatus = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const tier = await SlotTier.findById(id);
+        const tier = await SlotTier.findById(req.params.id);
 
         if (!tier) {
             return res.status(404).json({
@@ -158,14 +136,13 @@ exports.toggleTierStatus = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            message: `Slot tier ${tier.isActive ? 'activated' : 'deactivated'} successfully`,
             data: tier
         });
     } catch (error) {
-        console.error('Toggle tier status error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error toggling tier status',
-            error: error.message
+            message: error.message || 'Error toggling tier status'
         });
     }
 };

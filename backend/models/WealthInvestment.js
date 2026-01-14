@@ -60,6 +60,11 @@ const wealthInvestmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Indexes for performance
+wealthInvestmentSchema.index({ user: 1, status: 1 });
+wealthInvestmentSchema.index({ wealthFund: 1 });
+wealthInvestmentSchema.index({ status: 1, endDate: 1 });
+
 // Calculate end date before saving
 wealthInvestmentSchema.pre('save', function(next) {
     if (this.isNew) {

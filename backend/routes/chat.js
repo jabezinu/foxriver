@@ -6,23 +6,16 @@ const {
     sendMessage,
     getAllChats
 } = require('../controllers/chatController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
 router.use(protect);
 
 // User routes
-router
-    .route('/')
-    .get(getChat);
-
-router
-    .route('/:chatId/messages')
-    .get(getChatMessages)
-    .post(sendMessage);
+router.get('/', getChat);
+router.get('/:chatId/messages', getChatMessages);
+router.post('/:chatId/messages', sendMessage);
 
 // Admin routes
-router
-    .route('/admin')
-    .get(adminOnly, getAllChats);
+router.get('/admin', adminOnly, checkPermission('manage_messages'), getAllChats);
 
 module.exports = router;

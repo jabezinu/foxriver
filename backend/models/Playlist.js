@@ -4,11 +4,13 @@ const playlistSchema = new mongoose.Schema({
     url: {
         type: String,
         required: [true, 'Please provide a YouTube playlist URL'],
-        unique: true
+        unique: true,
+        trim: true
     },
     title: {
         type: String,
-        default: 'Unnamed Playlist'
+        default: 'Unnamed Playlist',
+        trim: true
     },
     status: {
         type: String,
@@ -22,5 +24,8 @@ const playlistSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Index for querying active playlists
+playlistSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Playlist', playlistSchema);

@@ -90,19 +90,18 @@ exports.spinWheel = async (req, res) => {
 
         // Create spin result record
         const spinResult = await SpinResult.create({
-            userId,
+            user: userId,
             result,
             amountPaid: spinCost,
             amountWon,
             balanceBefore,
             balanceAfter,
             walletType: walletName,
-            tierId: tier._id,
-            tierName: tier.name
+            tier: tier._id
         });
 
         // Populate user info for response
-        await spinResult.populate('userId', 'phone membershipLevel');
+        await spinResult.populate('user', 'phone membershipLevel');
 
         res.status(200).json({
             success: true,
@@ -137,16 +136,16 @@ exports.getUserSpinHistory = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
 
-        const spins = await SpinResult.find({ userId })
+        const spins = await SpinResult.find({ user: userId })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
-        const total = await SpinResult.countDocuments({ userId });
+        const total = await SpinResult.countDocuments({ user: userId });
 
         // Calculate stats
         const stats = await SpinResult.aggregate([
-            { $match: { userId: req.user._id } },
+            { $match: { user: req.user._id } },
             {
                 $group: {
                     _id: null,
@@ -219,7 +218,8 @@ exports.getAllSpinResults = async (req, res) => {
         }
 
         const spins = await SpinResult.find(filter)
-            .populate('userId', 'phone membershipLevel')
+            .populate('user', 'phone membershipLevel')
+            .populate('tier', 'name betAmount winAmount')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);

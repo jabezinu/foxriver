@@ -1,18 +1,18 @@
 const mongoose = require('mongoose');
 
 const spinResultSchema = new mongoose.Schema({
-    userId: {
+    user: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: true
     },
     result: {
         type: String,
-        required: true
+        required: [true, 'Please provide spin result']
     },
     amountPaid: {
         type: Number,
-        default: 10
+        required: true
     },
     amountWon: {
         type: Number,
@@ -31,18 +31,17 @@ const spinResultSchema = new mongoose.Schema({
         enum: ['personal', 'income'],
         default: 'personal'
     },
-    tierId: {
+    tier: {
         type: mongoose.Schema.ObjectId,
-        ref: 'SlotTier'
-    },
-    tierName: {
-        type: String
+        ref: 'SlotTier',
+        required: true
     }
 }, {
     timestamps: true
 });
 
 // Index for faster queries
-spinResultSchema.index({ userId: 1, createdAt: -1 });
+spinResultSchema.index({ user: 1, createdAt: -1 });
+spinResultSchema.index({ tier: 1 });
 
 module.exports = mongoose.model('SpinResult', spinResultSchema);

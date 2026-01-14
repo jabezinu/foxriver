@@ -1,85 +1,54 @@
 const SystemSetting = require('../models/SystemSetting');
 
-// Get system settings
+// @desc    Get system settings
+// @route   GET /api/system/admin/settings
+// @access  Private/Admin
 exports.getSystemSettings = async (req, res) => {
     try {
         let settings = await SystemSetting.findOne();
         
         if (!settings) {
-            // Create default settings if none exist
             settings = await SystemSetting.create({});
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
             data: settings
         });
     } catch (error) {
-        console.error('Error fetching system settings:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to fetch system settings'
+            message: error.message || 'Failed to fetch system settings'
         });
     }
 };
 
-// Update system settings
+// @desc    Update system settings
+// @route   PUT /api/system/admin/settings
+// @access  Private/Admin
 exports.updateSystemSettings = async (req, res) => {
     try {
-        const updates = req.body;
-        
         let settings = await SystemSetting.findOne();
         
         if (!settings) {
-            // Create default settings if none exist
-            settings = await SystemSetting.create(updates);
+            settings = await SystemSetting.create(req.body);
         } else {
-            // Update existing settings
             settings = await SystemSetting.findOneAndUpdate(
                 {},
-                updates,
+                req.body,
                 { new: true, runValidators: true }
             );
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
             data: settings,
             message: 'System settings updated successfully'
         });
     } catch (error) {
-        console.error('Error updating system settings:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to update system settings'
-        });
-    }
-};
-
-// Toggle frontend disabled status
-exports.toggleFrontend = async (req, res) => {
-    try {
-        const { frontendDisabled } = req.body;
-        
-        let settings = await SystemSetting.findOne();
-        
-        if (!settings) {
-            settings = await SystemSetting.create({ frontendDisabled });
-        } else {
-            settings.frontendDisabled = frontendDisabled;
-            await settings.save();
-        }
-
-        res.json({
-            success: true,
-            data: settings,
-            message: `Frontend ${frontendDisabled ? 'disabled' : 'enabled'} successfully`
-        });
-    } catch (error) {
-        console.error('Error toggling frontend:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to toggle frontend status'
+            message: error.message || 'Failed to update system settings'
         });
     }
 };

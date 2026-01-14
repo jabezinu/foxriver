@@ -126,29 +126,25 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Hash password before saving
+// Indexes for performance
+userSchema.index({ phone: 1 });
+userSchema.index({ invitationCode: 1 });
+userSchema.index({ referrerId: 1 });
+userSchema.index({ membershipLevel: 1 });
+userSchema.index({ role: 1 });
+
+// Hash password and transaction password before saving
 userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
-        return;
-    }
-    try {
+    // Hash password if modified
+    if (this.isModified('password')) {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-    } catch (err) {
-        throw err;
     }
-});
-
-// Hash transaction password before saving
-userSchema.pre('save', async function () {
-    if (!this.isModified('transactionPassword') || !this.transactionPassword) {
-        return;
-    }
-    try {
+    
+    // Hash transaction password if modified
+    if (this.isModified('transactionPassword') && this.transactionPassword) {
         const salt = await bcrypt.genSalt(10);
         this.transactionPassword = await bcrypt.hash(this.transactionPassword, salt);
-    } catch (err) {
-        throw err;
     }
 });
 

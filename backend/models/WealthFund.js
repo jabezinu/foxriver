@@ -43,4 +43,7 @@ const wealthFundSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Indexes for performance
+wealthFundSchema.index({ isActive: 1 });
+
 module.exports = mongoose.model('WealthFund', wealthFundSchema);

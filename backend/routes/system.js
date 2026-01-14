@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { getSystemSettings, updateSystemSettings } = require('../controllers/systemSettingsController');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 const SystemSetting = require('../models/SystemSetting');
 
 // @desc    Get public system settings
@@ -13,7 +15,6 @@ router.get('/settings', async (req, res) => {
             settings = await SystemSetting.create({});
         }
 
-        // Return public settings for user information
         res.status(200).json({
             success: true,
             frontendDisabled: settings.frontendDisabled || false,
@@ -32,17 +33,19 @@ router.get('/settings', async (req, res) => {
                 videoPaymentAmount: settings.videoPaymentAmount,
                 videosPerDay: settings.videosPerDay,
                 videoWatchTimeRequired: settings.videoWatchTimeRequired,
-                frontendDisabled: settings.frontendDisabled || false,
                 tasksDisabled: settings.tasksDisabled || false
             }
         });
     } catch (error) {
-        console.error('System settings error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Server error'
         });
     }
 });
+
+// Admin routes
+router.get('/admin/settings', protect, adminOnly, checkPermission('manage_system_settings'), getSystemSettings);
+router.put('/admin/settings', protect, adminOnly, checkPermission('manage_system_settings'), updateSystemSettings);
 
 module.exports = router;

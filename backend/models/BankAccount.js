@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const BankAccountSchema = new mongoose.Schema({
+const bankAccountSchema = new mongoose.Schema({
     bankName: {
         type: String,
         required: [true, 'Bank name is required'],
@@ -19,8 +19,8 @@ const BankAccountSchema = new mongoose.Schema({
     },
     serviceType: {
         type: String,
-        enum: ['Bank', 'Wallet'],
-        default: 'Bank'
+        enum: ['bank', 'wallet'],
+        default: 'bank'
     },
     isActive: {
         type: Boolean,
@@ -30,4 +30,7 @@ const BankAccountSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('BankAccount', BankAccountSchema);
+// Index for querying active accounts
+bankAccountSchema.index({ isActive: 1 });
+
+module.exports = mongoose.model('BankAccount', bankAccountSchema);

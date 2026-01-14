@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const taskSchema = new mongoose.Schema({
     videoUrl: {
         type: String,
-        required: [true, 'Please provide video URL or path']
+        required: [true, 'Please provide video URL or path'],
+        trim: true
     },
     title: {
         type: String,
-        default: 'Video Task'
+        default: 'Video Task',
+        trim: true
     },
     status: {
         type: String,
@@ -22,7 +24,7 @@ const taskSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for querying tasks by status
-taskSchema.index({ status: 1 });
+// Index for querying active tasks
+taskSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Task', taskSchema);

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const courseCategorySchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
+        required: [true, 'Please provide category name'],
         trim: true,
         unique: true
     },
@@ -19,11 +19,12 @@ const courseCategorySchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'inactive'],
         default: 'active'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
+}, {
+    timestamps: true
 });
+
+// Index for querying active categories
+courseCategorySchema.index({ status: 1, order: 1 });
 
 module.exports = mongoose.model('CourseCategory', courseCategorySchema);

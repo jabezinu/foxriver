@@ -7,15 +7,15 @@ const {
     updateBankAccount,
     deleteBankAccount
 } = require('../controllers/bankController');
-const { protect, adminOnly } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
 // Public route for clients
 router.get('/', getBankAccounts);
 
 // Admin routes
-router.get('/admin', protect, adminOnly, getAllBankAccounts);
-router.post('/', protect, adminOnly, createBankAccount);
-router.put('/:id', protect, adminOnly, updateBankAccount);
-router.delete('/:id', protect, adminOnly, deleteBankAccount);
+router.get('/admin', protect, adminOnly, checkPermission('manage_bank_settings'), getAllBankAccounts);
+router.post('/', protect, adminOnly, checkPermission('manage_bank_settings'), createBankAccount);
+router.put('/:id', protect, adminOnly, checkPermission('manage_bank_settings'), updateBankAccount);
+router.delete('/:id', protect, adminOnly, checkPermission('manage_bank_settings'), deleteBankAccount);
 
 module.exports = router;

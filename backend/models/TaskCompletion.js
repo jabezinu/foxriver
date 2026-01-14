@@ -22,17 +22,13 @@ const taskCompletionSchema = new mongoose.Schema({
     requiredWatchTime: {
         type: Number,
         default: 15
-    },
-    completionDate: {
-        type: Date,
-        default: Date.now
     }
 }, {
     timestamps: true
 });
 
-// Ensure user can only complete a task once per day
+// Ensure user can only complete a task once
 taskCompletionSchema.index({ user: 1, task: 1 }, { unique: true });
-taskCompletionSchema.index({ user: 1, completionDate: -1 });
+taskCompletionSchema.index({ user: 1, createdAt: -1 });
 
 module.exports = mongoose.model('TaskCompletion', taskCompletionSchema);
