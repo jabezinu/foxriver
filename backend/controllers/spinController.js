@@ -1,13 +1,12 @@
-const SpinResult = require('../models/SpinResult');
-const User = require('../models/User');
-const SlotTier = require('../models/SlotTier');
+const { SpinResult, User, SlotTier, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
 // @desc    Spin the wheel
 // @route   POST /api/spin
 // @access  Private
 exports.spinWheel = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user.id;
         const { walletType, tierId } = req.body; // 'personal' or 'income', and tier ID
 
         console.log('Spin request:', { userId, walletType, tierId });
@@ -28,7 +27,7 @@ exports.spinWheel = async (req, res) => {
         }
 
         // Get the selected tier
-        const tier = await SlotTier.findById(tierId);
+        const tier = await SlotTier.findByPk(tierId);
         
         if (!tier || !tier.isActive) {
             return res.status(400).json({
@@ -37,12 +36,12 @@ exports.spinWheel = async (req, res) => {
             });
         }
 
-        const spinCost = tier.betAmount;
-        const winAmount = tier.winAmount;
-        const winProbability = tier.winProbability / 100; // Convert percentage to decimal
+        const spinCost = parseFloat(tier.betAmount);
+        const winAmount = parseFloat(tier.winAmount);
+        const winProbability = parseFloat(tier.winProbability) / 100; // Convert percentage to decimal
 
         // Get user with current balance
-        const user = await User.findById(userId);
+        const user = await User.findByPk(userId);
 
         if (!user) {
             return res.status(404).json({
@@ -56,17 +55,17 @@ exports.spinWheel = async (req, res) => {
         const walletName = walletType === 'income' ? 'income' : 'personal';
 
         // Check if user has enough balance
-        if (user[wallet] < spinCost) {
+        if (parseFloat(user[wallet]) < spinCost) {
             return res.status(400).json({
                 success: false,
                 message: `Insufficient ${walletName} balance. You need ${spinCost} ETB to play.`
             });
         }
 
-        const balanceBefore = user[wallet];
+        const balanceBefore = parseFloat(user[wallet]);
 
         // Deduct spin cost from selected wallet
-        user[wallet] -= spinCost;
+        user[wallet] = parseFloat(user[wallet]) - spinCost;
 
         // Determine result based on tier's win probability
         const random = Math.random();
@@ -78,15 +77,15 @@ exports.spinWheel = async (req, res) => {
             result = `Win ${winAmount} ETB`;
             amountWon = winAmount;
             // Winnings always go to income wallet
-            user.incomeWallet += amountWon;
+            user.incomeWallet = parseFloat(user.incomeWallet) + amountWon;
         } else {
             result = 'Try Again';
         }
 
         await user.save();
 
-        const balanceAfter = user[wallet];
-        const incomeBalanceAfter = user.incomeWallet;
+        const balanceAfter = parseFloat(user[wallet]);
+        const incomeBalanceAfter = parseFloat(user.incomeWallet);
 
         // Create spin result record
         const spinResult = await SpinResult.create({
@@ -97,11 +96,13 @@ exports.spinWheel = async (req, res) => {
             balanceBefore,
             balanceAfter,
             walletType: walletName,
-            tier: tier._id
+            tier: tier.id
         });
 
-        // Populate user info for response
-        await spinResult.populate('user', 'phone membershipLevel');
+        // Get user info for response
+        const userInfo = await User.findByPk(userId, {
+            attributes: ['phone', 'membershipLevel']
+        });
 
         res.status(200).json({
             success: true,
@@ -111,7 +112,10 @@ exports.spinWheel = async (req, res) => {
                 balanceBefore,
                 balanceAfter,
                 incomeBalanceAfter,
-                spinResult
+                spinResult: {
+                    ...spinResult.toJSON(),
+                    user: userInfo
+                }
             }
         });
 
@@ -131,35 +135,29 @@ exports.spinWheel = async (req, res) => {
 // @access  Private
 exports.getUserSpinHistory = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user.id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
-        const skip = (page - 1) * limit;
+        const offset = (page - 1) * limit;
 
-        const spins = await SpinResult.find({ user: userId })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        const { count: total, rows: spins } = await SpinResult.findAndCountAll({
+            where: { user: userId },
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit
+        });
 
-        const total = await SpinResult.countDocuments({ user: userId });
-
-        // Calculate stats
-        const stats = await SpinResult.aggregate([
-            { $match: { user: req.user._id } },
-            {
-                $group: {
-                    _id: null,
-                    totalSpins: { $sum: 1 },
-                    totalPaid: { $sum: '$amountPaid' },
-                    totalWon: { $sum: '$amountWon' },
-                    wins: {
-                        $sum: {
-                            $cond: [{ $eq: ['$result', 'Win 100 ETB'] }, 1, 0]
-                        }
-                    }
-                }
-            }
-        ]);
+        // Calculate stats using Sequelize aggregation
+        const stats = await SpinResult.findOne({
+            where: { user: userId },
+            attributes: [
+                [sequelize.fn('COUNT', sequelize.col('id')), 'totalSpins'],
+                [sequelize.fn('SUM', sequelize.col('amountPaid')), 'totalPaid'],
+                [sequelize.fn('SUM', sequelize.col('amountWon')), 'totalWon'],
+                [sequelize.literal(`SUM(CASE WHEN result LIKE 'Win%' THEN 1 ELSE 0 END)`), 'wins']
+            ],
+            raw: true
+        });
 
         res.status(200).json({
             success: true,
@@ -171,7 +169,7 @@ exports.getUserSpinHistory = async (req, res) => {
                     total,
                     pages: Math.ceil(total / limit)
                 },
-                stats: stats[0] || {
+                stats: stats || {
                     totalSpins: 0,
                     totalPaid: 0,
                     totalWon: 0,
@@ -197,52 +195,48 @@ exports.getAllSpinResults = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
-        const skip = (page - 1) * limit;
+        const offset = (page - 1) * limit;
 
-        const filter = {};
+        const where = {};
         
         // Filter by result type
         if (req.query.result) {
-            filter.result = req.query.result;
+            where.result = req.query.result;
         }
 
         // Filter by date range
         if (req.query.startDate || req.query.endDate) {
-            filter.createdAt = {};
+            where.createdAt = {};
             if (req.query.startDate) {
-                filter.createdAt.$gte = new Date(req.query.startDate);
+                where.createdAt[Op.gte] = new Date(req.query.startDate);
             }
             if (req.query.endDate) {
-                filter.createdAt.$lte = new Date(req.query.endDate);
+                where.createdAt[Op.lte] = new Date(req.query.endDate);
             }
         }
 
-        const spins = await SpinResult.find(filter)
-            .populate('user', 'phone membershipLevel')
-            .populate('tier', 'name betAmount winAmount')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        const { count: total, rows: spins } = await SpinResult.findAndCountAll({
+            where,
+            include: [
+                { model: User, as: 'player', attributes: ['phone', 'membershipLevel'] },
+                { model: SlotTier, as: 'tierDetails', attributes: ['name', 'betAmount', 'winAmount'] }
+            ],
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit
+        });
 
-        const total = await SpinResult.countDocuments(filter);
-
-        // Calculate overall stats
-        const stats = await SpinResult.aggregate([
-            { $match: filter },
-            {
-                $group: {
-                    _id: null,
-                    totalSpins: { $sum: 1 },
-                    totalPaid: { $sum: '$amountPaid' },
-                    totalWon: { $sum: '$amountWon' },
-                    wins: {
-                        $sum: {
-                            $cond: [{ $eq: ['$result', 'Win 100 ETB'] }, 1, 0]
-                        }
-                    }
-                }
-            }
-        ]);
+        // Calculate overall stats using Sequelize aggregation
+        const stats = await SpinResult.findOne({
+            where,
+            attributes: [
+                [sequelize.fn('COUNT', sequelize.col('id')), 'totalSpins'],
+                [sequelize.fn('SUM', sequelize.col('amountPaid')), 'totalPaid'],
+                [sequelize.fn('SUM', sequelize.col('amountWon')), 'totalWon'],
+                [sequelize.literal(`SUM(CASE WHEN result LIKE 'Win%' THEN 1 ELSE 0 END)`), 'wins']
+            ],
+            raw: true
+        });
 
         res.status(200).json({
             success: true,
@@ -254,7 +248,7 @@ exports.getAllSpinResults = async (req, res) => {
                     total,
                     pages: Math.ceil(total / limit)
                 },
-                stats: stats[0] || {
+                stats: stats || {
                     totalSpins: 0,
                     totalPaid: 0,
                     totalWon: 0,

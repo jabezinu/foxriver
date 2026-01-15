@@ -1,195 +1,188 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 
-const userSchema = new mongoose.Schema({
+class User extends Model {
+    // Compare password
+    async matchPassword(enteredPassword) {
+        return await bcrypt.compare(enteredPassword, this.password);
+    }
+
+    // Compare transaction password
+    async matchTransactionPassword(enteredPassword) {
+        if (!this.transactionPassword) {
+            return false;
+        }
+        return await bcrypt.compare(enteredPassword, this.transactionPassword);
+    }
+
+    // Get referral link
+    getReferralLink() {
+        return `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${this.invitationCode}`;
+    }
+
+    // Check if Intern user can earn (within 4 days of membership activation)
+    canInternEarn() {
+        if (this.membershipLevel !== 'Intern') {
+            return true; // Non-interns can always earn
+        }
+
+        const now = new Date();
+        const activationDate = this.membershipActivatedAt || this.createdAt;
+        const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+
+        return daysSinceActivation < 4;
+    }
+
+    // Get days remaining for Intern earning
+    getInternDaysRemaining() {
+        if (this.membershipLevel !== 'Intern') {
+            return null;
+        }
+
+        const now = new Date();
+        const activationDate = this.membershipActivatedAt || this.createdAt;
+        const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
+
+        return Math.max(0, 4 - daysSinceActivation);
+    }
+}
+
+User.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     name: {
-        type: String,
-        trim: true,
-        maxlength: [50, 'Name cannot exceed 50 characters']
+        type: DataTypes.STRING(50),
+        allowNull: true
     },
     profilePhoto: {
-        type: String,
-        default: null
+        type: DataTypes.STRING,
+        allowNull: true
     },
     phone: {
-        type: String,
-        required: [true, 'Please provide a phone number'],
+        type: DataTypes.STRING(20),
+        allowNull: false,
         unique: true,
-        match: [/^\+251\d{9}$/, 'Please provide a valid Ethiopian phone number']
-    },
-    password: {
-        type: String,
-        required: [true, 'Please provide a password'],
-        minlength: 6,
-        select: false
-    },
-    role: {
-        type: String,
-        enum: ['user', 'admin', 'superadmin'],
-        default: 'user'
-    },
-    permissions: [{
-        type: String,
-        enum: [
-            'manage_users',
-            'manage_deposits',
-            'manage_withdrawals',
-            'manage_tasks',
-            'manage_courses',
-            'manage_wealth',
-            'manage_qna',
-            'manage_messages',
-            'manage_news',
-            'manage_slot_machine',
-            'manage_bank_settings',
-            'manage_referrals',
-            'manage_membership',
-            'manage_system_settings'
-        ]
-    }],
-    membershipLevel: {
-        type: String,
-        enum: ['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'],
-        default: 'Intern'
-    },
-    incomeWallet: {
-        type: Number,
-        default: 0
-    },
-    personalWallet: {
-        type: Number,
-        default: 0
-    },
-    transactionPassword: {
-        type: String,
-        select: false,
         validate: {
-            validator: function (v) {
-                // Skip validation if password is already hashed (starts with $2)
-                if (!v || v.startsWith('$2')) return true;
-                // Only validate unhashed passwords (must be 6 digits)
-                return /^\d{6}$/.test(v);
-            },
-            message: 'Transaction password must be exactly 6 digits'
+            is: /^\+251\d{9}$/
         }
     },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    role: {
+        type: DataTypes.ENUM('user', 'admin', 'superadmin'),
+        defaultValue: 'user'
+    },
+    permissions: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
+    membershipLevel: {
+        type: DataTypes.ENUM('Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'),
+        defaultValue: 'Intern'
+    },
+    incomeWallet: {
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 0
+    },
+    personalWallet: {
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 0
+    },
+    transactionPassword: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     bankAccount: {
-        accountName: String,
-        bank: {
-            type: String,
-            enum: ['CBE', 'Awash', 'BOA', '']
-        },
-        accountNumber: String,
-        phone: String,
-        isSet: {
-            type: Boolean,
-            default: false
+        type: DataTypes.JSON,
+        defaultValue: {
+            accountName: null,
+            bank: null,
+            accountNumber: null,
+            phone: null,
+            isSet: false
         }
     },
     pendingBankAccount: {
-        accountName: String,
-        bank: {
-            type: String,
-            enum: ['CBE', 'Awash', 'BOA', '']
-        },
-        accountNumber: String,
-        phone: String
+        type: DataTypes.JSON,
+        defaultValue: null
     },
-    bankChangeRequestDate: Date,
+    bankChangeRequestDate: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     bankChangeStatus: {
-        type: String,
-        enum: ['none', 'pending'],
-        default: 'none'
+        type: DataTypes.ENUM('none', 'pending'),
+        defaultValue: 'none'
     },
     referrerId: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        default: null
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     invitationCode: {
-        type: String,
+        type: DataTypes.STRING(50),
         unique: true,
-        sparse: true
+        allowNull: true
     },
     isActive: {
-        type: Boolean,
-        default: true
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     },
-    withdrawalRestrictedUntil: Date,
-    lastSalaryDate: Date,
-    lastLogin: Date,
+    withdrawalRestrictedUntil: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    lastSalaryDate: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    lastLogin: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     membershipActivatedAt: {
-        type: Date,
-        default: Date.now
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'User',
+    tableName: 'users',
+    indexes: [
+        { fields: ['phone'] },
+        { fields: ['invitationCode'] },
+        { fields: ['referrerId'] },
+        { fields: ['membershipLevel'] },
+        { fields: ['role'] }
+    ],
+    hooks: {
+        beforeSave: async (user) => {
+            // Hash password if modified
+            if (user.changed('password')) {
+                const salt = await bcrypt.genSalt(10);
+                user.password = await bcrypt.hash(user.password, salt);
+            }
+            
+            // Hash transaction password if modified
+            if (user.changed('transactionPassword') && user.transactionPassword) {
+                // Validate 6 digits before hashing
+                if (!user.transactionPassword.startsWith('$2') && !/^\d{6}$/.test(user.transactionPassword)) {
+                    throw new Error('Transaction password must be exactly 6 digits');
+                }
+                const salt = await bcrypt.genSalt(10);
+                user.transactionPassword = await bcrypt.hash(user.transactionPassword, salt);
+            }
+        }
+    }
 });
 
-// Indexes for performance
-userSchema.index({ phone: 1 });
-userSchema.index({ invitationCode: 1 });
-userSchema.index({ referrerId: 1 });
-userSchema.index({ membershipLevel: 1 });
-userSchema.index({ role: 1 });
-
-// Hash password and transaction password before saving
-userSchema.pre('save', async function () {
-    // Hash password if modified
-    if (this.isModified('password')) {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-    }
-    
-    // Hash transaction password if modified
-    if (this.isModified('transactionPassword') && this.transactionPassword) {
-        const salt = await bcrypt.genSalt(10);
-        this.transactionPassword = await bcrypt.hash(this.transactionPassword, salt);
-    }
-});
-
-// Compare password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
-
-// Compare transaction password
-userSchema.methods.matchTransactionPassword = async function (enteredPassword) {
-    if (!this.transactionPassword) {
-        return false;
-    }
-    return await bcrypt.compare(enteredPassword, this.transactionPassword);
-};
-
-// Get referral link
-userSchema.methods.getReferralLink = function () {
-    return `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${this.invitationCode}`;
-};
-
-// Check if Intern user can earn (within 4 days of membership activation)
-userSchema.methods.canInternEarn = function () {
-    if (this.membershipLevel !== 'Intern') {
-        return true; // Non-interns can always earn
-    }
-
-    const now = new Date();
-    const activationDate = this.membershipActivatedAt || this.createdAt;
-    const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
-
-    return daysSinceActivation < 4;
-};
-
-// Get days remaining for Intern earning
-userSchema.methods.getInternDaysRemaining = function () {
-    if (this.membershipLevel !== 'Intern') {
-        return null;
-    }
-
-    const now = new Date();
-    const activationDate = this.membershipActivatedAt || this.createdAt;
-    const daysSinceActivation = Math.floor((now - activationDate) / (1000 * 60 * 60 * 24));
-
-    return Math.max(0, 4 - daysSinceActivation);
-};
-
-module.exports = mongoose.model('User', userSchema);
+module.exports = User;

@@ -3,12 +3,13 @@ const { isValidTransactionPassword } = require('../utils/validators');
 const cloudinary = require('../config/cloudinary');
 const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 const logger = require('../config/logger');
+const { Op } = require('sequelize');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
 exports.getProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user.id).select('+transactionPassword');
+    const user = await User.findByPk(req.user.id);
 
     if (!user) {
         throw new AppError('User not found', 404);
@@ -21,30 +22,42 @@ exports.getProfile = asyncHandler(async (req, res) => {
 
         if (timeDiff >= threeDaysInMillis) {
             // Check if another user already has this bank account before auto-approving
-            const existingUser = await User.findOne({
-                _id: { $ne: user._id },
-                $or: [
-                    { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
-                    { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
-                ]
-            }).lean();
+            const { sequelize } = require('../config/database');
+            const [results] = await sequelize.query(`
+                SELECT id FROM users 
+                WHERE id != :userId 
+                AND (
+                    (JSON_EXTRACT(bankAccount, '$.accountNumber') = :accountNumber 
+                     AND JSON_EXTRACT(bankAccount, '$.bank') = :bank)
+                    OR
+                    (JSON_EXTRACT(pendingBankAccount, '$.accountNumber') = :accountNumber 
+                     AND JSON_EXTRACT(pendingBankAccount, '$.bank') = :bank)
+                )
+                LIMIT 1
+            `, {
+                replacements: {
+                    userId: user.id,
+                    accountNumber: user.pendingBankAccount.accountNumber,
+                    bank: user.pendingBankAccount.bank
+                }
+            });
 
-            if (!existingUser) {
+            if (results.length === 0) {
                 // Auto-approve after 3 days if no duplicate found
                 user.bankAccount = {
                     ...user.pendingBankAccount,
                     isSet: true
                 };
                 user.bankChangeStatus = 'none';
-                user.pendingBankAccount = undefined;
-                user.bankChangeRequestDate = undefined;
+                user.pendingBankAccount = null;
+                user.bankChangeRequestDate = null;
                 await user.save();
-                logger.info('Bank account auto-approved', { userId: user._id });
+                logger.info('Bank account auto-approved', { userId: user.id });
             }
         }
     }
 
-    const userObj = user.toObject();
+    const userObj = user.toJSON();
     const hasTransactionPassword = !!userObj.transactionPassword;
     delete userObj.transactionPassword;
 
@@ -78,7 +91,7 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
         user.name = name.trim();
         await user.save();
 
@@ -86,7 +99,7 @@ exports.updateProfile = async (req, res) => {
             success: true,
             message: 'Profile updated successfully',
             user: {
-                id: user._id,
+                id: user.id,
                 name: user.name,
                 phone: user.phone,
                 membershipLevel: user.membershipLevel,
@@ -113,7 +126,7 @@ exports.uploadProfilePhoto = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         // Delete old profile photo from Cloudinary if exists
         if (user.profilePhoto) {
@@ -134,7 +147,7 @@ exports.uploadProfilePhoto = async (req, res) => {
                 const stream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'foxriver/profiles',
-                        public_id: `profile-${user._id}-${Date.now()}`,
+                        public_id: `profile-${user.id}-${Date.now()}`,
                         transformation: [
                             { width: 500, height: 500, crop: 'limit' },
                             { quality: 'auto' }
@@ -174,7 +187,7 @@ exports.uploadProfilePhoto = async (req, res) => {
 // @access  Private
 exports.deleteProfilePhoto = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         if (!user.profilePhoto) {
             return res.status(400).json({
@@ -214,14 +227,14 @@ exports.deleteProfilePhoto = async (req, res) => {
 // @access  Private
 exports.getWalletBalance = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         res.status(200).json({
             success: true,
             wallet: {
-                incomeWallet: user.incomeWallet,
-                personalWallet: user.personalWallet,
-                total: user.incomeWallet + user.personalWallet
+                incomeWallet: parseFloat(user.incomeWallet),
+                personalWallet: parseFloat(user.personalWallet),
+                total: parseFloat(user.incomeWallet) + parseFloat(user.personalWallet)
             }
         });
     } catch (error) {
@@ -239,18 +252,30 @@ exports.setBankAccount = async (req, res) => {
     try {
         const { accountName, bank, accountNumber, phone } = req.body;
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         // Check if another user already has this bank account
-        const existingUser = await User.findOne({
-            _id: { $ne: user._id },
-            $or: [
-                { 'bankAccount.accountNumber': accountNumber, 'bankAccount.bank': bank },
-                { 'pendingBankAccount.accountNumber': accountNumber, 'pendingBankAccount.bank': bank }
-            ]
+        const { sequelize } = require('../config/database');
+        const [results] = await sequelize.query(`
+            SELECT id FROM users 
+            WHERE id != :userId 
+            AND (
+                (JSON_EXTRACT(bankAccount, '$.accountNumber') = :accountNumber 
+                 AND JSON_EXTRACT(bankAccount, '$.bank') = :bank)
+                OR
+                (JSON_EXTRACT(pendingBankAccount, '$.accountNumber') = :accountNumber 
+                 AND JSON_EXTRACT(pendingBankAccount, '$.bank') = :bank)
+            )
+            LIMIT 1
+        `, {
+            replacements: {
+                userId: user.id,
+                accountNumber,
+                bank
+            }
         });
 
-        if (existingUser) {
+        if (results.length > 0) {
             return res.status(400).json({
                 success: false,
                 message: 'This bank account is already registered to another user'
@@ -314,7 +339,7 @@ exports.setTransactionPassword = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user.id).select('+transactionPassword');
+        const user = await User.findByPk(req.user.id);
 
         // If user has existing transaction password, verify current password
         if (user.transactionPassword) {
@@ -369,7 +394,7 @@ exports.changeLoginPassword = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user.id).select('+password');
+        const user = await User.findByPk(req.user.id);
 
         // Verify current password
         const isMatch = await user.matchPassword(currentPassword);
@@ -400,7 +425,7 @@ exports.changeLoginPassword = async (req, res) => {
 // @access  Private (Rank 1+)
 exports.getReferralLink = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         const referralLink = user.getReferralLink();
 

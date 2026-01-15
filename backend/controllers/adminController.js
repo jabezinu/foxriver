@@ -1,56 +1,74 @@
-const User = require('../models/User');
-const Deposit = require('../models/Deposit');
-const Withdrawal = require('../models/Withdrawal');
-const Task = require('../models/Task');
-const Message = require('../models/Message');
-const SystemSetting = require('../models/SystemSetting');
-const Commission = require('../models/Commission');
-const TaskCompletion = require('../models/TaskCompletion');
-const Membership = require('../models/Membership');
-const Salary = require('../models/Salary');
+const { 
+    User, 
+    Deposit, 
+    Withdrawal, 
+    Task, 
+    Message, 
+    SystemSetting, 
+    Commission, 
+    TaskCompletion, 
+    Membership, 
+    Salary,
+    sequelize 
+} = require('../models');
 const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
 const { calculateMonthlySalary } = require('../utils/salary');
 const { processAllSalaries, processSalaryForUserById } = require('../services/salaryScheduler');
+const { Op } = require('sequelize');
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
 // @access  Private/Admin
 exports.getStats = async (req, res) => {
     try {
+        const { sequelize } = require('../config/database');
+        const { Op } = require('sequelize');
+
         // User statistics
-        const totalUsers = await User.countDocuments({ role: 'user' });
-        const usersByLevel = await User.aggregate([
-            { $match: { role: 'user' } },
-            { $group: { _id: '$membershipLevel', count: { $sum: 1 } } }
-        ]);
+        const totalUsers = await User.count({ where: { role: 'user' } });
+        const usersByLevel = await User.findAll({
+            where: { role: 'user' },
+            attributes: [
+                'membershipLevel',
+                [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+            ],
+            group: ['membershipLevel'],
+            raw: true
+        });
 
         // Deposit statistics
-        const totalDeposits = await Deposit.countDocuments();
-        const pendingDeposits = await Deposit.countDocuments({ status: { $in: ['pending', 'ft_submitted'] } });
-        const approvedDeposits = await Deposit.countDocuments({ status: 'approved' });
-        const totalDepositAmount = await Deposit.aggregate([
-            { $match: { status: 'approved' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]);
+        const totalDeposits = await Deposit.count();
+        const pendingDeposits = await Deposit.count({ 
+            where: { status: { [Op.in]: ['pending', 'ft_submitted'] } }
+        });
+        const approvedDeposits = await Deposit.count({ where: { status: 'approved' } });
+        const totalDepositAmount = await Deposit.findOne({
+            where: { status: 'approved' },
+            attributes: [[sequelize.fn('SUM', sequelize.col('amount')), 'total']],
+            raw: true
+        });
 
         // Withdrawal statistics
-        const totalWithdrawals = await Withdrawal.countDocuments();
-        const pendingWithdrawals = await Withdrawal.countDocuments({ status: 'pending' });
-        const approvedWithdrawals = await Withdrawal.countDocuments({ status: 'approved' });
-        const totalWithdrawalAmount = await Withdrawal.aggregate([
-            { $match: { status: 'approved' } },
-            { $group: { _id: null, total: { $sum: '$netAmount' } } }
-        ]);
+        const totalWithdrawals = await Withdrawal.count();
+        const pendingWithdrawals = await Withdrawal.count({ where: { status: 'pending' } });
+        const approvedWithdrawals = await Withdrawal.count({ where: { status: 'approved' } });
+        const totalWithdrawalAmount = await Withdrawal.findOne({
+            where: { status: 'approved' },
+            attributes: [[sequelize.fn('SUM', sequelize.col('netAmount')), 'total']],
+            raw: true
+        });
 
         // Task statistics
-        const totalTasks = await Task.countDocuments();
-        const activeTasks = await Task.countDocuments({ status: 'active' });
+        const totalTasks = await Task.count();
+        const activeTasks = await Task.count({ where: { status: 'active' } });
 
         // Recent activity
-        const recentUsers = await User.find({ role: 'user' })
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .select('phone membershipLevel createdAt');
+        const recentUsers = await User.findAll({
+            where: { role: 'user' },
+            order: [['createdAt', 'DESC']],
+            limit: 10,
+            attributes: ['id', 'phone', 'membershipLevel', 'createdAt']
+        });
 
         res.status(200).json({
             success: true,
@@ -63,13 +81,13 @@ exports.getStats = async (req, res) => {
                     total: totalDeposits,
                     pending: pendingDeposits,
                     approved: approvedDeposits,
-                    totalAmount: totalDepositAmount.length > 0 ? totalDepositAmount[0].total : 0
+                    totalAmount: totalDepositAmount?.total || 0
                 },
                 withdrawals: {
                     total: totalWithdrawals,
                     pending: pendingWithdrawals,
                     approved: approvedWithdrawals,
-                    totalAmount: totalWithdrawalAmount.length > 0 ? totalWithdrawalAmount[0].total : 0
+                    totalAmount: totalWithdrawalAmount?.total || 0
                 },
                 tasks: {
                     total: totalTasks,
@@ -91,28 +109,31 @@ exports.getStats = async (req, res) => {
 // @access  Private/Admin
 exports.getAllUsers = async (req, res) => {
     try {
+        const { Op } = require('sequelize');
         const { membershipLevel, search } = req.query;
 
-        let filter = { role: 'user' };
+        const where = { role: 'user' };
 
         if (membershipLevel) {
-            filter.membershipLevel = membershipLevel;
+            where.membershipLevel = membershipLevel;
         }
 
         if (search) {
-            filter.phone = { $regex: search, $options: 'i' };
+            where.phone = { [Op.like]: `%${search}%` };
         }
 
-        const users = await User.find(filter)
-            .select('-password -transactionPassword')
-            .sort({ createdAt: -1 });
+        const users = await User.findAll({
+            where,
+            attributes: { exclude: ['password', 'transactionPassword'] },
+            order: [['createdAt', 'DESC']]
+        });
 
         // Calculate salary for each user
         const usersWithSalary = await Promise.all(
             users.map(async (user) => {
-                const { salary } = await calculateMonthlySalary(user._id);
+                const { salary } = await calculateMonthlySalary(user.id);
                 return {
-                    ...user.toObject(),
+                    ...user.toJSON(),
                     monthlySalary: salary
                 };
             })
@@ -136,9 +157,10 @@ exports.getAllUsers = async (req, res) => {
 // @access  Private/Admin
 exports.getUserDetails = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id)
-            .select('-password -transactionPassword')
-            .populate('referrerId', 'phone membershipLevel');
+        const user = await User.findByPk(req.params.id, {
+            attributes: { exclude: ['password', 'transactionPassword'] },
+            include: [{ model: User, as: 'referrer', attributes: ['phone', 'membershipLevel'] }]
+        });
 
         if (!user) {
             return res.status(404).json({
@@ -148,17 +170,21 @@ exports.getUserDetails = async (req, res) => {
         }
 
         // Get user's deposits
-        const deposits = await Deposit.find({ user: user._id })
-            .sort({ createdAt: -1 })
-            .limit(10);
+        const deposits = await Deposit.findAll({ 
+            where: { user: user.id },
+            order: [['createdAt', 'DESC']],
+            limit: 10
+        });
 
         // Get user's withdrawals
-        const withdrawals = await Withdrawal.find({ user: user._id })
-            .sort({ createdAt: -1 })
-            .limit(10);
+        const withdrawals = await Withdrawal.findAll({ 
+            where: { user: user.id },
+            order: [['createdAt', 'DESC']],
+            limit: 10
+        });
 
         // Get referral count
-        const referralCount = await User.countDocuments({ referrerId: user._id });
+        const referralCount = await User.count({ where: { referrerId: user.id } });
 
         res.status(200).json({
             success: true,
@@ -181,7 +207,7 @@ exports.getUserDetails = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const { membershipLevel, incomeWallet, personalWallet } = req.body;
-        const user = await User.findById(req.params.id);
+        const user = await User.findByPk(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -196,7 +222,7 @@ exports.updateUser = async (req, res) => {
 
             // If level changed and it's not Intern, trigger commissions
             if (oldLevel !== membershipLevel && membershipLevel !== 'Intern') {
-                const membership = await Membership.findOne({ level: membershipLevel });
+                const membership = await Membership.findOne({ where: { level: membershipLevel } });
                 if (membership) {
                     await calculateAndCreateMembershipCommissions(user, membership);
                 }
@@ -212,11 +238,19 @@ exports.updateUser = async (req, res) => {
         if (req.body.approveBankChange && user.bankChangeStatus === 'pending') {
             // Check if another user already has this bank account
             const existingUser = await User.findOne({
-                _id: { $ne: user._id },
-                $or: [
-                    { 'bankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'bankAccount.bank': user.pendingBankAccount.bank },
-                    { 'pendingBankAccount.accountNumber': user.pendingBankAccount.accountNumber, 'pendingBankAccount.bank': user.pendingBankAccount.bank }
-                ]
+                where: {
+                    id: { [Op.ne]: user.id },
+                    [Op.or]: [
+                        sequelize.where(
+                            sequelize.fn('JSON_EXTRACT', sequelize.col('bankAccount'), '$.accountNumber'),
+                            user.pendingBankAccount.accountNumber
+                        ),
+                        sequelize.where(
+                            sequelize.fn('JSON_EXTRACT', sequelize.col('pendingBankAccount'), '$.accountNumber'),
+                            user.pendingBankAccount.accountNumber
+                        )
+                    ]
+                }
             });
 
             if (existingUser) {
@@ -231,8 +265,8 @@ exports.updateUser = async (req, res) => {
                 isSet: true
             };
             user.bankChangeStatus = 'none';
-            user.pendingBankAccount = undefined;
-            user.bankChangeRequestDate = undefined;
+            user.pendingBankAccount = null;
+            user.bankChangeRequestDate = null;
         }
 
         await user.save();
@@ -258,18 +292,18 @@ exports.restrictAllUsers = async (req, res) => {
         const { date } = req.body;
 
         // Determine update operation
-        let updateOperation;
         if (date) {
-            updateOperation = { $set: { withdrawalRestrictedUntil: date } };
+            await User.update(
+                { withdrawalRestrictedUntil: date },
+                { where: { role: 'user' } }
+            );
         } else {
             // If date is null or empty, lift restriction
-            updateOperation = { $unset: { withdrawalRestrictedUntil: 1 } };
+            await User.update(
+                { withdrawalRestrictedUntil: null },
+                { where: { role: 'user' } }
+            );
         }
-
-        await User.updateMany(
-            { role: 'user' },
-            updateOperation
-        );
 
         res.status(200).json({
             success: true,
@@ -291,7 +325,7 @@ exports.restrictAllUsers = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const user = await User.findById(userId);
+        const user = await User.findByPk(userId);
 
         if (!user) {
             return res.status(404).json({
@@ -309,39 +343,37 @@ exports.deleteUser = async (req, res) => {
         }
 
         // 1. Delete user's deposits
-        await Deposit.deleteMany({ user: userId });
+        await Deposit.destroy({ where: { user: userId } });
 
         // 2. Delete user's withdrawals
-        await Withdrawal.deleteMany({ user: userId });
+        await Withdrawal.destroy({ where: { user: userId } });
 
         // 3. Delete commissions related to user (as receiver or source)
-        await Commission.deleteMany({
-            $or: [
-                { user: userId },
-                { downlineUser: userId }
-            ]
+        await Commission.destroy({
+            where: {
+                [Op.or]: [
+                    { user: userId },
+                    { downlineUser: userId }
+                ]
+            }
         });
 
         // 4. Delete task completions
-        await TaskCompletion.deleteMany({ user: userId });
+        await TaskCompletion.destroy({ where: { user: userId } });
 
         // 5. Handle Messages
         // Delete messages where user is the sender
-        await Message.deleteMany({ sender: userId });
-        // Remove user from recipients of other messages
-        await Message.updateMany(
-            { 'recipients.user': userId },
-            { $pull: { recipients: { user: userId } } }
-        );
+        await Message.destroy({ where: { sender: userId } });
+        // Note: For recipients, this would need custom handling based on your Message model structure
 
         // 6. Update referred users (set referrerId to null)
-        await User.updateMany(
-            { referrerId: userId },
-            { $set: { referrerId: null } }
+        await User.update(
+            { referrerId: null },
+            { where: { referrerId: userId } }
         );
 
         // 7. Finally delete the user
-        await user.deleteOne();
+        await user.destroy();
 
         res.status(200).json({
             success: true,
@@ -363,7 +395,7 @@ exports.updateAdminProfile = async (req, res) => {
         const { phone, password, currentPassword } = req.body;
 
         // Find user
-        let user = await User.findById(req.user.id);
+        let user = await User.findByPk(req.user.id);
 
         if (!user) {
             return res.status(404).json({
@@ -382,7 +414,7 @@ exports.updateAdminProfile = async (req, res) => {
             }
 
             // Get user with password field
-            const userWithPassword = await User.findById(req.user.id).select('+password');
+            const userWithPassword = await User.findByPk(req.user.id);
             const isMatch = await userWithPassword.matchPassword(currentPassword);
 
             if (!isMatch) {
@@ -402,7 +434,7 @@ exports.updateAdminProfile = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                id: user._id,
+                id: user.id,
                 phone: user.phone,
                 role: user.role
             },
@@ -421,9 +453,11 @@ exports.updateAdminProfile = async (req, res) => {
 // @access  Private/Admin
 exports.getUserDepositHistory = async (req, res) => {
     try {
-        const deposits = await Deposit.find({ user: req.params.id })
-            .populate('approvedBy', 'phone')
-            .sort({ createdAt: -1 });
+        const deposits = await Deposit.findAll({ 
+            where: { user: req.params.id },
+            include: [{ model: User, as: 'approver', attributes: ['phone'] }],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -443,9 +477,11 @@ exports.getUserDepositHistory = async (req, res) => {
 // @access  Private/Admin
 exports.getUserWithdrawalHistory = async (req, res) => {
     try {
-        const withdrawals = await Withdrawal.find({ user: req.params.id })
-            .populate('approvedBy', 'phone')
-            .sort({ createdAt: -1 });
+        const withdrawals = await Withdrawal.findAll({ 
+            where: { user: req.params.id },
+            include: [{ model: User, as: 'approver', attributes: ['phone'] }],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -492,11 +528,8 @@ exports.updateSystemSettings = async (req, res) => {
         if (!settings) {
             settings = await SystemSetting.create(req.body);
         } else {
-            settings = await SystemSetting.findByIdAndUpdate(
-                settings._id,
-                req.body,
-                { new: true, runValidators: true }
-            );
+            await settings.update(req.body);
+            settings = await SystemSetting.findOne(); // Refresh the instance
         }
 
         res.status(200).json({
@@ -517,10 +550,13 @@ exports.updateSystemSettings = async (req, res) => {
 // @access  Private/Admin
 exports.getAllCommissions = async (req, res) => {
     try {
-        const commissions = await Commission.find()
-            .populate('user', 'phone membershipLevel')
-            .populate('downlineUser', 'phone membershipLevel')
-            .sort({ createdAt: -1 });
+        const commissions = await Commission.findAll({
+            include: [
+                { model: User, as: 'earner', attributes: ['phone', 'membershipLevel'] },
+                { model: User, as: 'downline', attributes: ['phone', 'membershipLevel'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -591,9 +627,11 @@ exports.processUserSalary = async (req, res) => {
 // @access  Private/SuperAdmin
 exports.getAllAdmins = async (req, res) => {
     try {
-        const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } })
-            .select('-password -transactionPassword')
-            .sort({ createdAt: -1 });
+        const admins = await User.findAll({ 
+            where: { role: { [Op.in]: ['admin', 'superadmin'] } },
+            attributes: { exclude: ['password', 'transactionPassword'] },
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -626,7 +664,7 @@ exports.updateAdminPermissions = async (req, res) => {
             });
         }
 
-        const admin = await User.findById(adminId);
+        const admin = await User.findByPk(adminId);
 
         if (!admin) {
             return res.status(404).json({
@@ -672,7 +710,7 @@ exports.createAdmin = async (req, res) => {
         const { phone, password, role, permissions } = req.body;
 
         // Check if user already exists
-        const userExists = await User.findOne({ phone });
+        const userExists = await User.findOne({ where: { phone } });
         if (userExists) {
             return res.status(400).json({
                 success: false,
@@ -693,7 +731,7 @@ exports.createAdmin = async (req, res) => {
             success: true,
             message: 'Admin created successfully',
             admin: {
-                id: admin._id,
+                id: admin.id,
                 phone: admin.phone,
                 role: admin.role,
                 permissions: admin.permissions

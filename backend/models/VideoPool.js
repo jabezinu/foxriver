@@ -1,33 +1,47 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const videoPoolSchema = new mongoose.Schema({
+class VideoPool extends Model {}
+
+VideoPool.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     videoId: {
-        type: String,
-        required: [true, 'Please provide video ID'],
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true
     },
     title: {
-        type: String,
-        required: [true, 'Please provide video title']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     videoUrl: {
-        type: String,
-        required: [true, 'Please provide video URL']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     playlist: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Playlist'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'playlists',
+            key: 'id'
+        }
     },
     lastUsed: {
-        type: Date,
-        default: null
+        type: DataTypes.DATE,
+        allowNull: true
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'VideoPool',
+    tableName: 'video_pools',
+    indexes: [
+        { fields: ['lastUsed'] },
+        { fields: ['playlist'] }
+    ]
 });
 
-// Index for finding least recently used videos
-videoPoolSchema.index({ lastUsed: 1 });
-videoPoolSchema.index({ playlist: 1 });
-
-module.exports = mongoose.model('VideoPool', videoPoolSchema);
+module.exports = VideoPool;

@@ -23,7 +23,7 @@ exports.register = asyncHandler(async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ phone }).lean();
+    const existingUser = await User.findOne({ where: { phone }, raw: true });
     if (existingUser) {
         throw new AppError('User already exists with this phone number', 400);
     }
@@ -31,9 +31,9 @@ exports.register = asyncHandler(async (req, res) => {
     // Handle referral if invitation code provided
     let referrerId = null;
     if (invitationCode) {
-        const referrer = await User.findOne({ invitationCode }).select('_id').lean();
+        const referrer = await User.findOne({ where: { invitationCode }, attributes: ['id'], raw: true });
         if (referrer) {
-            referrerId = referrer._id;
+            referrerId = referrer.id;
         }
     }
 
@@ -47,16 +47,16 @@ exports.register = asyncHandler(async (req, res) => {
     });
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
-    logger.info('User registered successfully', { userId: user._id, phone: user.phone });
+    logger.info('User registered successfully', { userId: user.id, phone: user.phone });
 
     res.status(201).json({
         success: true,
         message: 'Registration successful',
         token,
         user: {
-            id: user._id,
+            id: user.id,
             phone: user.phone,
             role: user.role,
             membershipLevel: user.membershipLevel,
@@ -77,7 +77,7 @@ exports.login = asyncHandler(async (req, res) => {
     }
 
     // Check for user (include password for comparison)
-    const user = await User.findOne({ phone }).select('+password');
+    const user = await User.findOne({ where: { phone } });
 
     if (!user) {
         throw new AppError('Invalid credentials', 401);
@@ -95,16 +95,16 @@ exports.login = asyncHandler(async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
-    logger.info('User logged in successfully', { userId: user._id, phone: user.phone });
+    logger.info('User logged in successfully', { userId: user.id, phone: user.phone });
 
     res.status(200).json({
         success: true,
         message: 'Login successful',
         token,
         user: {
-            id: user._id,
+            id: user.id,
             phone: user.phone,
             role: user.role,
             membershipLevel: user.membershipLevel,

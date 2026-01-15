@@ -1,26 +1,45 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const chatMessageSchema = new mongoose.Schema({
+class ChatMessage extends Model {}
+
+ChatMessage.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     chat: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Chat',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'chats',
+            key: 'id'
+        }
     },
     sender: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     content: {
-        type: String,
-        required: [true, 'Please provide message content']
+        type: DataTypes.TEXT,
+        allowNull: false
     },
-    readAt: Date
+    readAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'ChatMessage',
+    tableName: 'chat_messages',
+    indexes: [
+        { fields: ['chat', 'createdAt'] }
+    ]
 });
 
-// Index for querying messages in a chat
-chatMessageSchema.index({ chat: 1, createdAt: 1 });
-
-module.exports = mongoose.model('ChatMessage', chatMessageSchema);
+module.exports = ChatMessage;

@@ -6,7 +6,10 @@ const CourseCategory = require('../models/CourseCategory');
 // @access  Private
 exports.getCategories = async (req, res) => {
     try {
-        const categories = await CourseCategory.find({ status: 'active' }).sort({ order: 1 });
+        const categories = await CourseCategory.findAll({ 
+            where: { status: 'active' },
+            order: [['order', 'ASC']]
+        });
         
         res.status(200).json({
             success: true,
@@ -26,10 +29,13 @@ exports.getCategories = async (req, res) => {
 // @access  Private
 exports.getCoursesByCategory = async (req, res) => {
     try {
-        const courses = await Course.find({ 
-            category: req.params.categoryId,
-            status: 'active'
-        }).sort({ order: 1 });
+        const courses = await Course.findAll({ 
+            where: {
+                category: req.params.categoryId,
+                status: 'active'
+            },
+            order: [['order', 'ASC']]
+        });
         
         res.status(200).json({
             success: true,
@@ -49,7 +55,9 @@ exports.getCoursesByCategory = async (req, res) => {
 // @access  Private/Admin
 exports.getAllCategories = async (req, res) => {
     try {
-        const categories = await CourseCategory.find().sort({ order: 1 });
+        const categories = await CourseCategory.findAll({ 
+            order: [['order', 'ASC']]
+        });
         
         res.status(200).json({
             success: true,
@@ -89,11 +97,7 @@ exports.createCategory = async (req, res) => {
 // @access  Private/Admin
 exports.updateCategory = async (req, res) => {
     try {
-        const category = await CourseCategory.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const category = await CourseCategory.findByPk(req.params.id);
 
         if (!category) {
             return res.status(404).json({
@@ -101,6 +105,8 @@ exports.updateCategory = async (req, res) => {
                 message: 'Category not found'
             });
         }
+
+        await category.update(req.body);
         
         res.status(200).json({
             success: true,
@@ -120,7 +126,7 @@ exports.updateCategory = async (req, res) => {
 // @access  Private/Admin
 exports.deleteCategory = async (req, res) => {
     try {
-        const category = await CourseCategory.findByIdAndDelete(req.params.id);
+        const category = await CourseCategory.findByPk(req.params.id);
 
         if (!category) {
             return res.status(404).json({
@@ -130,7 +136,8 @@ exports.deleteCategory = async (req, res) => {
         }
 
         // Delete all courses in this category
-        await Course.deleteMany({ category: req.params.id });
+        await Course.destroy({ where: { category: req.params.id } });
+        await category.destroy();
         
         res.status(200).json({
             success: true,
@@ -149,9 +156,12 @@ exports.deleteCategory = async (req, res) => {
 // @access  Private/Admin
 exports.getAllCourses = async (req, res) => {
     try {
-        const courses = await Course.find()
-            .populate('category')
-            .sort({ order: 1 });
+        const courses = await Course.findAll({
+            include: [
+                { model: CourseCategory, as: 'categoryDetails' }
+            ],
+            order: [['order', 'ASC']]
+        });
         
         res.status(200).json({
             success: true,
@@ -172,7 +182,11 @@ exports.getAllCourses = async (req, res) => {
 exports.createCourse = async (req, res) => {
     try {
         const course = await Course.create(req.body);
-        const populatedCourse = await Course.findById(course._id).populate('category');
+        const populatedCourse = await Course.findByPk(course.id, {
+            include: [
+                { model: CourseCategory, as: 'category' }
+            ]
+        });
         
         res.status(201).json({
             success: true,
@@ -192,11 +206,7 @@ exports.createCourse = async (req, res) => {
 // @access  Private/Admin
 exports.updateCourse = async (req, res) => {
     try {
-        const course = await Course.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        ).populate('category');
+        const course = await Course.findByPk(req.params.id);
 
         if (!course) {
             return res.status(404).json({
@@ -204,11 +214,19 @@ exports.updateCourse = async (req, res) => {
                 message: 'Course not found'
             });
         }
+
+        await course.update(req.body);
+
+        const populatedCourse = await Course.findByPk(course.id, {
+            include: [
+                { model: CourseCategory, as: 'category' }
+            ]
+        });
         
         res.status(200).json({
             success: true,
             message: 'Course updated successfully',
-            course
+            course: populatedCourse
         });
     } catch (error) {
         res.status(400).json({
@@ -223,7 +241,7 @@ exports.updateCourse = async (req, res) => {
 // @access  Private/Admin
 exports.deleteCourse = async (req, res) => {
     try {
-        const course = await Course.findByIdAndDelete(req.params.id);
+        const course = await Course.findByPk(req.params.id);
 
         if (!course) {
             return res.status(404).json({
@@ -231,6 +249,8 @@ exports.deleteCourse = async (req, res) => {
                 message: 'Course not found'
             });
         }
+
+        await course.destroy();
         
         res.status(200).json({
             success: true,

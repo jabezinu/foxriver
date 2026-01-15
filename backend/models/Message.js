@@ -1,39 +1,42 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const messageSchema = new mongoose.Schema({
+class Message extends Model {}
+
+Message.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     title: {
-        type: String,
-        required: [true, 'Please provide a message title']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     content: {
-        type: String,
-        required: [true, 'Please provide message content']
+        type: DataTypes.TEXT,
+        allowNull: false
     },
     sender: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
-    recipients: [{
-        user: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        isRead: {
-            type: Boolean,
-            default: false
-        },
-        readAt: Date
-    }],
+    recipients: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
     isBroadcast: {
-        type: Boolean,
-        default: false
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Message',
+    tableName: 'messages'
 });
 
-// Index for querying messages
-messageSchema.index({ 'recipients.user': 1, createdAt: -1 });
-
-module.exports = mongoose.model('Message', messageSchema);
+module.exports = Message;

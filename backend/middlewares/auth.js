@@ -18,7 +18,9 @@ exports.protect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id).select('-password -transactionPassword');
+        req.user = await User.findByPk(decoded.id, {
+            attributes: { exclude: ['password', 'transactionPassword'] }
+        });
 
         if (!req.user) {
             return res.status(401).json({
@@ -26,6 +28,9 @@ exports.protect = async (req, res, next) => {
                 message: 'User not found',
             });
         }
+
+        // Convert to plain object for easier access
+        req.user = req.user.toJSON();
 
         next();
     } catch (error) {

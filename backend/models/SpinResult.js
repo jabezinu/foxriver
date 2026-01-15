@@ -1,47 +1,62 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const spinResultSchema = new mongoose.Schema({
+class SpinResult extends Model {}
+
+SpinResult.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     result: {
-        type: String,
-        required: [true, 'Please provide spin result']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     amountPaid: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
     },
     amountWon: {
-        type: Number,
-        default: 0
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0
     },
     balanceBefore: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     balanceAfter: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     walletType: {
-        type: String,
-        enum: ['personal', 'income'],
-        default: 'personal'
+        type: DataTypes.ENUM('personal', 'income'),
+        defaultValue: 'personal'
     },
     tier: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'SlotTier',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'slot_tiers',
+            key: 'id'
+        }
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'SpinResult',
+    tableName: 'spin_results',
+    indexes: [
+        { fields: ['user', 'createdAt'] },
+        { fields: ['tier'] }
+    ]
 });
 
-// Index for faster queries
-spinResultSchema.index({ user: 1, createdAt: -1 });
-spinResultSchema.index({ tier: 1 });
-
-module.exports = mongoose.model('SpinResult', spinResultSchema);
+module.exports = SpinResult;

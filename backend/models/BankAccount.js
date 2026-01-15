@@ -1,36 +1,42 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const bankAccountSchema = new mongoose.Schema({
+class BankAccount extends Model {}
+
+BankAccount.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     bankName: {
-        type: String,
-        required: [true, 'Bank name is required'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     accountNumber: {
-        type: String,
-        required: [true, 'Account number is required'],
-        unique: true,
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
     },
     accountHolderName: {
-        type: String,
-        required: [true, 'Account holder name is required'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     serviceType: {
-        type: String,
-        enum: ['bank', 'wallet'],
-        default: 'bank'
+        type: DataTypes.ENUM('bank', 'wallet'),
+        defaultValue: 'bank'
     },
     isActive: {
-        type: Boolean,
-        default: true
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'BankAccount',
+    tableName: 'bank_accounts',
+    indexes: [
+        { fields: ['isActive'] }
+    ]
 });
 
-// Index for querying active accounts
-bankAccountSchema.index({ isActive: 1 });
-
-module.exports = mongoose.model('BankAccount', bankAccountSchema);
+module.exports = BankAccount;

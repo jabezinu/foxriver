@@ -1,11 +1,14 @@
-const SlotTier = require('../models/SlotTier');
+const { SlotTier } = require('../models');
 
 // @desc    Get all slot tiers (for users - only active)
 // @route   GET /api/slot-tiers
 // @access  Public
 exports.getActiveTiers = async (req, res) => {
     try {
-        const tiers = await SlotTier.find({ isActive: true }).sort({ order: 1 });
+        const tiers = await SlotTier.findAll({ 
+            where: { isActive: true },
+            order: [['order', 'ASC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -25,7 +28,7 @@ exports.getActiveTiers = async (req, res) => {
 // @access  Private/Admin
 exports.getAllTiers = async (req, res) => {
     try {
-        const tiers = await SlotTier.find().sort({ order: 1 });
+        const tiers = await SlotTier.findAll({ order: [['order', 'ASC']] });
 
         res.status(200).json({
             success: true,
@@ -65,11 +68,7 @@ exports.createTier = async (req, res) => {
 // @access  Private/Admin
 exports.updateTier = async (req, res) => {
     try {
-        const tier = await SlotTier.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const tier = await SlotTier.findByPk(req.params.id);
 
         if (!tier) {
             return res.status(404).json({
@@ -77,6 +76,8 @@ exports.updateTier = async (req, res) => {
                 message: 'Slot tier not found'
             });
         }
+
+        await tier.update(req.body);
 
         res.status(200).json({
             success: true,
@@ -96,7 +97,7 @@ exports.updateTier = async (req, res) => {
 // @access  Private/Admin
 exports.deleteTier = async (req, res) => {
     try {
-        const tier = await SlotTier.findByIdAndDelete(req.params.id);
+        const tier = await SlotTier.findByPk(req.params.id);
 
         if (!tier) {
             return res.status(404).json({
@@ -104,6 +105,8 @@ exports.deleteTier = async (req, res) => {
                 message: 'Slot tier not found'
             });
         }
+
+        await tier.destroy();
 
         res.status(200).json({
             success: true,
@@ -122,7 +125,7 @@ exports.deleteTier = async (req, res) => {
 // @access  Private/Admin
 exports.toggleTierStatus = async (req, res) => {
     try {
-        const tier = await SlotTier.findById(req.params.id);
+        const tier = await SlotTier.findByPk(req.params.id);
 
         if (!tier) {
             return res.status(404).json({

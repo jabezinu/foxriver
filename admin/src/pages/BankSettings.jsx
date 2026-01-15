@@ -59,7 +59,7 @@ export default function BankSettings() {
         e.preventDefault();
         try {
             if (editingBank) {
-                await adminBankAPI.update(editingBank._id, formData);
+                await adminBankAPI.update(editingBank.id, formData);
                 toast.success('Bank account updated');
             } else {
                 await adminBankAPI.create(formData);
@@ -103,7 +103,7 @@ export default function BankSettings() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {banks.map((bank) => (
-                    <div key={bank._id} className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-emerald-500/50 transition-all group">
+                    <div key={bank.id} className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-emerald-500/50 transition-all group">
                         <div className="flex justify-between items-start mb-4">
                             <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${bank.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                                 }`}>
@@ -117,7 +117,7 @@ export default function BankSettings() {
                                     <HiPencil />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(bank._id)}
+                                    onClick={() => handleDelete(bank.id)}
                                     className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 >
                                     <HiTrash />

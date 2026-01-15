@@ -1,5 +1,4 @@
-const Withdrawal = require('../models/Withdrawal');
-const User = require('../models/User');
+const { Withdrawal, User } = require('../models');
 const { isValidWithdrawalAmount } = require('../utils/validators');
 
 // @desc    Create withdrawal request
@@ -37,7 +36,7 @@ exports.createWithdrawal = async (req, res) => {
         }
 
         // Verify transaction password
-        const user = await User.findById(req.user.id).select('+transactionPassword');
+        const user = await User.findByPk(req.user.id);
 
         if (!user.transactionPassword) {
             return res.status(400).json({
@@ -97,8 +96,10 @@ exports.createWithdrawal = async (req, res) => {
 // @access  Private
 exports.getUserWithdrawals = async (req, res) => {
     try {
-        const withdrawals = await Withdrawal.find({ user: req.user.id })
-            .sort({ createdAt: -1 });
+        const withdrawals = await Withdrawal.findAll({ 
+            where: { user: req.user.id },
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -119,12 +120,16 @@ exports.getUserWithdrawals = async (req, res) => {
 exports.getAllWithdrawals = async (req, res) => {
     try {
         const { status } = req.query;
-        const filter = status ? { status } : {};
+        const where = status ? { status } : {};
 
-        const withdrawals = await Withdrawal.find(filter)
-            .populate('user', 'phone membershipLevel bankAccount')
-            .populate('approvedBy', 'phone')
-            .sort({ createdAt: -1 });
+        const withdrawals = await Withdrawal.findAll({
+            where,
+            include: [
+                { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel', 'bankAccount'] },
+                { model: User, as: 'approver', attributes: ['phone'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -144,7 +149,7 @@ exports.getAllWithdrawals = async (req, res) => {
 // @access  Private/Admin
 exports.approveWithdrawal = async (req, res) => {
     try {
-        const withdrawal = await Withdrawal.findById(req.params.id);
+        const withdrawal = await Withdrawal.findByPk(req.params.id);
 
         if (!withdrawal) {
             return res.status(404).json({
@@ -162,7 +167,9 @@ exports.approveWithdrawal = async (req, res) => {
 
         // Deduct from user's balance atomically
         const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' : 'personalWallet';
-        await User.findByIdAndUpdate(withdrawal.user, { $inc: { [walletField]: -withdrawal.amount } });
+        const user = await User.findByPk(withdrawal.user);
+        user[walletField] = parseFloat(user[walletField]) - parseFloat(withdrawal.amount);
+        await user.save();
 
         // Update withdrawal status
         withdrawal.status = 'approved';
@@ -189,7 +196,7 @@ exports.approveWithdrawal = async (req, res) => {
 // @access  Private/Admin
 exports.rejectWithdrawal = async (req, res) => {
     try {
-        const withdrawal = await Withdrawal.findById(req.params.id);
+        const withdrawal = await Withdrawal.findByPk(req.params.id);
 
         if (!withdrawal) {
             return res.status(404).json({

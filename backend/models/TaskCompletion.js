@@ -1,34 +1,50 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const taskCompletionSchema = new mongoose.Schema({
+class TaskCompletion extends Model {}
+
+TaskCompletion.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     task: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Task',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'tasks',
+            key: 'id'
+        }
     },
     earningsAmount: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
     },
     watchedSeconds: {
-        type: Number,
-        default: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     requiredWatchTime: {
-        type: Number,
-        default: 15
+        type: DataTypes.INTEGER,
+        defaultValue: 15
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'TaskCompletion',
+    tableName: 'task_completions',
+    indexes: [
+        { unique: true, fields: ['user', 'task'] },
+        { fields: ['user', 'createdAt'] }
+    ]
 });
 
-// Ensure user can only complete a task once
-taskCompletionSchema.index({ user: 1, task: 1 }, { unique: true });
-taskCompletionSchema.index({ user: 1, createdAt: -1 });
-
-module.exports = mongoose.model('TaskCompletion', taskCompletionSchema);
+module.exports = TaskCompletion;

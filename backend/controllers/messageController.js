@@ -1,5 +1,5 @@
-const Message = require('../models/Message');
-const User = require('../models/User');
+const { Message, User, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
 // @desc    Get user's messages
 // @route   GET /api/messages/user
@@ -7,20 +7,28 @@ const User = require('../models/User');
 exports.getUserMessages = async (req, res) => {
     try {
         // Get messages where user is a recipient OR messages that are broadcast
-        const messages = await Message.find({
-            $or: [
-                { 'recipients.user': req.user.id },
-                { isBroadcast: true }
-            ]
-        })
-            .populate('sender', 'phone role')
-            .sort({ createdAt: -1 });
+        const messages = await Message.findAll({
+            where: {
+                [Op.or]: [
+                    { isBroadcast: true },
+                    sequelize.where(
+                        sequelize.fn('JSON_SEARCH', sequelize.col('recipients'), 'one', req.user.id, null, '$[*].user'),
+                        { [Op.ne]: null }
+                    )
+                ]
+            },
+            include: [
+                { model: User, as: 'senderDetails', attributes: ['phone', 'role'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         // Format messages with read status for current user
         const formattedMessages = messages.map(msg => {
-            const recipient = msg.recipients.find(r => r.user.toString() === req.user.id);
+            const msgObj = msg.toJSON();
+            const recipient = msgObj.recipients?.find(r => r.user === req.user.id);
             return {
-                ...msg.toObject(),
+                ...msgObj,
                 isRead: recipient ? recipient.isRead : false,
                 readAt: recipient ? recipient.readAt : null
             };
@@ -44,7 +52,7 @@ exports.getUserMessages = async (req, res) => {
 // @access  Private
 exports.markAsRead = async (req, res) => {
     try {
-        const message = await Message.findById(req.params.id);
+        const message = await Message.findByPk(req.params.id);
 
         if (!message) {
             return res.status(404).json({
@@ -54,16 +62,18 @@ exports.markAsRead = async (req, res) => {
         }
 
         // Find recipient and update read status
-        let recipient = message.recipients.find(r => r.user.toString() === req.user.id);
+        const recipients = message.recipients || [];
+        let recipient = recipients.find(r => r.user === req.user.id);
 
         if (!recipient) {
             // For broadcast messages, if user is not in recipients, add them
             if (message.isBroadcast) {
-                message.recipients.push({
+                recipients.push({
                     user: req.user.id,
                     isRead: true,
                     readAt: new Date()
                 });
+                message.recipients = recipients;
             } else {
                 return res.status(403).json({
                     success: false,
@@ -73,6 +83,7 @@ exports.markAsRead = async (req, res) => {
         } else {
             recipient.isRead = true;
             recipient.readAt = new Date();
+            message.recipients = recipients;
         }
 
         await message.save();
@@ -100,9 +111,9 @@ exports.sendMessage = async (req, res) => {
 
         if (isBroadcast) {
             // Send to all users
-            const allUsers = await User.find({ role: 'user' });
+            const allUsers = await User.findAll({ where: { role: 'user' } });
             recipients = allUsers.map(user => ({
-                user: user._id,
+                user: user.id,
                 isRead: false
             }));
         } else if (userIds && userIds.length > 0) {
@@ -145,9 +156,12 @@ exports.sendMessage = async (req, res) => {
 // @access  Private/Admin
 exports.getAllMessages = async (req, res) => {
     try {
-        const messages = await Message.find()
-            .populate('sender', 'phone role')
-            .sort({ createdAt: -1 });
+        const messages = await Message.findAll({
+            include: [
+                { model: User, as: 'senderDetails', attributes: ['phone', 'role'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -169,7 +183,7 @@ exports.updateMessage = async (req, res) => {
     try {
         const { title, content } = req.body;
 
-        let message = await Message.findById(req.params.id);
+        const message = await Message.findByPk(req.params.id);
 
         if (!message) {
             return res.status(404).json({
@@ -178,11 +192,7 @@ exports.updateMessage = async (req, res) => {
             });
         }
 
-        message = await Message.findByIdAndUpdate(
-            req.params.id,
-            { title, content },
-            { new: true, runValidators: true }
-        );
+        await message.update({ title, content });
 
         res.status(200).json({
             success: true,
@@ -202,7 +212,7 @@ exports.updateMessage = async (req, res) => {
 // @access  Private/Admin
 exports.deleteMessage = async (req, res) => {
     try {
-        const message = await Message.findByIdAndDelete(req.params.id);
+        const message = await Message.findByPk(req.params.id);
 
         if (!message) {
             return res.status(404).json({
@@ -210,6 +220,8 @@ exports.deleteMessage = async (req, res) => {
                 message: 'Message not found'
             });
         }
+
+        await message.destroy();
 
         res.status(200).json({
             success: true,

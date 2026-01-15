@@ -1,76 +1,86 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const systemSettingSchema = new mongoose.Schema({
+class SystemSetting extends Model {}
+
+SystemSetting.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     commissionPercentA: {
-        type: Number,
-        default: 10
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 10
     },
     commissionPercentB: {
-        type: Number,
-        default: 5
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 5
     },
     commissionPercentC: {
-        type: Number,
-        default: 2
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 2
     },
     maxReferralsPerUser: {
-        type: Number,
-        default: 0 // 0 means unlimited
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     salaryDirect15Threshold: {
-        type: Number,
-        default: 15
+        type: DataTypes.INTEGER,
+        defaultValue: 15
     },
     salaryDirect15Amount: {
-        type: Number,
-        default: 15000
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 15000
     },
     salaryDirect20Threshold: {
-        type: Number,
-        default: 20
+        type: DataTypes.INTEGER,
+        defaultValue: 20
     },
     salaryDirect20Amount: {
-        type: Number,
-        default: 20000
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 20000
     },
     salaryDirect10Threshold: {
-        type: Number,
-        default: 10
+        type: DataTypes.INTEGER,
+        defaultValue: 10
     },
     salaryDirect10Amount: {
-        type: Number,
-        default: 10000
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 10000
     },
     salaryNetwork40Threshold: {
-        type: Number,
-        default: 40
+        type: DataTypes.INTEGER,
+        defaultValue: 40
     },
     salaryNetwork40Amount: {
-        type: Number,
-        default: 48000
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 48000
     },
     videoPaymentAmount: {
-        type: Number,
-        default: 10 // Default payment per video in ETB
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 10
     },
     videosPerDay: {
-        type: Number,
-        default: 4 // Number of videos shown per day
+        type: DataTypes.INTEGER,
+        defaultValue: 4
     },
     videoWatchTimeRequired: {
-        type: Number,
-        default: 8 // Required watch time in seconds
+        type: DataTypes.INTEGER,
+        defaultValue: 8
     },
     frontendDisabled: {
-        type: Boolean,
-        default: false // Whether the user frontend is disabled
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     tasksDisabled: {
-        type: Boolean,
-        default: false // Whether tasks are disabled for the day
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'SystemSetting',
+    tableName: 'system_settings'
 });
 
-module.exports = mongoose.model('SystemSetting', systemSettingSchema);
+module.exports = SystemSetting;

@@ -10,11 +10,13 @@ const { securityHeaders, sanitizeInput, apiLimiter } = require('./middlewares/se
 
 const app = express();
 
-// Connect to MongoDB
+// Connect to MySQL
 connectDB();
 
 // Initialize salary scheduler after DB connection
-initializeSalaryScheduler();
+setTimeout(() => {
+    initializeSalaryScheduler();
+}, 2000);
 
 // Security middleware
 app.use(securityHeaders);
@@ -68,6 +70,7 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         message: 'Foxriver API is running',
+        database: 'MySQL',
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
     });
@@ -83,6 +86,7 @@ const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
     logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    logger.info('Database: MySQL (Sequelize ORM)');
 });
 
 // Graceful shutdown

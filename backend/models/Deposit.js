@@ -1,51 +1,78 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const depositSchema = new mongoose.Schema({
+class Deposit extends Model {}
+
+Deposit.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     amount: {
-        type: Number,
-        required: [true, 'Please specify deposit amount'],
-        enum: [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000]
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false,
+        validate: {
+            isIn: [[3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000]]
+        }
     },
     paymentMethod: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'BankAccount',
-        required: [true, 'Please select a payment method']
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'bank_accounts',
+            key: 'id'
+        }
     },
     transactionFT: {
-        type: String,
-        default: null
+        type: DataTypes.STRING,
+        allowNull: true
     },
     transactionScreenshot: {
-        type: String,
-        default: null
+        type: DataTypes.STRING,
+        allowNull: true
     },
     orderId: {
-        type: String,
-        required: true,
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true
     },
     status: {
-        type: String,
-        enum: ['pending', 'ft_submitted', 'approved', 'rejected'],
-        default: 'pending'
+        type: DataTypes.ENUM('pending', 'ft_submitted', 'approved', 'rejected'),
+        defaultValue: 'pending'
     },
-    adminNotes: String,
+    adminNotes: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     approvedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
-    approvedAt: Date
+    approvedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+    }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Deposit',
+    tableName: 'deposits',
+    indexes: [
+        { fields: ['user', 'status'] },
+        { fields: ['status', 'createdAt'] }
+    ]
 });
 
-// Index for querying deposits by user and status
-depositSchema.index({ user: 1, status: 1 });
-depositSchema.index({ status: 1, createdAt: -1 });
-
-module.exports = mongoose.model('Deposit', depositSchema);
+module.exports = Deposit;

@@ -49,7 +49,7 @@ export default function Deposit() {
                 // setBalance(walletRes.data.wallet.personalWallet); // No longer needed, derived from store
 
                 const bankMethods = bankRes.data.data.map(bank => ({
-                    id: bank._id,
+                    id: bank._id || bank.id,
                     name: bank.bankName,
                     account: bank.accountNumber,
                     holder: bank.accountHolderName
@@ -248,9 +248,9 @@ export default function Deposit() {
                                             onClick={() => setIsDropdownOpen(false)}
                                         />
                                         <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl z-20 overflow-hidden animate-slide-up p-1.5">
-                                            {methods.map((method) => (
+                                            {methods.map((method, index) => (
                                                 <button
-                                                    key={method.id}
+                                                    key={method.id || index}
                                                     onClick={() => {
                                                         setPaymentMethod(method.id);
                                                         setIsDropdownOpen(false);

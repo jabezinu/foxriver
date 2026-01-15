@@ -1,8 +1,8 @@
-const Deposit = require('../models/Deposit');
-const User = require('../models/User');
+const { Deposit, User, BankAccount } = require('../models');
 const { isValidDepositAmount, generateOrderId } = require('../utils/validators');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const { Op } = require('sequelize');
 
 // Configure multer for memory storage (Cloudinary upload)
 const storage = multer.memoryStorage();
@@ -92,7 +92,7 @@ exports.submitTransactionFT = [
 
             const ftCode = transactionFT.trim().toUpperCase();
 
-            const deposit = await Deposit.findById(depositId);
+            const deposit = await Deposit.findByPk(depositId);
 
             if (!deposit) {
                 return res.status(404).json({
@@ -102,7 +102,7 @@ exports.submitTransactionFT = [
             }
 
             // Verify deposit belongs to user
-            if (deposit.user.toString() !== req.user.id) {
+            if (deposit.user !== req.user.id) {
                 return res.status(403).json({
                     success: false,
                     message: 'Not authorized'
@@ -117,7 +117,12 @@ exports.submitTransactionFT = [
             }
 
             // Check for uniqueness
-            const existingDeposit = await Deposit.findOne({ transactionFT: ftCode });
+            const existingDeposit = await Deposit.findOne({ 
+                where: { 
+                    transactionFT: ftCode,
+                    id: { [Op.ne]: depositId }
+                } 
+            });
             if (existingDeposit) {
                 return res.status(400).json({
                     success: false,
@@ -169,8 +174,10 @@ exports.submitTransactionFT = [
 // @access  Private
 exports.getUserDeposits = async (req, res) => {
     try {
-        const deposits = await Deposit.find({ user: req.user.id })
-            .sort({ createdAt: -1 });
+        const deposits = await Deposit.findAll({ 
+            where: { user: req.user.id },
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -193,11 +200,15 @@ exports.getAllDeposits = async (req, res) => {
         const { status } = req.query;
         const filter = status ? { status } : {};
 
-        const deposits = await Deposit.find(filter)
-            .populate('user', 'phone membershipLevel')
-            .populate('approvedBy', 'phone')
-            .populate('paymentMethod', 'bankName accountNumber accountHolderName')
-            .sort({ createdAt: -1 });
+        const deposits = await Deposit.findAll({
+            where: filter,
+            include: [
+                { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel'] },
+                { model: User, as: 'approver', attributes: ['phone'] },
+                { model: BankAccount, as: 'paymentMethodDetails', attributes: ['bankName', 'accountNumber', 'accountHolderName'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -217,7 +228,7 @@ exports.getAllDeposits = async (req, res) => {
 // @access  Private/Admin
 exports.approveDeposit = async (req, res) => {
     try {
-        const deposit = await Deposit.findById(req.params.id);
+        const deposit = await Deposit.findByPk(req.params.id);
 
         if (!deposit) {
             return res.status(404).json({
@@ -233,8 +244,10 @@ exports.approveDeposit = async (req, res) => {
             });
         }
 
-        // Credit user's personal balance atomically
-        await User.findByIdAndUpdate(deposit.user, { $inc: { personalWallet: deposit.amount } });
+        // Credit user's personal balance
+        const user = await User.findByPk(deposit.user);
+        user.personalWallet = parseFloat(user.personalWallet) + parseFloat(deposit.amount);
+        await user.save();
 
         // Update deposit status
         deposit.status = 'approved';
@@ -261,7 +274,7 @@ exports.approveDeposit = async (req, res) => {
 // @access  Private/Admin
 exports.rejectDeposit = async (req, res) => {
     try {
-        const deposit = await Deposit.findById(req.params.id);
+        const deposit = await Deposit.findByPk(req.params.id);
 
         if (!deposit) {
             return res.status(404).json({

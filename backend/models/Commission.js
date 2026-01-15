@@ -1,44 +1,62 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const commissionSchema = new mongoose.Schema({
+class Commission extends Model {}
+
+Commission.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     downlineUser: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     level: {
-        type: String,
-        enum: ['A', 'B', 'C'],
-        required: true
+        type: DataTypes.ENUM('A', 'B', 'C'),
+        allowNull: false
     },
     percentage: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: false
     },
     amountEarned: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     sourceTask: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'TaskCompletion',
-        required: false
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'task_completions',
+            key: 'id'
+        }
     },
     sourceMembership: {
-        type: String,
-        required: false
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Commission',
+    tableName: 'commissions',
+    indexes: [
+        { fields: ['user', 'createdAt'] },
+        { fields: ['downlineUser'] }
+    ]
 });
 
-// Index for querying commissions
-commissionSchema.index({ user: 1, createdAt: -1 });
-commissionSchema.index({ downlineUser: 1 });
-
-module.exports = mongoose.model('Commission', commissionSchema);
+module.exports = Commission;

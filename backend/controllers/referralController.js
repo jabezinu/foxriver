@@ -1,5 +1,4 @@
-const User = require('../models/User');
-const Commission = require('../models/Commission');
+const { User, Commission, Membership, TaskCompletion } = require('../models');
 const { calculateMonthlySalary } = require('../utils/salary');
 
 // @desc    Get user's downline (A/B/C levels)
@@ -7,21 +6,21 @@ const { calculateMonthlySalary } = require('../utils/salary');
 // @access  Private
 exports.getDownline = async (req, res) => {
     try {
-        const Membership = require('../models/Membership');
-        
         // Get membership levels for comparison
-        const memberships = await Membership.find().sort({ order: 1 });
+        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
         const membershipOrder = {};
         memberships.forEach(m => {
             membershipOrder[m.level] = m.order;
         });
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
         const userLevel = membershipOrder[user.membershipLevel];
 
         // A-level (direct referrals) - all referrals
-        const allALevelUsers = await User.find({ referrerId: req.user.id })
-            .select('name profilePhoto phone membershipLevel createdAt incomeWallet personalWallet');
+        const allALevelUsers = await User.findAll({ 
+            where: { referrerId: req.user.id },
+            attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'incomeWallet', 'personalWallet']
+        });
 
         // Filter A-level for qualified referrals (not Intern, equal or lower level)
         const qualifiedALevelUsers = allALevelUsers.filter(referral => {
@@ -30,13 +29,15 @@ exports.getDownline = async (req, res) => {
         });
 
         // B-level (referrals' referrals) - only from qualified A-level users
-        const qualifiedALevelIds = qualifiedALevelUsers.map(u => u._id);
+        const qualifiedALevelIds = qualifiedALevelUsers.map(u => u.id);
         let allBLevelUsers = [];
         let qualifiedBLevelUsers = [];
         
         if (qualifiedALevelIds.length > 0) {
-            allBLevelUsers = await User.find({ referrerId: { $in: qualifiedALevelIds } })
-                .select('name profilePhoto phone membershipLevel createdAt referrerId');
+            allBLevelUsers = await User.findAll({ 
+                where: { referrerId: qualifiedALevelIds },
+                attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'referrerId']
+            });
             
             qualifiedBLevelUsers = allBLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
@@ -45,13 +46,15 @@ exports.getDownline = async (req, res) => {
         }
 
         // C-level (B-level's referrals) - only from qualified B-level users
-        const qualifiedBLevelIds = qualifiedBLevelUsers.map(u => u._id);
+        const qualifiedBLevelIds = qualifiedBLevelUsers.map(u => u.id);
         let allCLevelUsers = [];
         let qualifiedCLevelUsers = [];
         
         if (qualifiedBLevelIds.length > 0) {
-            allCLevelUsers = await User.find({ referrerId: { $in: qualifiedBLevelIds } })
-                .select('name profilePhoto phone membershipLevel createdAt referrerId');
+            allCLevelUsers = await User.findAll({ 
+                where: { referrerId: qualifiedBLevelIds },
+                attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'referrerId']
+            });
             
             qualifiedCLevelUsers = allCLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
@@ -97,10 +100,14 @@ exports.getDownline = async (req, res) => {
 // @access  Private
 exports.getCommissions = async (req, res) => {
     try {
-        const commissions = await Commission.find({ user: req.user.id })
-            .populate('downlineUser', 'name profilePhoto phone membershipLevel')
-            .populate('sourceTask')
-            .sort({ createdAt: -1 });
+        const commissions = await Commission.findAll({
+            where: { user: req.user.id },
+            include: [
+                { model: User, as: 'downline', attributes: ['name', 'profilePhoto', 'phone', 'membershipLevel'] },
+                { model: TaskCompletion, as: 'taskSource' }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         // Calculate totals by level
         const totals = {
@@ -111,8 +118,8 @@ exports.getCommissions = async (req, res) => {
         };
 
         commissions.forEach(commission => {
-            totals[commission.level] += commission.amountEarned;
-            totals.total += commission.amountEarned;
+            totals[commission.level] += parseFloat(commission.amountEarned);
+            totals.total += parseFloat(commission.amountEarned);
         });
 
         res.status(200).json({

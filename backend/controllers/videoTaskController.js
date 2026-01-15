@@ -1,15 +1,13 @@
-const VideoPool = require('../models/VideoPool');
-const DailyVideoAssignment = require('../models/DailyVideoAssignment');
-const SystemSetting = require('../models/SystemSetting');
-const User = require('../models/User');
+const { VideoPool, DailyVideoAssignment, SystemSetting, User, sequelize } = require('../models');
 const { calculateAndCreateCommissions } = require('../utils/commission');
+const { Op } = require('sequelize');
 
 // @desc    Get daily video tasks for user
 // @route   GET /api/video-tasks/daily
 // @access  Private
 exports.getDailyVideoTasks = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         // Check if Intern user can earn
         const canInternEarn = user.canInternEarn();
@@ -55,9 +53,12 @@ exports.getDailyVideoTasks = async (req, res) => {
 
         // Check if user already has assignment for today
         let assignment = await DailyVideoAssignment.findOne({
-            user: req.user.id,
-            assignmentDate: today
-        }).populate('videos.video');
+            where: {
+                user: req.user.id,
+                assignmentDate: today
+            },
+            include: [{ model: VideoPool, as: 'videos' }]
+        });
 
         // If no assignment exists, create one
         if (!assignment) {
@@ -66,21 +67,25 @@ exports.getDailyVideoTasks = async (req, res) => {
             yesterday.setDate(yesterday.getDate() - 1);
 
             const yesterdayAssignment = await DailyVideoAssignment.findOne({
-                user: req.user.id,
-                assignmentDate: yesterday
+                where: {
+                    user: req.user.id,
+                    assignmentDate: yesterday
+                }
             });
 
             const excludeVideoIds = yesterdayAssignment ?
                 yesterdayAssignment.videos.map(v => v.video) : [];
 
             // Get available videos (excluding yesterday's videos if possible)
-            let availableVideos = await VideoPool.find({
-                _id: { $nin: excludeVideoIds }
+            let availableVideos = await VideoPool.findAll({
+                where: {
+                    id: { [Op.notIn]: excludeVideoIds }
+                }
             });
 
             // If we don't have enough videos excluding yesterday's, include all videos
             if (availableVideos.length < videosPerDay) {
-                availableVideos = await VideoPool.find({});
+                availableVideos = await VideoPool.findAll({});
             }
 
             // Randomly select videos
@@ -108,7 +113,7 @@ exports.getDailyVideoTasks = async (req, res) => {
                 user: req.user.id,
                 assignmentDate: today,
                 videos: selectedVideos.map(video => ({
-                    video: video._id,
+                    video: video.id,
                     watchedSeconds: 0,
                     isCompleted: false,
                     rewardAmount: canInternEarn ? videoPaymentAmount : 0
@@ -116,8 +121,9 @@ exports.getDailyVideoTasks = async (req, res) => {
             });
 
             // Populate the videos
-            assignment = await DailyVideoAssignment.findById(assignment._id)
-                .populate('videos.video');
+            assignment = await DailyVideoAssignment.findByPk(assignment.id, {
+                include: [{ model: VideoPool, as: 'videos' }]
+            });
         }
 
         // Format response
@@ -237,7 +243,7 @@ exports.completeVideoTask = async (req, res) => {
         const { watchedSeconds } = req.body;
 
         // Get user and check Intern restriction
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         // Check if Intern user can earn (within 4-day window)
         if (user.membershipLevel === 'Intern' && !user.canInternEarn()) {
@@ -326,11 +332,9 @@ exports.completeVideoTask = async (req, res) => {
         await assignment.save();
 
         // Credit user's wallet
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user.id,
-            { $inc: { incomeWallet: videoPaymentAmount } },
-            { new: true }
-        );
+        const updatedUser = await User.findByPk(req.user.id);
+        updatedUser.incomeWallet = parseFloat(updatedUser.incomeWallet) + videoPaymentAmount;
+        await updatedUser.save();
 
         // Create a mock task completion for commission calculation
         const mockCompletion = {
@@ -368,8 +372,10 @@ exports.getVideoTaskStats = async (req, res) => {
         today.setHours(0, 0, 0, 0);
 
         const assignment = await DailyVideoAssignment.findOne({
-            user: req.user.id,
-            assignmentDate: today
+            where: {
+                user: req.user.id,
+                assignmentDate: today
+            }
         });
 
         const settings = await SystemSetting.findOne() || {};

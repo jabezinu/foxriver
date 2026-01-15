@@ -183,10 +183,10 @@ export default function MembershipManagement() {
     };
 
     const handleSavePrice = async (tier) => {
-        const newPrice = editingPrices[tier._id];
+        const newPrice = editingPrices[tier.id];
         
         if (newPrice === undefined || newPrice === tier.price) {
-            handleCancelEdit(tier._id);
+            handleCancelEdit(tier.id);
             return;
         }
 
@@ -197,16 +197,16 @@ export default function MembershipManagement() {
         }
 
         try {
-            setSavingPrices(prev => ({ ...prev, [tier._id]: true }));
-            const res = await adminMembershipAPI.updatePrice(tier._id, { price: newPrice });
+            setSavingPrices(prev => ({ ...prev, [tier.id]: true }));
+            const res = await adminMembershipAPI.updatePrice(tier.id, { price: newPrice });
             alert(res.data.message);
             fetchTiers();
-            handleCancelEdit(tier._id);
+            handleCancelEdit(tier.id);
         } catch (error) {
             console.error('Error updating price:', error);
             alert(error.response?.data?.message || 'Failed to update price');
         } finally {
-            setSavingPrices(prev => ({ ...prev, [tier._id]: false }));
+            setSavingPrices(prev => ({ ...prev, [tier.id]: false }));
         }
     };
 
@@ -417,12 +417,12 @@ export default function MembershipManagement() {
                         </thead>
                         <tbody>
                             {tiers.map((tier) => {
-                                const isEditing = editingPrices.hasOwnProperty(tier._id);
-                                const isSaving = savingPrices[tier._id];
+                                const isEditing = editingPrices.hasOwnProperty(tier.id);
+                                const isSaving = savingPrices[tier.id];
                                 const isIntern = tier.level === 'Intern';
 
                                 return (
-                                    <tr key={tier._id} className={tier.hidden ? 'bg-gray-50' : ''}>
+                                    <tr key={tier.id} className={tier.hidden ? 'bg-gray-50' : ''}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="font-semibold text-gray-800">{tier.level}</span>
                                         </td>
@@ -430,8 +430,8 @@ export default function MembershipManagement() {
                                             {isEditing ? (
                                                 <input
                                                     type="number"
-                                                    value={editingPrices[tier._id]}
-                                                    onChange={(e) => handlePriceChange(tier._id, e.target.value)}
+                                                    value={editingPrices[tier.id]}
+                                                    onChange={(e) => handlePriceChange(tier.id, e.target.value)}
                                                     disabled={isSaving || isIntern}
                                                     className="w-32 px-3 py-1.5 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
                                                     min="0"
@@ -472,7 +472,7 @@ export default function MembershipManagement() {
                                                         <Save size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleCancelEdit(tier._id)}
+                                                        onClick={() => handleCancelEdit(tier.id)}
                                                         disabled={isSaving}
                                                         className="p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                         title="Cancel"
@@ -482,7 +482,7 @@ export default function MembershipManagement() {
                                                 </div>
                                             ) : (
                                                 <button
-                                                    onClick={() => handleEditPrice(tier._id, tier.price)}
+                                                    onClick={() => handleEditPrice(tier.id, tier.price)}
                                                     disabled={isIntern}
                                                     className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title={isIntern ? 'Intern price cannot be changed' : 'Edit price'}

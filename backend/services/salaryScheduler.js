@@ -15,9 +15,11 @@ const processSalaryForUser = async (user) => {
 
         // Check if user has already been paid this month
         const existingSalary = await Salary.findOne({
-            user: user._id,
-            month: currentMonth,
-            year: currentYear
+            where: {
+                user: user.id,
+                month: currentMonth,
+                year: currentYear
+            }
         });
 
         if (existingSalary) {
@@ -25,17 +27,17 @@ const processSalaryForUser = async (user) => {
         }
 
         // Calculate salary
-        const { salary, breakdown } = await calculateMonthlySalary(user._id);
+        const { salary, breakdown } = await calculateMonthlySalary(user.id);
 
         if (salary > 0) {
             // Credit income wallet
-            user.incomeWallet = (user.incomeWallet || 0) + salary;
+            user.incomeWallet = parseFloat(user.incomeWallet) + salary;
             user.lastSalaryDate = now;
             await user.save();
 
             // Log salary payment
             const salaryRecord = await Salary.create({
-                user: user._id,
+                user: user.id,
                 amount: salary,
                 month: currentMonth,
                 year: currentYear,
@@ -54,7 +56,7 @@ const processSalaryForUser = async (user) => {
 
         return null;
     } catch (error) {
-        console.error(`Error processing salary for user ${user._id}:`, error);
+        console.error(`Error processing salary for user ${user.id}:`, error);
         return null;
     }
 };
@@ -68,7 +70,7 @@ const processAllSalaries = async () => {
         console.log('🔄 Starting automatic salary processing...');
         const startTime = Date.now();
 
-        const users = await User.find({ role: 'user', isActive: true });
+        const users = await User.findAll({ where: { role: 'user', isActive: true } });
         let processedCount = 0;
         let totalPaid = 0;
 
@@ -76,7 +78,7 @@ const processAllSalaries = async () => {
             const salaryRecord = await processSalaryForUser(user);
             if (salaryRecord) {
                 processedCount++;
-                totalPaid += salaryRecord.amount;
+                totalPaid += parseFloat(salaryRecord.amount);
             }
         }
 
@@ -111,7 +113,7 @@ const initializeSalaryScheduler = () => {
  * Used for manual triggers or when user first qualifies
  */
 const processSalaryForUserById = async (userId) => {
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
         throw new Error('User not found');
     }

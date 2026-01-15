@@ -72,18 +72,19 @@ export const useAuthStore = create((set) => ({
 
     verifyToken: async () => {
         const token = localStorage.getItem('foxriver_token');
-        const lastActivity = localStorage.getItem('foxriver_last_activity');
-
+        
         if (!token) {
             set({ isAuthenticated: false, isInitializing: false });
             return false;
         }
 
-        // Check 5-minute timeout
+        // Check 30-minute timeout (increased from 5 minutes)
+        const lastActivity = localStorage.getItem('foxriver_last_activity');
         if (lastActivity) {
             const now = Date.now();
             const diff = now - parseInt(lastActivity);
-            if (diff > 5 * 60 * 1000) {
+            // Logout after 30 minutes of inactivity
+            if (diff > 30 * 60 * 1000) {
                 localStorage.removeItem('foxriver_token');
                 localStorage.removeItem('foxriver_last_activity');
                 set({ user: null, token: null, isAuthenticated: false, isInitializing: false });
@@ -93,6 +94,7 @@ export const useAuthStore = create((set) => ({
 
         try {
             const response = await authAPI.verify();
+            // Update last activity on successful verification
             localStorage.setItem('foxriver_last_activity', Date.now().toString());
             set({ user: response.data.user, isAuthenticated: true, isInitializing: false });
             return true;

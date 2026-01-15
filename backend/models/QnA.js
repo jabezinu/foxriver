@@ -1,25 +1,37 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const qnaSchema = new mongoose.Schema({
+class QnA extends Model {}
+
+QnA.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     imageUrl: {
-        type: String,
-        required: [true, 'Please provide image URL or path'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     },
     uploadedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'QnA',
+    tableName: 'qnas',
+    indexes: [
+        { fields: ['status', 'createdAt'] }
+    ]
 });
 
-// Index for querying active Q&A
-qnaSchema.index({ status: 1, createdAt: -1 });
-
-module.exports = mongoose.model('QnA', qnaSchema);
+module.exports = QnA;

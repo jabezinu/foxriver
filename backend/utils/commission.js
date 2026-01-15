@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Commission = require('../models/Commission');
 const Membership = require('../models/Membership');
 const SystemSetting = require('../models/SystemSetting');
+const { Op } = require('sequelize');
 
 /**
  * Get system settings for commissions
@@ -19,14 +20,14 @@ const getSettings = async () => {
  */
 exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) => {
     try {
-        const user = await User.findById(taskCompletion.user);
+        const user = await User.findByPk(taskCompletion.user);
 
         if (!user || !user.referrerId) {
             return; // No referrer, no commissions
         }
 
         const settings = await getSettings();
-        const memberships = await Membership.find().sort({ order: 1 });
+        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
         const membershipOrder = {};
         memberships.forEach(m => {
             membershipOrder[m.level] = m.order;
@@ -36,16 +37,13 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
         const commissions = [];
 
         // A-level (direct referrer)
-        const aLevelUser = await User.findById(user.referrerId);
+        const aLevelUser = await User.findByPk(user.referrerId);
         if (aLevelUser) {
             // Check maxReferralsPerUser limit if set
             if (settings.maxReferralsPerUser > 0) {
-                const referralCount = await User.countDocuments({ referrerId: aLevelUser._id });
+                const referralCount = await User.count({ where: { referrerId: aLevelUser.id } });
                 if (referralCount > settings.maxReferralsPerUser) {
                     // This user has exceeded their referral limit for commissions
-                    // But we still process B and C levels based on the chain? 
-                    // Usually the limit is on the inviter's ability to EARN from new people.
-                    // If A-level is over limit, they get nothing.
                 } else {
                     await processALevel();
                 }
@@ -55,59 +53,56 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
 
             async function processALevel() {
                 const aLevelOrder = membershipOrder[aLevelUser.membershipLevel];
-                // Inviter gets commission only if referred user's level is equal or lower than inviter's level
-                // AND the referred user is not an Intern (Intern doesn't qualify for commission)
                 if (user.membershipLevel !== 'Intern' && userLevel <= aLevelOrder) {
                     const aCommission = earningsAmount * (settings.commissionPercentA / 100);
                     commissions.push({
-                        user: aLevelUser._id,
-                        downlineUser: user._id,
+                        user: aLevelUser.id,
+                        downlineUser: user.id,
                         level: 'A',
                         percentage: settings.commissionPercentA,
                         amountEarned: aCommission,
-                        sourceTask: taskCompletion._id
+                        sourceTask: taskCompletion.id
                     });
-                    await User.findByIdAndUpdate(aLevelUser._id, { $inc: { incomeWallet: aCommission } });
+                    aLevelUser.incomeWallet = parseFloat(aLevelUser.incomeWallet) + aCommission;
+                    await aLevelUser.save();
                 }
             }
 
             // B-level (referrer's referrer)
             if (aLevelUser.referrerId) {
-                const bLevelUser = await User.findById(aLevelUser.referrerId);
+                const bLevelUser = await User.findByPk(aLevelUser.referrerId);
                 if (bLevelUser) {
                     const bLevelOrder = membershipOrder[bLevelUser.membershipLevel];
-                    // B-level inviter gets commission only if referred user's level is equal or lower
-                    // AND the referred user is not an Intern
                     if (user.membershipLevel !== 'Intern' && userLevel <= bLevelOrder) {
                         const bCommission = earningsAmount * (settings.commissionPercentB / 100);
                         commissions.push({
-                            user: bLevelUser._id,
-                            downlineUser: user._id,
+                            user: bLevelUser.id,
+                            downlineUser: user.id,
                             level: 'B',
                             percentage: settings.commissionPercentB,
                             amountEarned: bCommission,
-                            sourceTask: taskCompletion._id
+                            sourceTask: taskCompletion.id
                         });
-                        await User.findByIdAndUpdate(bLevelUser._id, { $inc: { incomeWallet: bCommission } });
+                        bLevelUser.incomeWallet = parseFloat(bLevelUser.incomeWallet) + bCommission;
+                        await bLevelUser.save();
 
                         // C-level (B-level's referrer)
                         if (bLevelUser.referrerId) {
-                            const cLevelUser = await User.findById(bLevelUser.referrerId);
+                            const cLevelUser = await User.findByPk(bLevelUser.referrerId);
                             if (cLevelUser) {
                                 const cLevelOrder = membershipOrder[cLevelUser.membershipLevel];
-                                // C-level inviter gets commission only if referred user's level is equal or lower
-                                // AND the referred user is not an Intern
                                 if (user.membershipLevel !== 'Intern' && userLevel <= cLevelOrder) {
                                     const cCommission = earningsAmount * (settings.commissionPercentC / 100);
                                     commissions.push({
-                                        user: cLevelUser._id,
-                                        downlineUser: user._id,
+                                        user: cLevelUser.id,
+                                        downlineUser: user.id,
                                         level: 'C',
                                         percentage: settings.commissionPercentC,
                                         amountEarned: cCommission,
-                                        sourceTask: taskCompletion._id
+                                        sourceTask: taskCompletion.id
                                     });
-                                    await User.findByIdAndUpdate(cLevelUser._id, { $inc: { incomeWallet: cCommission } });
+                                    cLevelUser.incomeWallet = parseFloat(cLevelUser.incomeWallet) + cCommission;
+                                    await cLevelUser.save();
                                 }
                             }
                         }
@@ -117,7 +112,7 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount) =
         }
 
         if (commissions.length > 0) {
-            await Commission.insertMany(commissions);
+            await Commission.bulkCreate(commissions);
         }
 
         return commissions;
@@ -137,7 +132,7 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
         }
 
         const settings = await getSettings();
-        const memberships = await Membership.find().sort({ order: 1 });
+        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
         const membershipOrder = {};
         memberships.forEach(m => {
             membershipOrder[m.level] = m.order;
@@ -147,12 +142,12 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
         const commissions = [];
 
         // A-level (direct referrer)
-        const aLevelUser = await User.findById(user.referrerId);
+        const aLevelUser = await User.findByPk(user.referrerId);
         if (aLevelUser) {
             // Check maxReferralsPerUser limit if set
             let canEarnA = true;
             if (settings.maxReferralsPerUser > 0) {
-                const referralCount = await User.countDocuments({ referrerId: aLevelUser._id });
+                const referralCount = await User.count({ where: { referrerId: aLevelUser.id } });
                 if (referralCount > settings.maxReferralsPerUser) {
                     canEarnA = false;
                 }
@@ -160,59 +155,56 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
 
             if (canEarnA) {
                 const aLevelOrder = membershipOrder[aLevelUser.membershipLevel];
-                // Inviter gets commission only if purchased membership level is equal or lower than inviter's level
-                // AND the purchased membership is not Intern
                 if (newMembership.level !== 'Intern' && purchaseOrder <= aLevelOrder) {
                     const aCommission = newMembership.price * (settings.commissionPercentA / 100);
                     commissions.push({
-                        user: aLevelUser._id,
-                        downlineUser: user._id,
+                        user: aLevelUser.id,
+                        downlineUser: user.id,
                         level: 'A',
                         percentage: settings.commissionPercentA,
                         amountEarned: aCommission,
                         sourceMembership: newMembership.level
                     });
-                    await User.findByIdAndUpdate(aLevelUser._id, { $inc: { incomeWallet: aCommission } });
+                    aLevelUser.incomeWallet = parseFloat(aLevelUser.incomeWallet) + aCommission;
+                    await aLevelUser.save();
                 }
             }
 
             // B-level
             if (aLevelUser.referrerId) {
-                const bLevelUser = await User.findById(aLevelUser.referrerId);
+                const bLevelUser = await User.findByPk(aLevelUser.referrerId);
                 if (bLevelUser) {
                     const bLevelOrder = membershipOrder[bLevelUser.membershipLevel];
-                    // B-level inviter gets commission only if purchased membership level is equal or lower
-                    // AND the purchased membership is not Intern
                     if (newMembership.level !== 'Intern' && purchaseOrder <= bLevelOrder) {
                         const bCommission = newMembership.price * (settings.commissionPercentB / 100);
                         commissions.push({
-                            user: bLevelUser._id,
-                            downlineUser: user._id,
+                            user: bLevelUser.id,
+                            downlineUser: user.id,
                             level: 'B',
                             percentage: settings.commissionPercentB,
                             amountEarned: bCommission,
                             sourceMembership: newMembership.level
                         });
-                        await User.findByIdAndUpdate(bLevelUser._id, { $inc: { incomeWallet: bCommission } });
+                        bLevelUser.incomeWallet = parseFloat(bLevelUser.incomeWallet) + bCommission;
+                        await bLevelUser.save();
 
                         // C-level
                         if (bLevelUser.referrerId) {
-                            const cLevelUser = await User.findById(bLevelUser.referrerId);
+                            const cLevelUser = await User.findByPk(bLevelUser.referrerId);
                             if (cLevelUser) {
                                 const cLevelOrder = membershipOrder[cLevelUser.membershipLevel];
-                                // C-level inviter gets commission only if purchased membership level is equal or lower
-                                // AND the purchased membership is not Intern
                                 if (newMembership.level !== 'Intern' && purchaseOrder <= cLevelOrder) {
                                     const cCommission = newMembership.price * (settings.commissionPercentC / 100);
                                     commissions.push({
-                                        user: cLevelUser._id,
-                                        downlineUser: user._id,
+                                        user: cLevelUser.id,
+                                        downlineUser: user.id,
                                         level: 'C',
                                         percentage: settings.commissionPercentC,
                                         amountEarned: cCommission,
                                         sourceMembership: newMembership.level
                                     });
-                                    await User.findByIdAndUpdate(cLevelUser._id, { $inc: { incomeWallet: cCommission } });
+                                    cLevelUser.incomeWallet = parseFloat(cLevelUser.incomeWallet) + cCommission;
+                                    await cLevelUser.save();
                                 }
                             }
                         }
@@ -222,7 +214,7 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership) =>
         }
 
         if (commissions.length > 0) {
-            await Commission.insertMany(commissions);
+            await Commission.bulkCreate(commissions);
         }
 
         return commissions;

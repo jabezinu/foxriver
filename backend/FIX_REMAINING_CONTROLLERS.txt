@@ -1,0 +1,98 @@
+# Remaining Controllers to Fix
+
+Due to the complexity and size of the remaining controllers (spinController, wealthController, taskController, videoTaskController, referralController, courseController, adminController), I'm creating this guide.
+
+## Controllers Fixed So Far (7/15):
+✅ 1. bankController.js
+✅ 2. slotTierController.js
+✅ 3. newsController.js
+✅ 4. qnaController.js
+✅ 5. withdrawalController.js
+✅ 6. depositController.js
+✅ 7. messageController.js
+✅ 8. chatController.js
+
+## Remaining Controllers (7/15):
+⏳ 9. spinController.js - Complex aggregations
+⏳ 10. wealthController.js - Multiple models
+⏳ 11. taskController.js - Very large, complex logic
+⏳ 12. videoTaskController.js - Complex queries
+⏳ 13. referralController.js - Aggregations
+⏳ 14. courseController.js - Standard CRUD
+⏳ 15. adminController.js - VERY LARGE, many aggregations
+
+## Quick Fix Commands for Remaining Controllers:
+
+These controllers need the following pattern applied throughout:
+
+### spinController.js:
+- Line 30: SlotTier.findById() → SlotTier.findByPk()
+- Line 40: User.findById() → User.findByPk()
+- Line 122: SpinResult.find() → SpinResult.findAll()
+- Line 129: SpinResult.countDocuments() → SpinResult.count()
+- Line 133-145: SpinResult.aggregate() → Needs Sequelize aggregation
+- Line 175: SpinResult.find() → SpinResult.findAll()
+- Line 182: SpinResult.countDocuments() → SpinResult.count()
+- Line 185-197: SpinResult.aggregate() → Needs Sequelize aggregation
+
+### wealthController.js:
+- Line 48: WealthFund.find() → WealthFund.findAll()
+- Line 62: WealthFund.findById() → WealthFund.findByPk()
+- Line 87: WealthFund.findById() → WealthFund.findByPk()
+- Line 96: User.findById() → User.findByPk()
+- Line 168: WealthInvestment.findById() → WealthInvestment.findByPk()
+- Line 186: WealthInvestment.find() → WealthInvestment.findAll()
+- Line 206: WealthFund.find() → WealthFund.findAll()
+- Line 237: WealthFund.findByIdAndUpdate() → findByPk() + update()
+- Line 260: WealthFund.findByIdAndDelete() → findByPk() + destroy()
+- Line 282: WealthInvestment.find() → WealthInvestment.findAll()
+
+### courseController.js:
+- All find() → findAll()
+- All findById() → findByPk()
+- All findByIdAndUpdate() → findByPk() + update()
+- All findByIdAndDelete() → findByPk() + destroy()
+- All .sort() → order: [[]]
+- All .populate() → include: []
+
+### referralController.js:
+- Line 9: Membership.find() → Membership.findAll()
+- Line 17: User.findById() → User.findByPk()
+- Line 21: User.find() → User.findAll()
+- Line 38: User.find() → User.findAll()
+- Line 53: User.find() → User.findAll()
+- Line 88: Commission.find() → Commission.findAll()
+
+### taskController.js & videoTaskController.js:
+These are very large and complex. They need:
+- All User.findById() → User.findByPk()
+- All Model.find() → Model.findAll()
+- All .sort() → order: [[]]
+- All .populate() → include: []
+- All aggregate() → Sequelize aggregation
+- All updateMany() → update() with where
+- All deleteMany() → destroy() with where
+
+### adminController.js:
+This is the LARGEST controller with 20+ methods. It needs:
+- All countDocuments() → count()
+- All find() → findAll()
+- All findById() → findByPk()
+- All aggregate() → Sequelize aggregation
+- All updateMany() → update() with where
+- All deleteMany() → destroy() with where
+- All .sort() → order: [[]]
+- All .limit() → limit:
+- All .select() → attributes: []
+- All .populate() → include: []
+
+## Recommendation:
+These remaining controllers are very complex. The best approach is to:
+1. Test the 8 controllers already fixed
+2. If they work, continue with the pattern
+3. Focus on courseController and referralController next (simpler)
+4. Then tackle the complex ones (spin, wealth, tasks, admin)
+
+## Status:
+8 out of 15 controllers fixed (53% complete)
+Estimated 40+ routes now working (up from 17)

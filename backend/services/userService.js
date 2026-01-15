@@ -6,13 +6,15 @@
 const User = require('../models/User');
 const { AppError } = require('../middlewares/errorHandler');
 const logger = require('../config/logger');
+const { Op } = require('sequelize');
 
 class UserService {
     /**
      * Find user by ID with optional field selection
      */
     async findById(userId, selectFields = '') {
-        const user = await User.findById(userId).select(selectFields).lean();
+        const attributes = selectFields ? selectFields.split(' ') : undefined;
+        const user = await User.findByPk(userId, { attributes, raw: true });
         if (!user) {
             throw new AppError('User not found', 404);
         }
@@ -23,7 +25,7 @@ class UserService {
      * Find user by phone number
      */
     async findByPhone(phone) {
-        return await User.findOne({ phone }).lean();
+        return await User.findOne({ where: { phone }, raw: true });
     }
 
     /**
@@ -31,49 +33,59 @@ class UserService {
      */
     async updateWallet(userId, type, amount) {
         const field = type === 'income' ? 'incomeWallet' : 'personalWallet';
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { $inc: { [field]: amount } },
-            { new: true, runValidators: true }
-        ).select('incomeWallet personalWallet');
+        const user = await User.findByPk(userId);
 
         if (!user) {
             throw new AppError('User not found', 404);
         }
 
+        user[field] = parseFloat(user[field]) + parseFloat(amount);
+        await user.save();
+
         logger.info('Wallet updated', { userId, type, amount, newBalance: user[field] });
-        return user;
+        return { incomeWallet: user.incomeWallet, personalWallet: user.personalWallet };
     }
 
     /**
      * Check if bank account is already registered
      */
     async isBankAccountDuplicate(accountNumber, bank, excludeUserId = null) {
-        const query = {
-            $or: [
-                { 'bankAccount.accountNumber': accountNumber, 'bankAccount.bank': bank },
-                { 'pendingBankAccount.accountNumber': accountNumber, 'pendingBankAccount.bank': bank }
-            ]
-        };
+        const { sequelize } = require('../config/database');
+        
+        let query = `
+            SELECT id FROM users 
+            WHERE (
+                JSON_EXTRACT(bankAccount, '$.accountNumber') = :accountNumber 
+                AND JSON_EXTRACT(bankAccount, '$.bank') = :bank
+            ) OR (
+                JSON_EXTRACT(pendingBankAccount, '$.accountNumber') = :accountNumber 
+                AND JSON_EXTRACT(pendingBankAccount, '$.bank') = :bank
+            )
+        `;
+
+        const replacements = { accountNumber, bank };
 
         if (excludeUserId) {
-            query._id = { $ne: excludeUserId };
+            query += ' AND id != :excludeUserId';
+            replacements.excludeUserId = excludeUserId;
         }
 
-        const existingUser = await User.findOne(query).lean();
-        return !!existingUser;
+        const [results] = await sequelize.query(query, { replacements });
+        return results.length > 0;
     }
 
     /**
      * Get user's referral statistics
      */
     async getReferralStats(userId) {
-        const directReferrals = await User.countDocuments({ referrerId: userId });
+        const directReferrals = await User.count({ where: { referrerId: userId } });
         
         // Get all direct referrals
-        const referrals = await User.find({ referrerId: userId })
-            .select('_id membershipLevel createdAt')
-            .lean();
+        const referrals = await User.findAll({
+            where: { referrerId: userId },
+            attributes: ['id', 'membershipLevel', 'createdAt'],
+            raw: true
+        });
 
         // Count by membership level
         const byLevel = referrals.reduce((acc, ref) => {
@@ -93,21 +105,27 @@ class UserService {
      */
     async getDownline(userId) {
         // A-level (direct referrals)
-        const aLevel = await User.find({ referrerId: userId })
-            .select('phone membershipLevel createdAt')
-            .lean();
+        const aLevel = await User.findAll({
+            where: { referrerId: userId },
+            attributes: ['id', 'phone', 'membershipLevel', 'createdAt'],
+            raw: true
+        });
 
         // B-level (referrals of referrals)
-        const aLevelIds = aLevel.map(u => u._id);
-        const bLevel = await User.find({ referrerId: { $in: aLevelIds } })
-            .select('phone membershipLevel createdAt referrerId')
-            .lean();
+        const aLevelIds = aLevel.map(u => u.id);
+        const bLevel = aLevelIds.length > 0 ? await User.findAll({
+            where: { referrerId: { [Op.in]: aLevelIds } },
+            attributes: ['id', 'phone', 'membershipLevel', 'createdAt', 'referrerId'],
+            raw: true
+        }) : [];
 
         // C-level (referrals of B-level)
-        const bLevelIds = bLevel.map(u => u._id);
-        const cLevel = await User.find({ referrerId: { $in: bLevelIds } })
-            .select('phone membershipLevel createdAt referrerId')
-            .lean();
+        const bLevelIds = bLevel.map(u => u.id);
+        const cLevel = bLevelIds.length > 0 ? await User.findAll({
+            where: { referrerId: { [Op.in]: bLevelIds } },
+            attributes: ['id', 'phone', 'membershipLevel', 'createdAt', 'referrerId'],
+            raw: true
+        }) : [];
 
         return {
             aLevel,
@@ -121,7 +139,10 @@ class UserService {
      * Check if user can perform withdrawal
      */
     async canWithdraw(userId) {
-        const user = await User.findById(userId).select('withdrawalRestrictedUntil').lean();
+        const user = await User.findByPk(userId, { 
+            attributes: ['withdrawalRestrictedUntil'],
+            raw: true 
+        });
         
         if (!user) {
             throw new AppError('User not found', 404);
@@ -142,9 +163,10 @@ class UserService {
         const restrictedUntil = new Date();
         restrictedUntil.setDate(restrictedUntil.getDate() + days);
 
-        await User.findByIdAndUpdate(userId, {
-            withdrawalRestrictedUntil: restrictedUntil
-        });
+        await User.update(
+            { withdrawalRestrictedUntil: restrictedUntil },
+            { where: { id: userId } }
+        );
 
         logger.info('Withdrawal restricted', { userId, days, until: restrictedUntil });
     }

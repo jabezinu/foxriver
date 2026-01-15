@@ -1,4 +1,4 @@
-const SystemSetting = require('../models/SystemSetting');
+const { SystemSetting } = require('../models');
 
 // @desc    Get system settings
 // @route   GET /api/system/admin/settings
@@ -33,11 +33,8 @@ exports.updateSystemSettings = async (req, res) => {
         if (!settings) {
             settings = await SystemSetting.create(req.body);
         } else {
-            settings = await SystemSetting.findOneAndUpdate(
-                {},
-                req.body,
-                { new: true, runValidators: true }
-            );
+            await settings.update(req.body);
+            settings = await SystemSetting.findOne(); // Refresh the instance
         }
 
         res.status(200).json({

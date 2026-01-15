@@ -81,7 +81,7 @@ export default function AdminManagement() {
     const handleSavePermissions = async (e) => {
         e.preventDefault();
         try {
-            await adminManagementAPI.updatePermissions(editingAdmin._id, editForm);
+            await adminManagementAPI.updatePermissions(editingAdmin.id, editForm);
             toast.success('Admin permissions updated successfully');
             setEditingAdmin(null);
             fetchAdmins();
@@ -160,7 +160,7 @@ export default function AdminManagement() {
                             </thead>
                             <tbody>
                                 {admins.map((admin) => (
-                                    <tr key={admin._id} className="table-row">
+                                    <tr key={admin.id} className="table-row">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-8 h-8 rounded-lg ${admin.role === 'superadmin' ? 'bg-indigo-500' : 'bg-gray-500'} flex items-center justify-center text-white font-bold text-sm`}>
@@ -211,9 +211,9 @@ export default function AdminManagement() {
                                                 >
                                                     <HiPencil />
                                                 </button>
-                                                {admin._id !== currentAdmin?._id && (
+                                                {admin.id !== currentAdmin?.id && (
                                                     <button
-                                                        onClick={() => setDeleteId(admin._id)}
+                                                        onClick={() => setDeleteId(admin.id)}
                                                         className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"
                                                         title="Delete Administrator"
                                                     >

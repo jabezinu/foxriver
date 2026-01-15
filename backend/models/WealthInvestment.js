@@ -1,78 +1,92 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const wealthInvestmentSchema = new mongoose.Schema({
+class WealthInvestment extends Model {}
+
+WealthInvestment.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     wealthFund: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'WealthFund',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'wealth_funds',
+            key: 'id'
+        }
     },
     amount: {
-        type: Number,
-        required: [true, 'Please provide investment amount'],
-        min: [0, 'Amount cannot be negative']
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     fundingSource: {
-        incomeWallet: {
-            type: Number,
-            default: 0
-        },
-        personalWallet: {
-            type: Number,
-            default: 0
+        type: DataTypes.JSON,
+        defaultValue: {
+            incomeWallet: 0,
+            personalWallet: 0
         }
     },
     dailyProfit: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
     },
     profitType: {
-        type: String,
-        enum: ['percentage', 'fixed'],
-        required: true
+        type: DataTypes.ENUM('percentage', 'fixed'),
+        allowNull: false
     },
     days: {
-        type: Number,
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     totalRevenue: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     status: {
-        type: String,
-        enum: ['active', 'completed', 'cancelled'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'completed', 'cancelled'),
+        defaultValue: 'active'
     },
     startDate: {
-        type: Date,
-        default: Date.now
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     },
     endDate: {
-        type: Date
+        type: DataTypes.DATE,
+        allowNull: true
     },
-    completedAt: Date
-}, {
-    timestamps: true
-});
-
-// Indexes for performance
-wealthInvestmentSchema.index({ user: 1, status: 1 });
-wealthInvestmentSchema.index({ wealthFund: 1 });
-wealthInvestmentSchema.index({ status: 1, endDate: 1 });
-
-// Calculate end date before saving
-wealthInvestmentSchema.pre('save', function(next) {
-    if (this.isNew) {
-        const endDate = new Date(this.startDate);
-        endDate.setDate(endDate.getDate() + this.days);
-        this.endDate = endDate;
+    completedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
-    next();
+}, {
+    sequelize,
+    modelName: 'WealthInvestment',
+    tableName: 'wealth_investments',
+    indexes: [
+        { fields: ['user', 'status'] },
+        { fields: ['wealthFund'] },
+        { fields: ['status', 'endDate'] }
+    ],
+    hooks: {
+        beforeCreate: (investment) => {
+            const endDate = new Date(investment.startDate);
+            endDate.setDate(endDate.getDate() + investment.days);
+            investment.endDate = endDate;
+        }
+    }
 });
 
-module.exports = mongoose.model('WealthInvestment', wealthInvestmentSchema);
+module.exports = WealthInvestment;

@@ -1,11 +1,6 @@
-const Task = require('../models/Task');
-const TaskCompletion = require('../models/TaskCompletion');
-const User = require('../models/User');
-const Membership = require('../models/Membership');
-const Playlist = require('../models/Playlist');
-const VideoPool = require('../models/VideoPool');
-const SystemSetting = require('../models/SystemSetting');
+const { Task, TaskCompletion, User, Membership, Playlist, VideoPool, SystemSetting, sequelize } = require('../models');
 const { calculateAndCreateCommissions } = require('../utils/commission');
+const { Op } = require('sequelize');
 const ytpl = require('ytpl');
 
 
@@ -14,7 +9,7 @@ const ytpl = require('ytpl');
 // @access  Private
 exports.getDailyTasks = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findByPk(req.user.id);
 
         // Check if Intern user can earn
         const canInternEarn = user.canInternEarn();
@@ -31,7 +26,7 @@ exports.getDailyTasks = async (req, res) => {
 
         // Check if tasks are disabled by admin
         if (settings.tasksDisabled) {
-            const membership = await Membership.findOne({ level: user.membershipLevel });
+            const membership = await Membership.findOne({ where: { level: user.membershipLevel } });
             return res.status(200).json({
                 success: true,
                 count: 0,
@@ -56,7 +51,7 @@ exports.getDailyTasks = async (req, res) => {
 
         // If it's Sunday, return empty tasks with a message
         if (isSunday) {
-            const membership = await Membership.findOne({ level: user.membershipLevel });
+            const membership = await Membership.findOne({ where: { level: user.membershipLevel } });
 
             return res.status(200).json({
                 success: true,
@@ -84,9 +79,11 @@ exports.getDailyTasks = async (req, res) => {
         tomorrow.setDate(tomorrow.getDate() + 1);
 
         // Get tasks for today (created today)
-        let tasks = await Task.find({
-            createdAt: { $gte: today, $lt: tomorrow },
-            status: 'active'
+        let tasks = await Task.findAll({
+            where: {
+                createdAt: { [Op.gte]: today, [Op.lt]: tomorrow },
+                status: 'active'
+            }
         });
 
         // If no tasks for today, try to generate from VideoPool
@@ -96,20 +93,24 @@ exports.getDailyTasks = async (req, res) => {
 
             // Fetch 4 videos from pool that weren't used yesterday (if possible)
             // Strategy: Randomize and pick 4. If we have enough videos, filter out yesterday's.
-            let availableVideos = await VideoPool.find({
-                $or: [
-                    { lastUsed: { $lt: yesterday } }, // Used before yesterday
-                    { lastUsed: null } // Never used
-                ]
+            let availableVideos = await VideoPool.findAll({
+                where: {
+                    [Op.or]: [
+                        { lastUsed: { [Op.lt]: yesterday } }, // Used before yesterday
+                        { lastUsed: null } // Never used
+                    ]
+                }
             });
 
             // If we don't have enough that weren't used yesterday, just get anything not used today
             if (availableVideos.length < 4) {
-                availableVideos = await VideoPool.find({
-                    $or: [
-                        { lastUsed: { $lt: today } }, // Used before today
-                        { lastUsed: null } // Never used
-                    ]
+                availableVideos = await VideoPool.findAll({
+                    where: {
+                        [Op.or]: [
+                            { lastUsed: { [Op.lt]: today } }, // Used before today
+                            { lastUsed: null } // Never used
+                        ]
+                    }
                 });
             }
 
@@ -125,12 +126,12 @@ exports.getDailyTasks = async (req, res) => {
                     status: 'active'
                 }));
 
-                tasks = await Task.insertMany(newTasks);
+                tasks = await Task.bulkCreate(newTasks);
 
                 // Update lastUsed for these videos
-                await VideoPool.updateMany(
-                    { _id: { $in: selectedVideos.map(v => v._id) } },
-                    { $set: { lastUsed: today } }
+                await VideoPool.update(
+                    { lastUsed: today },
+                    { where: { id: { [Op.in]: selectedVideos.map(v => v.id) } } }
                 );
             }
         }
@@ -139,20 +140,24 @@ exports.getDailyTasks = async (req, res) => {
         tasks = tasks.slice(0, 4);
 
         // Get user's membership to calculate earnings
-        const membership = await Membership.findOne({ level: user.membershipLevel });
+        const membership = await Membership.findOne({ where: { level: user.membershipLevel } });
 
         // Check which tasks user has completed
-        const completedTaskIds = await TaskCompletion.find({
-            user: req.user.id,
-            task: { $in: tasks.map(t => t._id) }
-        }).distinct('task');
+        const completedTasks = await TaskCompletion.findAll({
+            where: {
+                user: req.user.id,
+                task: { [Op.in]: tasks.map(t => t.id) }
+            },
+            attributes: ['task']
+        });
+        const completedTaskIds = completedTasks.map(ct => ct.task);
 
         // Format tasks with earnings and completion status
         // For Interns who can't earn, set earnings to 0
         const tasksWithDetails = tasks.map(task => ({
-            ...task.toObject(),
+            ...task.toJSON(),
             earnings: (membership && canInternEarn) ? membership.getPerVideoIncome() : 0,
-            isCompleted: completedTaskIds.some(id => id.toString() === task._id.toString()),
+            isCompleted: completedTaskIds.includes(task.id),
             canEarn: canInternEarn
         }));
 
@@ -213,7 +218,7 @@ exports.completeTask = async (req, res) => {
             });
         }
 
-        const task = await Task.findById(req.params.id);
+        const task = await Task.findByPk(req.params.id);
 
         if (!task) {
             return res.status(404).json({
@@ -232,8 +237,10 @@ exports.completeTask = async (req, res) => {
 
         // Check if user already completed this task
         const existingCompletion = await TaskCompletion.findOne({
-            user: req.user.id,
-            task: task._id
+            where: {
+                user: req.user.id,
+                task: task.id
+            }
         });
 
         if (existingCompletion) {
@@ -244,8 +251,8 @@ exports.completeTask = async (req, res) => {
         }
 
         // Get user's membership to calculate earnings
-        const user = await User.findById(req.user.id);
-        const membership = await Membership.findOne({ level: user.membershipLevel });
+        const user = await User.findByPk(req.user.id);
+        const membership = await Membership.findOne({ where: { level: user.membershipLevel } });
 
         if (!membership) {
             return res.status(400).json({
@@ -272,12 +279,13 @@ exports.completeTask = async (req, res) => {
             today.setHours(0, 0, 0, 0);
 
             // Fetch total lifetime earnings for this Intern
-            const allTimeEarnings = await TaskCompletion.aggregate([
-                { $match: { user: user._id } },
-                { $group: { _id: null, total: { $sum: '$earningsAmount' } } }
-            ]);
+            const allTimeEarnings = await TaskCompletion.findOne({
+                where: { user: user.id },
+                attributes: [[sequelize.fn('SUM', sequelize.col('earningsAmount')), 'total']],
+                raw: true
+            });
 
-            const lifetimeTotal = allTimeEarnings.length > 0 ? allTimeEarnings[0].total : 0;
+            const lifetimeTotal = allTimeEarnings?.total || 0;
 
             if (lifetimeTotal >= 200) {
                 return res.status(400).json({
@@ -287,22 +295,16 @@ exports.completeTask = async (req, res) => {
             }
 
             // Fetch today's earnings
-            const todayEarnings = await TaskCompletion.aggregate([
-                {
-                    $match: {
-                        user: user._id,
-                        completionDate: { $gte: today }
-                    }
+            const todayEarnings = await TaskCompletion.findOne({
+                where: {
+                    user: user.id,
+                    completionDate: { [Op.gte]: today }
                 },
-                {
-                    $group: {
-                        _id: null,
-                        total: { $sum: '$earningsAmount' }
-                    }
-                }
-            ]);
+                attributes: [[sequelize.fn('SUM', sequelize.col('earningsAmount')), 'total']],
+                raw: true
+            });
 
-            const currentDailyTotal = todayEarnings.length > 0 ? todayEarnings[0].total : 0;
+            const currentDailyTotal = todayEarnings?.total || 0;
 
             if (currentDailyTotal >= 50) {
                 return res.status(400).json({
@@ -318,16 +320,14 @@ exports.completeTask = async (req, res) => {
         // Create task completion record
         const completion = await TaskCompletion.create({
             user: req.user.id,
-            task: task._id,
+            task: task.id,
             earningsAmount
         });
 
         // Credit earnings to user's income balance atomically
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user.id,
-            { $inc: { incomeWallet: earningsAmount } },
-            { new: true }
-        );
+        const updatedUser = await User.findByPk(req.user.id);
+        updatedUser.incomeWallet = parseFloat(updatedUser.incomeWallet) + earningsAmount;
+        await updatedUser.save();
 
         // Calculate and credit referral commissions
         await calculateAndCreateCommissions(completion, earningsAmount);
@@ -385,9 +385,10 @@ exports.uploadTask = async (req, res) => {
 // @access  Private/Admin
 exports.getAllTasks = async (req, res) => {
     try {
-        const tasks = await Task.find()
-            .populate('uploadedBy', 'phone')
-            .sort({ createdAt: -1 });
+        const tasks = await Task.findAll({
+            include: [{ model: User, as: 'uploader', attributes: ['phone'] }],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -407,7 +408,7 @@ exports.getAllTasks = async (req, res) => {
 // @access  Private/Admin
 exports.deleteTask = async (req, res) => {
     try {
-        const task = await Task.findById(req.params.id);
+        const task = await Task.findByPk(req.params.id);
 
         if (!task) {
             return res.status(404).json({
@@ -416,7 +417,7 @@ exports.deleteTask = async (req, res) => {
             });
         }
 
-        await task.deleteOne();
+        await task.destroy();
 
         res.status(200).json({
             success: true,
@@ -468,8 +469,10 @@ exports.addPlaylist = async (req, res) => {
 // @access  Private/Admin
 exports.getPlaylists = async (req, res) => {
     try {
-        const playlists = await Playlist.find().populate('addedBy', 'phone');
-        const videoCount = await VideoPool.countDocuments();
+        const playlists = await Playlist.findAll({
+            include: [{ model: User, as: 'addedByUser', attributes: ['phone'] }]
+        });
+        const videoCount = await VideoPool.count();
 
         res.status(200).json({
             success: true,
@@ -486,14 +489,14 @@ exports.getPlaylists = async (req, res) => {
 // @access  Private/Admin
 exports.deletePlaylist = async (req, res) => {
     try {
-        const playlist = await Playlist.findById(req.params.id);
+        const playlist = await Playlist.findByPk(req.params.id);
         if (!playlist) {
             return res.status(404).json({ success: false, message: 'Playlist not found' });
         }
 
         // Delete videos associated with this playlist
-        await VideoPool.deleteMany({ playlist: playlist._id });
-        await playlist.deleteOne();
+        await VideoPool.destroy({ where: { playlist: playlist.id } });
+        await playlist.destroy();
 
         res.status(200).json({
             success: true,
@@ -509,7 +512,7 @@ exports.deletePlaylist = async (req, res) => {
 // @access  Private/Admin
 exports.syncVideos = async (req, res) => {
     try {
-        const playlists = await Playlist.find({ status: 'active' });
+        const playlists = await Playlist.findAll({ where: { status: 'active' } });
         let newVideosCount = 0;
 
         for (const playlist of playlists) {
@@ -520,17 +523,16 @@ exports.syncVideos = async (req, res) => {
                 videoId: item.id,
                 title: item.title,
                 videoUrl: item.shortUrl,
-                playlist: playlist._id
+                playlist: playlist.id
             }));
 
             // Bulk upsert to avoid duplicates
             for (const video of videos) {
-                const result = await VideoPool.updateOne(
-                    { videoId: video.videoId },
-                    { $set: video },
-                    { upsert: true }
-                );
-                if (result.upsertedCount > 0) newVideosCount++;
+                const [videoRecord, created] = await VideoPool.findOrCreate({
+                    where: { videoId: video.videoId },
+                    defaults: video
+                });
+                if (created) newVideosCount++;
             }
         }
 

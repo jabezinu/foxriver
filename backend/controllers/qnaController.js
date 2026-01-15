@@ -1,4 +1,4 @@
-const QnA = require('../models/QnA');
+const { QnA, User } = require('../models');
 const multer = require('multer');
 const path = require('path');
 
@@ -33,8 +33,10 @@ const upload = multer({
 // @access  Public
 exports.getQnA = async (req, res) => {
     try {
-        const qnaItems = await QnA.find({ status: 'active' })
-            .sort({ createdAt: -1 });
+        const qnaItems = await QnA.findAll({
+            where: { status: 'active' },
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -89,7 +91,7 @@ exports.uploadQnA = [
 // @access  Private/Admin
 exports.deleteQnA = async (req, res) => {
     try {
-        const qna = await QnA.findById(req.params.id);
+        const qna = await QnA.findByPk(req.params.id);
 
         if (!qna) {
             return res.status(404).json({
@@ -98,7 +100,7 @@ exports.deleteQnA = async (req, res) => {
             });
         }
 
-        await qna.deleteOne();
+        await qna.destroy();
 
         res.status(200).json({
             success: true,

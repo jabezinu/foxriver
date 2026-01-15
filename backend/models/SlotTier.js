@@ -1,45 +1,60 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const slotTierSchema = new mongoose.Schema({
+class SlotTier extends Model {}
+
+SlotTier.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     name: {
-        type: String,
-        required: [true, 'Please provide a tier name'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     betAmount: {
-        type: Number,
-        required: [true, 'Please provide bet amount'],
-        min: [1, 'Bet amount must be at least 1 ETB']
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        validate: {
+            min: 1
+        }
     },
     winAmount: {
-        type: Number,
-        required: [true, 'Please provide win amount'],
-        min: [1, 'Win amount must be at least 1 ETB']
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        validate: {
+            min: 1
+        }
     },
     winProbability: {
-        type: Number,
-        required: [true, 'Please provide win probability'],
-        min: [0, 'Probability must be between 0 and 100'],
-        max: [100, 'Probability must be between 0 and 100'],
-        default: 10
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: false,
+        defaultValue: 10,
+        validate: {
+            min: 0,
+            max: 100
+        }
     },
     isActive: {
-        type: Boolean,
-        default: true
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     },
     description: {
-        type: String,
-        trim: true
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     order: {
-        type: Number,
-        default: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'SlotTier',
+    tableName: 'slot_tiers',
+    indexes: [
+        { fields: ['isActive', 'order'] }
+    ]
 });
 
-// Index for faster queries
-slotTierSchema.index({ isActive: 1, order: 1 });
-
-module.exports = mongoose.model('SlotTier', slotTierSchema);
+module.exports = SlotTier;

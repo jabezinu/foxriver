@@ -1,4 +1,4 @@
-const News = require('../models/News');
+const { News, User } = require('../models');
 const multer = require('multer');
 const path = require('path');
 
@@ -33,8 +33,10 @@ const upload = multer({
 // @access  Public
 exports.getNews = async (req, res) => {
     try {
-        const news = await News.find({ status: 'active' })
-            .sort({ publishedDate: -1 });
+        const news = await News.findAll({
+            where: { status: 'active' },
+            order: [['publishedDate', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -55,10 +57,12 @@ exports.getNews = async (req, res) => {
 exports.getPopupNews = async (req, res) => {
     try {
         const news = await News.findOne({ 
-            status: 'active', 
-            showAsPopup: true 
-        })
-            .sort({ publishedDate: -1 });
+            where: { 
+                status: 'active', 
+                showAsPopup: true 
+            },
+            order: [['publishedDate', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -115,7 +119,7 @@ exports.updateNews = async (req, res) => {
     try {
         const { title, content, status, showAsPopup } = req.body;
 
-        const news = await News.findById(req.params.id);
+        const news = await News.findByPk(req.params.id);
 
         if (!news) {
             return res.status(404).json({
@@ -149,7 +153,7 @@ exports.updateNews = async (req, res) => {
 // @access  Private/Admin
 exports.deleteNews = async (req, res) => {
     try {
-        const news = await News.findById(req.params.id);
+        const news = await News.findByPk(req.params.id);
 
         if (!news) {
             return res.status(404).json({
@@ -158,7 +162,7 @@ exports.deleteNews = async (req, res) => {
             });
         }
 
-        await news.deleteOne();
+        await news.destroy();
 
         res.status(200).json({
             success: true,

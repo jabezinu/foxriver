@@ -1,6 +1,7 @@
 const Membership = require('../models/Membership');
 const User = require('../models/User');
 const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
+const { Op } = require('sequelize');
 
 // @desc    Get all membership tiers
 // @route   GET /api/memberships/tiers
@@ -9,9 +10,15 @@ exports.getTiers = async (req, res) => {
     try {
         // Filter out hidden memberships for regular users
         // Include memberships where hidden is false OR doesn't exist (for backward compatibility)
-        const memberships = await Membership.find({ 
-            $or: [{ hidden: false }, { hidden: { $exists: false } }] 
-        }).sort({ order: 1 });
+        const memberships = await Membership.findAll({ 
+            where: {
+                [Op.or]: [
+                    { hidden: false },
+                    { hidden: null }
+                ]
+            },
+            order: [['order', 'ASC']]
+        });
 
         const tiersWithDetails = memberships.map(membership => ({
             level: membership.level,
@@ -52,9 +59,9 @@ exports.upgradeMembership = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user.id);
-        const currentMembership = await Membership.findOne({ level: user.membershipLevel });
-        const newMembership = await Membership.findOne({ level: newLevel });
+        const user = await User.findByPk(req.user.id);
+        const currentMembership = await Membership.findOne({ where: { level: user.membershipLevel } });
+        const newMembership = await Membership.findOne({ where: { level: newLevel } });
 
         if (!newMembership) {
             return res.status(404).json({
@@ -93,7 +100,7 @@ exports.upgradeMembership = async (req, res) => {
         }
 
         // Deduct funds
-        user[walletField] -= newMembership.price;
+        user[walletField] = parseFloat(user[walletField]) - newMembership.price;
 
         // Update Level and reset activation date
         user.membershipLevel = newLevel;
@@ -125,10 +132,10 @@ exports.upgradeMembership = async (req, res) => {
 // @access  Private/Admin
 exports.getAllTiers = async (req, res) => {
     try {
-        const memberships = await Membership.find().sort({ order: 1 });
+        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
 
         const tiersWithDetails = memberships.map(membership => ({
-            _id: membership._id,
+            id: membership.id,
             level: membership.level,
             price: membership.price,
             canWithdraw: membership.canWithdraw,
@@ -190,15 +197,15 @@ exports.hideMembershipsByRange = async (req, res) => {
         }
 
         // Update memberships
-        const result = await Membership.updateMany(
-            { level: { $in: levels } },
-            { $set: { hidden: true } }
+        const [affectedCount] = await Membership.update(
+            { hidden: true },
+            { where: { level: { [Op.in]: levels } } }
         );
 
         res.status(200).json({
             success: true,
             message: `Successfully hidden memberships from Rank ${startRank} to Rank ${endRank}`,
-            modifiedCount: result.modifiedCount
+            modifiedCount: affectedCount
         });
     } catch (error) {
         res.status(500).json({
@@ -244,15 +251,15 @@ exports.unhideMembershipsByRange = async (req, res) => {
         }
 
         // Update memberships
-        const result = await Membership.updateMany(
-            { level: { $in: levels } },
-            { $set: { hidden: false } }
+        const [affectedCount] = await Membership.update(
+            { hidden: false },
+            { where: { level: { [Op.in]: levels } } }
         );
 
         res.status(200).json({
             success: true,
             message: `Successfully unhidden memberships from Rank ${startRank} to Rank ${endRank}`,
-            modifiedCount: result.modifiedCount
+            modifiedCount: affectedCount
         });
     } catch (error) {
         res.status(500).json({
@@ -299,14 +306,12 @@ exports.setRestrictedRange = async (req, res) => {
         }
 
         // Store the restriction in the Intern membership document
-        await Membership.updateOne(
-            { level: 'Intern' },
+        await Membership.update(
             { 
-                $set: { 
-                    restrictedRangeStart: startRank,
-                    restrictedRangeEnd: endRank
-                } 
-            }
+                restrictedRangeStart: startRank,
+                restrictedRangeEnd: endRank
+            },
+            { where: { level: 'Intern' } }
         );
 
         res.status(200).json({
@@ -353,14 +358,12 @@ exports.getRestrictedRange = async (req, res) => {
 exports.clearRestrictedRange = async (req, res) => {
     try {
         // Clear the restriction from the Intern membership document
-        await Membership.updateOne(
-            { level: 'Intern' },
+        await Membership.update(
             { 
-                $set: { 
-                    restrictedRangeStart: null,
-                    restrictedRangeEnd: null
-                } 
-            }
+                restrictedRangeStart: null,
+                restrictedRangeEnd: null
+            },
+            { where: { level: 'Intern' } }
         );
 
         res.status(200).json({
@@ -399,7 +402,7 @@ exports.updateMembershipPrice = async (req, res) => {
         }
 
         // Find and update membership
-        const membership = await Membership.findById(id);
+        const membership = await Membership.findByPk(id);
         
         if (!membership) {
             return res.status(404).json({
@@ -423,7 +426,7 @@ exports.updateMembershipPrice = async (req, res) => {
             success: true,
             message: `Successfully updated ${membership.level} price to ${price} ETB`,
             membership: {
-                _id: membership._id,
+                id: membership.id,
                 level: membership.level,
                 price: membership.price,
                 dailyIncome: membership.getDailyIncome(),
@@ -470,7 +473,7 @@ exports.bulkUpdatePrices = async (req, res) => {
                     continue;
                 }
 
-                const membership = await Membership.findById(id);
+                const membership = await Membership.findByPk(id);
                 
                 if (!membership) {
                     errors.push({ id, error: 'Membership not found' });
@@ -487,7 +490,7 @@ exports.bulkUpdatePrices = async (req, res) => {
                 await membership.save();
 
                 results.push({
-                    id: membership._id,
+                    id: membership.id,
                     level: membership.level,
                     price: membership.price
                 });

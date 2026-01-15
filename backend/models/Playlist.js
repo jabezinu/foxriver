@@ -1,31 +1,42 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const playlistSchema = new mongoose.Schema({
+class Playlist extends Model {}
+
+Playlist.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     url: {
-        type: String,
-        required: [true, 'Please provide a YouTube playlist URL'],
-        unique: true,
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
     },
     title: {
-        type: String,
-        default: 'Unnamed Playlist',
-        trim: true
+        type: DataTypes.STRING,
+        defaultValue: 'Unnamed Playlist'
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     },
     addedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Playlist',
+    tableName: 'playlists',
+    indexes: [
+        { fields: ['status'] }
+    ]
 });
 
-// Index for querying active playlists
-playlistSchema.index({ status: 1 });
-
-module.exports = mongoose.model('Playlist', playlistSchema);
+module.exports = Playlist;

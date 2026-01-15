@@ -1,38 +1,49 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const salarySchema = new mongoose.Schema({
+class Salary extends Model {}
+
+Salary.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     amount: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     month: {
-        type: Number,
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     year: {
-        type: Number,
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     breakdown: {
-        aLevel: Number,
-        bLevel: Number,
-        cLevel: Number,
-        total: Number
+        type: DataTypes.JSON,
+        allowNull: true
     },
     ruleApplied: {
-        type: String,
-        required: true
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Salary',
+    tableName: 'salaries',
+    indexes: [
+        { unique: true, fields: ['user', 'month', 'year'] }
+    ]
 });
 
-// Index for performance and uniqueness check helper
-salarySchema.index({ user: 1, month: 1, year: 1 }, { unique: true });
-
-module.exports = mongoose.model('Salary', salarySchema);
+module.exports = Salary;

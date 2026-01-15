@@ -1,30 +1,41 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const taskSchema = new mongoose.Schema({
+class Task extends Model {}
+
+Task.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     videoUrl: {
-        type: String,
-        required: [true, 'Please provide video URL or path'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     title: {
-        type: String,
-        default: 'Video Task',
-        trim: true
+        type: DataTypes.STRING,
+        defaultValue: 'Video Task'
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     },
     uploadedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Task',
+    tableName: 'tasks',
+    indexes: [
+        { fields: ['status', 'createdAt'] }
+    ]
 });
 
-// Index for querying active tasks
-taskSchema.index({ status: 1, createdAt: -1 });
-
-module.exports = mongoose.model('Task', taskSchema);
+module.exports = Task;

@@ -63,7 +63,7 @@ export default function Dashboard() {
 
     // Chart Data
     const userLevelData = {
-        labels: stats.users.byLevel.map(l => l._id),
+        labels: stats.users.byLevel.map(l => l.membershipLevel),
         datasets: [{
             label: 'Users by Level',
             data: stats.users.byLevel.map(l => l.count),
@@ -151,7 +151,7 @@ export default function Dashboard() {
                         </thead>
                         <tbody>
                             {stats.recentUsers.map((user) => (
-                                <tr key={user._id} className="table-row">
+                                <tr key={user.id} className="table-row">
                                     <td className="px-4 py-4 text-sm font-bold text-gray-800 tracking-tight">{user.phone}</td>
                                     <td className="px-4 py-4">
                                         <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase">

@@ -1,41 +1,54 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const newsSchema = new mongoose.Schema({
+class News extends Model {}
+
+News.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     title: {
-        type: String,
-        required: [true, 'Please provide news title']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     content: {
-        type: String,
-        required: [true, 'Please provide news content']
+        type: DataTypes.TEXT,
+        allowNull: false
     },
     imageUrl: {
-        type: String,
-        default: null
+        type: DataTypes.STRING,
+        allowNull: true
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     },
     showAsPopup: {
-        type: Boolean,
-        default: false
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     publishedDate: {
-        type: Date,
-        default: Date.now
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     },
     createdBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'News',
+    tableName: 'news',
+    indexes: [
+        { fields: ['status', 'publishedDate'] },
+        { fields: ['status', 'showAsPopup', 'publishedDate'] }
+    ]
 });
 
-// Index for querying active news
-newsSchema.index({ status: 1, publishedDate: -1 });
-newsSchema.index({ status: 1, showAsPopup: 1, publishedDate: -1 });
-
-module.exports = mongoose.model('News', newsSchema);
+module.exports = News;

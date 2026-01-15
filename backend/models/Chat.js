@@ -1,38 +1,38 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const chatSchema = new mongoose.Schema({
-    participants: [{
-        user: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        role: {
-            type: String,
-            enum: ['admin', 'user'],
-            required: true
-        }
-    }],
-    lastMessage: {
-        content: String,
-        sender: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'User'
-        },
-        timestamp: {
-            type: Date,
-            default: Date.now
+class Chat extends Model { }
+
+Chat.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    user: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
         }
     },
+    participants: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
+    lastMessage: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
     isActive: {
-        type: Boolean,
-        default: true
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Chat',
+    tableName: 'chats'
 });
 
-// Index for finding chats where user is a participant
-chatSchema.index({ 'participants.user': 1 });
-
-module.exports = mongoose.model('Chat', chatSchema);
+module.exports = Chat;

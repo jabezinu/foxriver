@@ -1,60 +1,82 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const withdrawalSchema = new mongoose.Schema({
+class Withdrawal extends Model {}
+
+Withdrawal.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     amount: {
-        type: Number,
-        required: [true, 'Please specify withdrawal amount'],
-        enum: [100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000, 3000000, 5000000]
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false,
+        validate: {
+            isIn: [[100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000, 3000000, 5000000]]
+        }
     },
     walletType: {
-        type: String,
-        required: [true, 'Please select wallet type'],
-        enum: ['income', 'personal']
+        type: DataTypes.ENUM('income', 'personal'),
+        allowNull: false
     },
     grossAmount: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     taxAmount: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     netAmount: {
-        type: Number,
-        required: true
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false
     },
     status: {
-        type: String,
-        enum: ['pending', 'approved', 'rejected'],
-        default: 'pending'
+        type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+        defaultValue: 'pending'
     },
-    adminNotes: String,
+    adminNotes: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     approvedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
-    approvedAt: Date
-}, {
-    timestamps: true
-});
-
-// Calculate tax (10%) before validation
-withdrawalSchema.pre('validate', function (next) {
-    if (this.isNew || this.isModified('amount')) {
-        this.grossAmount = this.amount;
-        this.taxAmount = this.amount * 0.1;
-        this.netAmount = this.amount - this.taxAmount;
+    approvedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
-    next();
+}, {
+    sequelize,
+    modelName: 'Withdrawal',
+    tableName: 'withdrawals',
+    indexes: [
+        { fields: ['user', 'status'] },
+        { fields: ['status', 'createdAt'] }
+    ],
+    hooks: {
+        beforeValidate: (withdrawal) => {
+            if (withdrawal.isNewRecord || withdrawal.changed('amount')) {
+                withdrawal.grossAmount = withdrawal.amount;
+                withdrawal.taxAmount = withdrawal.amount * 0.1;
+                withdrawal.netAmount = withdrawal.amount - withdrawal.taxAmount;
+            }
+        }
+    }
 });
 
-// Index for querying withdrawals
-withdrawalSchema.index({ user: 1, status: 1 });
-withdrawalSchema.index({ status: 1, createdAt: -1 });
-
-module.exports = mongoose.model('Withdrawal', withdrawalSchema);
+module.exports = Withdrawal;

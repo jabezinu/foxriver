@@ -1,8 +1,8 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
+const connectDB = require('./config/database');
+const { sequelize } = require('./config/database');
 const Membership = require('./models/Membership');
 const User = require('./models/User');
-const connectDB = require('./config/database');
 
 const membershipTiers = [
     { level: 'Intern', price: 0, canWithdraw: false, canUseTransactionPassword: false, order: 0 },
@@ -22,17 +22,20 @@ const seedDatabase = async () => {
     try {
         await connectDB();
 
+        // Sync database (create tables)
+        await sequelize.sync({ force: true });
+        console.log('✓ Database tables created');
+
         // Seed membership tiers
         console.log('Seeding membership tiers...');
-        await Membership.deleteMany({});
-        await Membership.insertMany(membershipTiers);
+        await Membership.bulkCreate(membershipTiers);
         console.log('✓ Membership tiers seeded successfully');
 
         // Create default admin user if doesn't exist
         const adminPhone = '+251900000000';
         const adminPassword = 'admin123';
 
-        const adminExists = await User.findOne({ phone: adminPhone });
+        const adminExists = await User.findOne({ where: { phone: adminPhone } });
 
         if (!adminExists) {
             console.log('Creating default admin user...');

@@ -1,30 +1,38 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const courseCategorySchema = new mongoose.Schema({
+class CourseCategory extends Model {}
+
+CourseCategory.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     name: {
-        type: String,
-        required: [true, 'Please provide category name'],
-        trim: true,
+        type: DataTypes.STRING,
+        allowNull: false,
         unique: true
     },
     description: {
-        type: String,
-        trim: true
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     order: {
-        type: Number,
-        default: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'CourseCategory',
+    tableName: 'course_categories',
+    indexes: [
+        { fields: ['status', 'order'] }
+    ]
 });
 
-// Index for querying active categories
-courseCategorySchema.index({ status: 1, order: 1 });
-
-module.exports = mongoose.model('CourseCategory', courseCategorySchema);
+module.exports = CourseCategory;

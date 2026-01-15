@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getSystemSettings, updateSystemSettings } = require('../controllers/systemSettingsController');
 const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
-const SystemSetting = require('../models/SystemSetting');
+const { SystemSetting } = require('../models');
 
 // @desc    Get public system settings
 // @route   GET /api/system/settings

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const SystemSetting = require('../models/SystemSetting');
 const Membership = require('../models/Membership');
+const { Op } = require('sequelize');
 
 /**
  * Calculate monthly salary based on downline counts
@@ -8,13 +9,13 @@ const Membership = require('../models/Membership');
  */
 exports.calculateMonthlySalary = async (userId) => {
     try {
-        const user = await User.findById(userId);
+        const user = await User.findByPk(userId);
         if (!user) {
             return { salary: 0, breakdown: null };
         }
 
         // Get membership levels for comparison
-        const memberships = await Membership.find().sort({ order: 1 });
+        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
         const membershipOrder = {};
         memberships.forEach(m => {
             membershipOrder[m.level] = m.order;
@@ -38,39 +39,34 @@ exports.calculateMonthlySalary = async (userId) => {
         }
 
         // Find all A-level (direct) referrals that are same level or lower (and not Intern)
-        const allALevelUsers = await User.find({ referrerId: userId });
+        const allALevelUsers = await User.findAll({ where: { referrerId: userId } });
         const aLevelUsers = allALevelUsers.filter(referral => {
             const referralLevel = membershipOrder[referral.membershipLevel];
-            // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
             return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
         });
         const aLevelCount = aLevelUsers.length;
 
         // Find all B-level referrals that are same level or lower (and not Intern)
-        // Important: Only look at B-level users whose direct referrer (A-level) was qualified
-        const aLevelIds = aLevelUsers.map(u => u._id);
+        const aLevelIds = aLevelUsers.map(u => u.id);
         let bLevelUsers = [];
         let allBLevelUsers = [];
         if (aLevelIds.length > 0) {
-            allBLevelUsers = await User.find({ referrerId: { $in: aLevelIds } });
+            allBLevelUsers = await User.findAll({ where: { referrerId: { [Op.in]: aLevelIds } } });
             bLevelUsers = allBLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
-                // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
                 return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
             });
         }
         const bLevelCount = bLevelUsers.length;
 
         // Find all C-level referrals that are same level or lower (and not Intern)
-        // Important: Only look at C-level users whose direct referrer (B-level) was qualified
-        const bLevelIds = bLevelUsers.map(u => u._id);
+        const bLevelIds = bLevelUsers.map(u => u.id);
         let cLevelUsers = [];
         let allCLevelUsers = [];
         if (bLevelIds.length > 0) {
-            allCLevelUsers = await User.find({ referrerId: { $in: bLevelIds } });
+            allCLevelUsers = await User.findAll({ where: { referrerId: { [Op.in]: bLevelIds } } });
             cLevelUsers = allCLevelUsers.filter(referral => {
                 const referralLevel = membershipOrder[referral.membershipLevel];
-                // Only count if referral is not Intern AND referral level is equal or lower than inviter's level
                 return referral.membershipLevel !== 'Intern' && referralLevel <= userLevel;
             });
         }
@@ -125,7 +121,7 @@ exports.calculateMonthlySalary = async (userId) => {
             }
         }
 
-        // Check Fourth Direct Threshold (identical to Lower Direct Threshold logic)
+        // Check Fourth Direct Threshold
         if (aLevelCount >= settings.salaryDirect10Threshold) {
             const amount = settings.salaryDirect10Amount;
             if (amount > salary) {

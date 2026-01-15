@@ -1,45 +1,38 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const dailyVideoAssignmentSchema = new mongoose.Schema({
+class DailyVideoAssignment extends Model {}
+
+DailyVideoAssignment.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        }
     },
     assignmentDate: {
-        type: Date,
-        required: true
+        type: DataTypes.DATEONLY,
+        allowNull: false
     },
-    videos: [{
-        video: {
-            type: mongoose.Schema.ObjectId,
-            ref: 'VideoPool',
-            required: true
-        },
-        watchedSeconds: {
-            type: Number,
-            default: 0
-        },
-        isCompleted: {
-            type: Boolean,
-            default: false
-        },
-        completedAt: {
-            type: Date
-        },
-        rewardAmount: {
-            type: Number,
-            default: 0
-        }
-    }]
+    videos: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'DailyVideoAssignment',
+    tableName: 'daily_video_assignments',
+    indexes: [
+        { unique: true, fields: ['user', 'assignmentDate'] },
+        { fields: ['assignmentDate'] }
+    ]
 });
 
-// Ensure one assignment per user per day
-dailyVideoAssignmentSchema.index({ user: 1, assignmentDate: 1 }, { unique: true });
-
-// Index for querying by date
-dailyVideoAssignmentSchema.index({ assignmentDate: 1 });
-
-module.exports = mongoose.model('DailyVideoAssignment', dailyVideoAssignmentSchema);
+module.exports = DailyVideoAssignment;

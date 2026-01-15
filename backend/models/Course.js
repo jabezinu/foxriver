@@ -1,35 +1,45 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const courseSchema = new mongoose.Schema({
+class Course extends Model {}
+
+Course.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     title: {
-        type: String,
-        required: [true, 'Please provide course title'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     videoUrl: {
-        type: String,
-        required: [true, 'Please provide video URL'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     category: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'CourseCategory',
-        required: [true, 'Please select a category']
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'course_categories',
+            key: 'id'
+        }
     },
     order: {
-        type: Number,
-        default: 0
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        type: DataTypes.ENUM('active', 'inactive'),
+        defaultValue: 'active'
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'Course',
+    tableName: 'courses',
+    indexes: [
+        { fields: ['category', 'status', 'order'] }
+    ]
 });
 
-// Index for querying courses by category and status
-courseSchema.index({ category: 1, status: 1, order: 1 });
-
-module.exports = mongoose.model('Course', courseSchema);
+module.exports = Course;

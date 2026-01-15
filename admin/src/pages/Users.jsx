@@ -80,7 +80,7 @@ export default function UserManagement() {
     const handleSaveEdit = async (e) => {
         e.preventDefault();
         try {
-            await adminUserAPI.updateUser(editingUser._id, editForm);
+            await adminUserAPI.updateUser(editingUser.id, editForm);
             toast.success('User updated successfully');
             setEditingUser(null);
             fetchUsers();
@@ -197,7 +197,7 @@ export default function UserManagement() {
                             </thead>
                             <tbody>
                                 {users.map((user) => (
-                                    <tr key={user._id} className="table-row">
+                                    <tr key={user.id} className="table-row">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 {user.profilePhoto ? (
@@ -259,7 +259,7 @@ export default function UserManagement() {
                                                     <HiClipboardList />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(user._id)}
+                                                    onClick={() => handleDelete(user.id)}
                                                     className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all pointer-events-auto"
                                                     title="Delete User"
                                                 >

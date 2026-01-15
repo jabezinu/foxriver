@@ -1,11 +1,11 @@
-const BankAccount = require('../models/BankAccount');
+const { BankAccount } = require('../models');
 
 // @desc    Get all active bank accounts
 // @route   GET /api/bank
 // @access  Public
 exports.getBankAccounts = async (req, res) => {
     try {
-        const banks = await BankAccount.find({ isActive: true });
+        const banks = await BankAccount.findAll({ where: { isActive: true } });
         res.status(200).json({
             success: true,
             count: banks.length,
@@ -24,7 +24,7 @@ exports.getBankAccounts = async (req, res) => {
 // @access  Private/Admin
 exports.getAllBankAccounts = async (req, res) => {
     try {
-        const banks = await BankAccount.find().sort({ createdAt: -1 });
+        const banks = await BankAccount.findAll({ order: [['createdAt', 'DESC']] });
         res.status(200).json({
             success: true,
             count: banks.length,
@@ -62,10 +62,7 @@ exports.createBankAccount = async (req, res) => {
 // @access  Private/Admin
 exports.updateBankAccount = async (req, res) => {
     try {
-        const bank = await BankAccount.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
+        const bank = await BankAccount.findByPk(req.params.id);
 
         if (!bank) {
             return res.status(404).json({
@@ -73,6 +70,8 @@ exports.updateBankAccount = async (req, res) => {
                 message: 'Bank account not found'
             });
         }
+
+        await bank.update(req.body);
 
         res.status(200).json({
             success: true,
@@ -92,7 +91,7 @@ exports.updateBankAccount = async (req, res) => {
 // @access  Private/Admin
 exports.deleteBankAccount = async (req, res) => {
     try {
-        const bank = await BankAccount.findById(req.params.id);
+        const bank = await BankAccount.findByPk(req.params.id);
 
         if (!bank) {
             return res.status(404).json({
@@ -101,7 +100,7 @@ exports.deleteBankAccount = async (req, res) => {
             });
         }
 
-        await bank.deleteOne();
+        await bank.destroy();
 
         res.status(200).json({
             success: true,

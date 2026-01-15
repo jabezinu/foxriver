@@ -1,6 +1,4 @@
-const WealthFund = require('../models/WealthFund');
-const WealthInvestment = require('../models/WealthInvestment');
-const User = require('../models/User');
+const { WealthFund, WealthInvestment, User } = require('../models');
 const multer = require('multer');
 const path = require('path');
 
@@ -37,7 +35,10 @@ exports.uploadWealthImage = upload.single('image');
 // @access  Private
 exports.getWealthFunds = async (req, res) => {
     try {
-        const funds = await WealthFund.find({ isActive: true }).sort({ createdAt: -1 });
+        const funds = await WealthFund.findAll({ 
+            where: { isActive: true },
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -56,7 +57,7 @@ exports.getWealthFunds = async (req, res) => {
 // @access  Private
 exports.getWealthFund = async (req, res) => {
     try {
-        const fund = await WealthFund.findById(req.params.id);
+        const fund = await WealthFund.findByPk(req.params.id);
 
         if (!fund) {
             return res.status(404).json({
@@ -94,7 +95,7 @@ exports.createInvestment = async (req, res) => {
         }
 
         // Get wealth fund
-        const fund = await WealthFund.findById(wealthFundId);
+        const fund = await WealthFund.findByPk(wealthFundId);
         if (!fund || !fund.isActive) {
             return res.status(404).json({
                 success: false,
@@ -111,7 +112,7 @@ exports.createInvestment = async (req, res) => {
         }
 
         // Get user with transaction password
-        const user = await User.findById(req.user.id).select('+transactionPassword');
+        const user = await User.findByPk(req.user.id);
 
         // Verify transaction password if provided
         if (transactionPassword) {
@@ -190,7 +191,9 @@ exports.createInvestment = async (req, res) => {
             totalRevenue
         });
 
-        const populatedInvestment = await WealthInvestment.findById(investment._id).populate('wealthFund');
+        const populatedInvestment = await WealthInvestment.findByPk(investment.id, {
+            include: [{ model: WealthFund, as: 'wealthFund' }]
+        });
 
         res.status(201).json({
             success: true,
@@ -211,9 +214,11 @@ exports.createInvestment = async (req, res) => {
 // @access  Private
 exports.getMyInvestments = async (req, res) => {
     try {
-        const investments = await WealthInvestment.find({ user: req.user.id })
-            .populate('wealthFund')
-            .sort({ createdAt: -1 });
+        const investments = await WealthInvestment.findAll({
+            where: { user: req.user.id },
+            include: [{ model: WealthFund, as: 'wealthFund' }],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -232,7 +237,9 @@ exports.getMyInvestments = async (req, res) => {
 // @access  Private/Admin
 exports.getAllWealthFunds = async (req, res) => {
     try {
-        const funds = await WealthFund.find().sort({ createdAt: -1 });
+        const funds = await WealthFund.findAll({ 
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,
@@ -283,11 +290,7 @@ exports.updateWealthFund = async (req, res) => {
             fundData.image = `/uploads/wealth/${req.file.filename}`;
         }
 
-        const fund = await WealthFund.findByIdAndUpdate(
-            req.params.id,
-            fundData,
-            { new: true, runValidators: true }
-        );
+        const fund = await WealthFund.findByPk(req.params.id);
 
         if (!fund) {
             return res.status(404).json({
@@ -295,6 +298,8 @@ exports.updateWealthFund = async (req, res) => {
                 message: 'Wealth fund not found'
             });
         }
+
+        await fund.update(fundData);
 
         res.status(200).json({
             success: true,
@@ -314,7 +319,7 @@ exports.updateWealthFund = async (req, res) => {
 // @access  Private/Admin
 exports.deleteWealthFund = async (req, res) => {
     try {
-        const fund = await WealthFund.findByIdAndDelete(req.params.id);
+        const fund = await WealthFund.findByPk(req.params.id);
 
         if (!fund) {
             return res.status(404).json({
@@ -322,6 +327,8 @@ exports.deleteWealthFund = async (req, res) => {
                 message: 'Wealth fund not found'
             });
         }
+
+        await fund.destroy();
 
         res.status(200).json({
             success: true,
@@ -340,10 +347,13 @@ exports.deleteWealthFund = async (req, res) => {
 // @access  Private/Admin
 exports.getAllInvestments = async (req, res) => {
     try {
-        const investments = await WealthInvestment.find()
-            .populate('user', 'name phone')
-            .populate('wealthFund')
-            .sort({ createdAt: -1 });
+        const investments = await WealthInvestment.findAll({
+            include: [
+                { model: User, as: 'user', attributes: ['name', 'phone'] },
+                { model: WealthFund, as: 'wealthFund' }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
 
         res.status(200).json({
             success: true,

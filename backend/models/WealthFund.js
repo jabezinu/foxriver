@@ -1,49 +1,62 @@
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const wealthFundSchema = new mongoose.Schema({
+class WealthFund extends Model {}
+
+WealthFund.init({
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
     name: {
-        type: String,
-        required: [true, 'Please provide a fund name'],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false
     },
     image: {
-        type: String,
-        required: [true, 'Please provide a fund image']
+        type: DataTypes.STRING,
+        allowNull: false
     },
     days: {
-        type: Number,
-        required: [true, 'Please provide investment duration in days'],
-        min: [1, 'Duration must be at least 1 day']
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+            min: 1
+        }
     },
     profitType: {
-        type: String,
-        enum: ['percentage', 'fixed'],
-        default: 'percentage'
+        type: DataTypes.ENUM('percentage', 'fixed'),
+        defaultValue: 'percentage'
     },
     dailyProfit: {
-        type: Number,
-        required: [true, 'Please provide daily profit'],
-        min: [0, 'Daily profit cannot be negative']
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     minimumDeposit: {
-        type: Number,
-        required: [true, 'Please provide minimum deposit amount'],
-        min: [0, 'Minimum deposit cannot be negative']
+        type: DataTypes.DECIMAL(15, 2),
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     description: {
-        type: String,
-        required: [true, 'Please provide a description'],
-        trim: true
+        type: DataTypes.TEXT,
+        allowNull: false
     },
     isActive: {
-        type: Boolean,
-        default: true
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
 }, {
-    timestamps: true
+    sequelize,
+    modelName: 'WealthFund',
+    tableName: 'wealth_funds',
+    indexes: [
+        { fields: ['isActive'] }
+    ]
 });
 
-// Indexes for performance
-wealthFundSchema.index({ isActive: 1 });
-
-module.exports = mongoose.model('WealthFund', wealthFundSchema);
+module.exports = WealthFund;
