@@ -8,6 +8,9 @@ const { initializeSalaryScheduler } = require('./services/salaryScheduler');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const { securityHeaders, sanitizeInput, apiLimiter } = require('./middlewares/security');
 
+// Import all models to ensure they're registered with Sequelize
+require('./models');
+
 const app = express();
 
 // Connect to MySQL

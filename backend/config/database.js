@@ -28,11 +28,9 @@ const connectDB = async () => {
         await sequelize.authenticate();
         logger.info(`MySQL Connected: ${sequelize.config.host}`);
         
-        // Sync all models (in development)
-        if (process.env.NODE_ENV === 'development') {
-            await sequelize.sync({ alter: false });
-            logger.info('Database synchronized');
-        }
+        // Sync all models - create tables if they don't exist
+        await sequelize.sync({ alter: false });
+        logger.info('Database synchronized');
     } catch (error) {
         logger.error('MySQL connection failed', { error: error.message });
         // Retry connection after 5 seconds

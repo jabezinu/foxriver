@@ -1,8 +1,9 @@
 require('dotenv').config();
 const connectDB = require('./config/database');
 const { sequelize } = require('./config/database');
-const Membership = require('./models/Membership');
-const User = require('./models/User');
+// Import all models to ensure they're registered with Sequelize
+const models = require('./models');
+const { Membership, User } = models;
 
 const membershipTiers = [
     { level: 'Intern', price: 0, canWithdraw: false, canUseTransactionPassword: false, order: 0 },
