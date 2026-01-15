@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { adminSpinAPI } from '../services/api';
+import { adminSpinAPI, adminSlotTierAPI } from '../services/api';
 import { FiPlus, FiEdit2, FiTrash2, FiToggleLeft, FiToggleRight, FiRefreshCw, FiFilter } from 'react-icons/fi';
-import { getApiUrl } from '../config/api.config';
 
 const SlotMachine = () => {
     const [activeTab, setActiveTab] = useState('results'); // 'results' or 'tiers'
@@ -108,18 +107,12 @@ const SlotMachine = () => {
     const fetchTiers = async () => {
         setLoadingTiers(true);
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/all`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
+            const response = await adminSlotTierAPI.getAll();
             
-            if (data.success) {
-                setTiers(data.data);
+            if (response.data.success) {
+                setTiers(response.data.data);
             } else {
-                toast.error(data.message || 'Failed to fetch tiers');
+                toast.error(response.data.message || 'Failed to fetch tiers');
             }
         } catch (error) {
             toast.error('Error fetching tiers');
@@ -133,25 +126,11 @@ const SlotMachine = () => {
         e.preventDefault();
         
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const url = editingTier
-                ? `${getApiUrl()}/slot-tiers/admin/${editingTier._id}`
-                : `${getApiUrl()}/slot-tiers/admin`;
+            const response = editingTier
+                ? await adminSlotTierAPI.update(editingTier._id, formData)
+                : await adminSlotTierAPI.create(formData);
             
-            const method = editingTier ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
+            if (response.data.success) {
                 toast.success(editingTier ? 'Tier updated successfully' : 'Tier created successfully');
                 setShowModal(false);
                 setEditingTier(null);
@@ -165,7 +144,7 @@ const SlotMachine = () => {
                 });
                 fetchTiers();
             } else {
-                toast.error(data.message || 'Operation failed');
+                toast.error(response.data.message || 'Operation failed');
             }
         } catch (error) {
             toast.error('Error saving tier');
@@ -190,21 +169,13 @@ const SlotMachine = () => {
         if (!window.confirm('Are you sure you want to delete this tier?')) return;
         
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await adminSlotTierAPI.delete(id);
             
-            const data = await response.json();
-            
-            if (data.success) {
+            if (response.data.success) {
                 toast.success('Tier deleted successfully');
                 fetchTiers();
             } else {
-                toast.error(data.message || 'Failed to delete tier');
+                toast.error(response.data.message || 'Failed to delete tier');
             }
         } catch (error) {
             toast.error('Error deleting tier');
@@ -214,21 +185,13 @@ const SlotMachine = () => {
 
     const handleToggleStatus = async (id) => {
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/slot-tiers/admin/${id}/toggle`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await adminSlotTierAPI.toggle(id);
             
-            const data = await response.json();
-            
-            if (data.success) {
+            if (response.data.success) {
                 toast.success('Tier status updated');
                 fetchTiers();
             } else {
-                toast.error(data.message || 'Failed to update status');
+                toast.error(response.data.message || 'Failed to update status');
             }
         } catch (error) {
             toast.error('Error updating status');

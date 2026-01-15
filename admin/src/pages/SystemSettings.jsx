@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { HiCog, HiRefresh, HiCash } from 'react-icons/hi';
-import { getApiUrl } from '../config/api.config';
+import { adminSystemAPI } from '../services/api';
 
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
@@ -15,28 +15,15 @@ export default function SystemSettings() {
 
     const fetchSettings = async () => {
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/admin/settings`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await adminSystemAPI.getSettings();
 
-            // Check if response is HTML (backend not running)
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Backend server is not running or API endpoint not found');
-            }
-
-            const data = await response.json();
-
-            if (data.success && data.settings) {
-                setSettings(data.settings);
-            } else if (data.success && data.data) {
-                setSettings(data.data);
+            if (response.data.success && response.data.settings) {
+                setSettings(response.data.settings);
+            } else if (response.data.success && response.data.data) {
+                setSettings(response.data.data);
             } else {
                 toast.error('Failed to fetch system settings');
-                console.error('API Response:', data);
+                console.error('API Response:', response.data);
             }
         } catch (error) {
             console.error('Error fetching system settings:', error);
@@ -49,23 +36,13 @@ export default function SystemSettings() {
     const toggleTasks = async () => {
         setUpdating(true);
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/admin/settings`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    tasksDisabled: !settings?.tasksDisabled
-                })
+            const response = await adminSystemAPI.updateSettings({
+                tasksDisabled: !settings?.tasksDisabled
             });
 
-            const data = await response.json();
-
-            if (data.success) {
+            if (response.data.success) {
                 // The backend returns either data.settings or data.data
-                setSettings(data.settings || data.data);
+                setSettings(response.data.settings || response.data.data);
                 toast.success(`Tasks ${!settings?.tasksDisabled ? 'disabled' : 'enabled'} successfully`);
             } else {
                 toast.error('Failed to update task status');
@@ -81,35 +58,19 @@ export default function SystemSettings() {
     const toggleFrontend = async () => {
         setUpdating(true);
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/admin/settings`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    frontendDisabled: !settings?.frontendDisabled
-                })
+            const response = await adminSystemAPI.updateSettings({
+                frontendDisabled: !settings?.frontendDisabled
             });
 
-            // Check if response is HTML (backend not running)
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('Backend server is not running or API endpoint not found');
-            }
-
-            const data = await response.json();
-
-            if (data.success && data.settings) {
-                setSettings(data.settings);
+            if (response.data.success && response.data.settings) {
+                setSettings(response.data.settings);
                 toast.success(`Frontend ${!settings?.frontendDisabled ? 'disabled' : 'enabled'} successfully`);
-            } else if (data.success && data.data) {
-                setSettings(data.data);
+            } else if (response.data.success && response.data.data) {
+                setSettings(response.data.data);
                 toast.success(`Frontend ${!settings?.frontendDisabled ? 'disabled' : 'enabled'} successfully`);
             } else {
                 toast.error('Failed to update frontend status');
-                console.error('API Response:', data);
+                console.error('API Response:', response.data);
             }
         } catch (error) {
             console.error('Error updating frontend status:', error);
@@ -128,20 +89,12 @@ export default function SystemSettings() {
 
         setProcessingSalaries(true);
         try {
-            const token = localStorage.getItem('foxriver_admin_token');
-            const response = await fetch(`${getApiUrl()}/admin/salaries/process`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await adminSystemAPI.processSalaries();
 
-            const data = await response.json();
-
-            if (data.success) {
-                toast.success(`${data.message}\nTotal Paid: ${data.totalPaid} ETB`);
+            if (response.data.success) {
+                toast.success(`${response.data.message}\nTotal Paid: ${response.data.totalPaid} ETB`);
             } else {
-                toast.error(data.message || 'Failed to process salaries');
+                toast.error(response.data.message || 'Failed to process salaries');
             }
         } catch (error) {
             console.error('Error processing salaries:', error);
