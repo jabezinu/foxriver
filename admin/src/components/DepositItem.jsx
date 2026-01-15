@@ -1,0 +1,116 @@
+import React from 'react';
+import { HiCheck, HiX, HiPhotograph, HiFingerPrint, HiOfficeBuilding, HiChip } from 'react-icons/hi';
+import { formatNumber } from '../utils/formatNumber';
+import Badge from './shared/Badge';
+import Card from './shared/Card';
+
+export default function DepositItem({ deposit, onApprove, onReject, onViewScreenshot }) {
+    const isPending = deposit.status === 'ft_submitted';
+
+    return (
+        <Card noPadding className="group overflow-hidden relative">
+            {isPending && (
+                <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
+            )}
+
+            <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-50">
+                {/* Financial Summary */}
+                <div className="p-6 bg-gray-50/50 flex flex-col items-center justify-center min-w-[160px] relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
+                        <HiChip className="text-8xl text-indigo-900" />
+                    </div>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 relative z-10">Capital Intake</p>
+                    <p className="text-2xl font-black text-indigo-600 tracking-tighter relative z-10">
+                        {formatNumber(deposit.amount)}
+                        <span className="text-[10px] ml-1 text-indigo-400">ETB</span>
+                    </p>
+                    <Badge variant={isPending ? 'yellow' : deposit.status === 'approved' ? 'green' : 'red'} className="mt-3 font-black text-[9px]">
+                        {isPending ? 'Awaiting Clearance' : deposit.status === 'approved' ? 'Authenticated' : 'Invalidated'}
+                    </Badge>
+                </div>
+
+                {/* Personnel Intelligence */}
+                <div className="p-6 flex-1 space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-900 text-white flex items-center justify-center font-black shadow-lg shadow-indigo-100 uppercase">
+                                {String(deposit.user?.phone || 'U').slice(-1)}
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-black text-gray-800 tracking-tight">{deposit.user?.phone}</h4>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    <HiFingerPrint className="text-gray-300 text-xs" />
+                                    <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Level: {deposit.user?.membershipLevel}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest leading-none">Transmission Hash</p>
+                            <p className="text-[11px] font-mono font-bold text-gray-700 tracking-tighter">{deposit.transactionFT || 'NULL_SIGNAL'}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2 border-t border-gray-50">
+                        <DataField icon={<HiOfficeBuilding />} label="Financial Node" value={deposit.paymentMethod?.bankName || 'Unknown Site'} />
+                        <DataField icon={<HiChip />} label="Node ID" value={deposit.paymentMethod?.accountNumber || 'N/A'} />
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Evidence</span>
+                            {deposit.transactionScreenshot ? (
+                                <button
+                                    onClick={() => onViewScreenshot(deposit.transactionScreenshot)}
+                                    className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 transition-all"
+                                >
+                                    <HiPhotograph className="text-lg" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Inspect</span>
+                                </button>
+                            ) : (
+                                <span className="text-[10px] font-bold text-gray-400 uppercase italic">Missing Signal</span>
+                            )}
+                        </div>
+                        <DataField label="Signal Pulse" value={new Date(deposit.createdAt).toLocaleString()} mono />
+                    </div>
+                </div>
+
+                {/* Command Actions */}
+                <div className="p-6 bg-gray-50/30 flex lg:flex-col items-center justify-center gap-3">
+                    {isPending ? (
+                        <>
+                            <button
+                                onClick={() => onApprove(deposit.id || deposit._id)}
+                                className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-xl shadow-emerald-100/30 group/btn active:scale-95"
+                                title="Authorize Capital"
+                            >
+                                <HiCheck className="text-2xl" />
+                            </button>
+                            <button
+                                onClick={() => onReject(deposit.id || deposit._id)}
+                                className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-xl shadow-rose-100/30 group/btn active:scale-95"
+                                title="Reject Transmission"
+                            >
+                                <HiX className="text-2xl" />
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center gap-1 text-center opacity-40">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Processed</span>
+                            <div className={`p-2 rounded-full ${deposit.status === 'approved' ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
+                                {deposit.status === 'approved' ? <HiCheck /> : <HiX />}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </Card>
+    );
+}
+
+function DataField({ icon, label, value, mono = false }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none flex items-center gap-1">
+                {icon} {label}
+            </span>
+            <span className={`text-[10px] font-bold text-gray-700 truncate ${mono ? 'font-mono tracking-tighter' : ''}`}>{value}</span>
+        </div>
+    );
+}

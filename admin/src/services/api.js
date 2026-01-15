@@ -1,16 +1,15 @@
 import axios from 'axios';
 import API_CONFIG from '../config/api.config';
+import { STORAGE_KEYS, API_ENDPOINTS } from '../config/constants';
 
 // Configure axios defaults
 axios.defaults.baseURL = API_CONFIG.baseURL;
 axios.defaults.timeout = API_CONFIG.timeout;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
-axios.defaults.headers.common['Cache-Control'] = 'no-cache';
-axios.defaults.headers.common['Pragma'] = 'no-cache';
 
 axios.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('foxriver_admin_token');
+        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -23,160 +22,164 @@ axios.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('foxriver_admin_token');
-            localStorage.removeItem('foxriver_admin_last_active');
+            localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVE);
             window.location.href = '/login';
         }
         return Promise.reject(error);
     }
 );
 
+
 export const adminAuthAPI = {
-    login: (data) => axios.post('/auth/login', data),
-    verify: () => axios.get('/auth/verify'),
+    login: (data) => axios.post(API_ENDPOINTS.AUTH.LOGIN, data),
+    verify: () => axios.get(API_ENDPOINTS.AUTH.VERIFY),
 };
 
 export const adminStatsAPI = {
-    getStats: () => axios.get('/admin/stats'),
+    getStats: () => axios.get(API_ENDPOINTS.ADMIN.STATS),
 };
 
 export const adminUserAPI = {
-    getAllUsers: (params) => axios.get('/admin/users', { params }),
-    getUserDetails: (id) => axios.get(`/admin/users/${id}`),
-    updateUser: (id, data) => axios.put(`/admin/users/${id}`, data),
-    deleteUser: (id) => axios.delete(`/admin/users/${id}`),
-    getUserDeposits: (id) => axios.get(`/admin/users/${id}/deposits`),
-    getUserWithdrawals: (id) => axios.get(`/admin/users/${id}/withdrawals`),
-    restrictAllUsers: (data) => axios.put('/admin/users/restrict-all', data),
+    getAllUsers: (params) => axios.get(API_ENDPOINTS.ADMIN.USERS, { params }),
+    getUserDetails: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}`),
+    updateUser: (id, data) => axios.put(`${API_ENDPOINTS.ADMIN.USERS}/${id}`, data),
+    deleteUser: (id) => axios.delete(`${API_ENDPOINTS.ADMIN.USERS}/${id}`),
+    getUserDeposits: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/deposits`),
+    getUserWithdrawals: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/withdrawals`),
+    restrictAllUsers: (data) => axios.put(`${API_ENDPOINTS.ADMIN.USERS}/restrict-all`, data),
 };
 
 export const adminDepositAPI = {
-    getDeposits: (params) => axios.get('/deposits/all', { params }),
-    approve: (id, data) => axios.put(`/deposits/${id}/approve`, data),
-    reject: (id, data) => axios.put(`/deposits/${id}/reject`, data),
+    getDeposits: (params) => axios.get(`${API_ENDPOINTS.DEPOSITS}/all`, { params }),
+    approve: (id, data) => axios.put(`${API_ENDPOINTS.DEPOSITS}/${id}/approve`, data),
+    reject: (id, data) => axios.put(`${API_ENDPOINTS.DEPOSITS}/${id}/reject`, data),
 };
 
 export const adminWithdrawalAPI = {
-    getWithdrawals: (params) => axios.get('/withdrawals/all', { params }),
-    approve: (id, data) => axios.put(`/withdrawals/${id}/approve`, data),
-    reject: (id, data) => axios.put(`/withdrawals/${id}/reject`, data),
+    getWithdrawals: (params) => axios.get(`${API_ENDPOINTS.WITHDRAWALS}/all`, { params }),
+    approve: (id, data) => axios.put(`${API_ENDPOINTS.WITHDRAWALS}/${id}/approve`, data),
+    reject: (id, data) => axios.put(`${API_ENDPOINTS.WITHDRAWALS}/${id}/reject`, data),
 };
 
+
 export const adminTaskAPI = {
-    getTasks: () => axios.get('/tasks/all'),
-    upload: (data) => axios.post('/tasks/upload', data),
-    delete: (id) => axios.delete(`/tasks/${id}`),
-    // Playlist management
-    getPlaylists: () => axios.get('/tasks/playlists'),
-    addPlaylist: (data) => axios.post('/tasks/playlists', data),
-    deletePlaylist: (id) => axios.delete(`/tasks/playlists/${id}`),
-    syncVideos: () => axios.post('/tasks/playlists/sync'),
+    getTasks: () => axios.get(`${API_ENDPOINTS.TASKS}/all`),
+    upload: (data) => axios.post(`${API_ENDPOINTS.TASKS}/upload`, data),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.TASKS}/${id}`),
+    getPlaylists: () => axios.get(`${API_ENDPOINTS.TASKS}/playlists`),
+    addPlaylist: (data) => axios.post(`${API_ENDPOINTS.TASKS}/playlists`, data),
+    deletePlaylist: (id) => axios.delete(`${API_ENDPOINTS.TASKS}/playlists/${id}`),
+    syncVideos: () => axios.post(`${API_ENDPOINTS.TASKS}/playlists/sync`),
 };
 
 export const adminMessageAPI = {
-    getAll: () => axios.get('/messages/all'),
-    send: (data) => axios.post('/messages/send', data),
-    update: (id, data) => axios.put(`/messages/${id}`, data),
-    delete: (id) => axios.delete(`/messages/${id}`),
+    getAll: () => axios.get(`${API_ENDPOINTS.MESSAGES}/all`),
+    send: (data) => axios.post(`${API_ENDPOINTS.MESSAGES}/send`, data),
+    update: (id, data) => axios.put(`${API_ENDPOINTS.MESSAGES}/${id}`, data),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.MESSAGES}/${id}`),
 };
 
 export const adminNewsAPI = {
-    getAll: () => axios.get('/news'),
-    create: (data) => axios.post('/news', data, {
+    getAll: () => axios.get(API_ENDPOINTS.NEWS),
+    create: (data) => axios.post(API_ENDPOINTS.NEWS, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    update: (id, data) => axios.put(`/news/${id}`, data),
-    delete: (id) => axios.delete(`/news/${id}`),
+    update: (id, data) => axios.put(`${API_ENDPOINTS.NEWS}/${id}`, data),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.NEWS}/${id}`),
 };
 
 export const adminChatAPI = {
-    getAllChats: () => axios.get('/chat/admin'),
-    getMessages: (chatId) => axios.get(`/chat/${chatId}/messages`),
-    sendMessage: (chatId, content) => axios.post(`/chat/${chatId}/messages`, { content }),
+    getAllChats: () => axios.get(`${API_ENDPOINTS.CHAT}/admin`),
+    getMessages: (chatId) => axios.get(`${API_ENDPOINTS.CHAT}/${chatId}/messages`),
+    sendMessage: (chatId, content) => axios.post(`${API_ENDPOINTS.CHAT}/${chatId}/messages`, { content }),
 };
 
 export const adminQnaAPI = {
-    getQna: () => axios.get('/qna'),
-    upload: (data) => axios.post('/qna/upload', data, {
+    getQna: () => axios.get(API_ENDPOINTS.QNA),
+    upload: (data) => axios.post(`${API_ENDPOINTS.QNA}/upload`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    delete: (id) => axios.delete(`/qna/${id}`),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.QNA}/${id}`),
 };
 
 export const adminProfileAPI = {
-    updateProfile: (data) => axios.put('/admin/profile', data),
+    updateProfile: (data) => axios.put(API_ENDPOINTS.ADMIN.PROFILE, data),
 };
 
 export const adminBankAPI = {
-    getAll: () => axios.get('/bank/admin'),
-    create: (data) => axios.post('/bank', data),
-    update: (id, data) => axios.put(`/bank/${id}`, data),
-    delete: (id) => axios.delete(`/bank/${id}`),
+    getAll: () => axios.get(`${API_ENDPOINTS.BANK}/admin`),
+    create: (data) => axios.post(API_ENDPOINTS.BANK, data),
+    update: (id, data) => axios.put(`${API_ENDPOINTS.BANK}/${id}`, data),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.BANK}/${id}`),
 };
 
-export const adminReferralAPI = {
-    getSettings: () => axios.get('/admin/settings'),
-    updateSettings: (data) => axios.put('/admin/settings', data),
-    getCommissions: () => axios.get('/admin/commissions'),
+
+export const adminSystemAPI = {
+    getSettings: () => axios.get(API_ENDPOINTS.ADMIN.SETTINGS),
+    updateSettings: (data) => axios.put(API_ENDPOINTS.ADMIN.SETTINGS, data),
+    getCommissions: () => axios.get(API_ENDPOINTS.ADMIN.COMMISSIONS),
+    processSalaries: () => axios.post(API_ENDPOINTS.ADMIN.SALARIES),
 };
 
 export const adminSpinAPI = {
-    getAllSpins: (params) => axios.get('/spin/admin/all', { params }),
+    getAllSpins: (params) => axios.get(`${API_ENDPOINTS.SPIN}/admin/all`, { params }),
 };
 
 export const adminMembershipAPI = {
-    getAllTiers: () => axios.get('/memberships/admin/all'),
-    hideRange: (data) => axios.put('/memberships/admin/hide-range', data),
-    unhideRange: (data) => axios.put('/memberships/admin/unhide-range', data),
-    setRestrictedRange: (data) => axios.put('/memberships/admin/set-restricted-range', data),
-    getRestrictedRange: () => axios.get('/memberships/admin/restricted-range'),
-    clearRestrictedRange: () => axios.delete('/memberships/admin/restricted-range'),
-    updatePrice: (id, data) => axios.put(`/memberships/admin/update-price/${id}`, data),
-    bulkUpdatePrices: (data) => axios.put('/memberships/admin/bulk-update-prices', data),
+    getAllTiers: () => axios.get(`${API_ENDPOINTS.MEMBERSHIPS}/admin/all`),
+    hideRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/hide-range`, data),
+    unhideRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/unhide-range`, data),
+    setRestrictedRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/set-restricted-range`, data),
+    getRestrictedRange: () => axios.get(`${API_ENDPOINTS.MEMBERSHIPS}/admin/restricted-range`),
+    clearRestrictedRange: () => axios.delete(`${API_ENDPOINTS.MEMBERSHIPS}/admin/restricted-range`),
+    updatePrice: (id, data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/update-price/${id}`, data),
+    bulkUpdatePrices: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/bulk-update-prices`, data),
 };
 
 export const adminManagementAPI = {
-    getAdmins: () => axios.get('/admin/admins'),
-    createAdmin: (data) => axios.post('/admin/admins', data),
-    updatePermissions: (id, data) => axios.put(`/admin/admins/${id}/permissions`, data),
-    deleteAdmin: (id) => axios.delete(`/admin/admins/${id}`),
+    getAdmins: () => axios.get(API_ENDPOINTS.ADMIN.ADMINS),
+    createAdmin: (data) => axios.post(API_ENDPOINTS.ADMIN.ADMINS, data),
+    updatePermissions: (id, data) => axios.put(`${API_ENDPOINTS.ADMIN.ADMINS}/${id}/permissions`, data),
+    deleteAdmin: (id) => axios.delete(`${API_ENDPOINTS.ADMIN.ADMINS}/${id}`),
+};
+
+export const adminReferralAPI = {
+    getCommissions: () => axios.get(API_ENDPOINTS.ADMIN.COMMISSIONS),
+    getSettings: () => axios.get(API_ENDPOINTS.ADMIN.SETTINGS),
+    updateSettings: (data) => axios.put(API_ENDPOINTS.ADMIN.SETTINGS, data),
 };
 
 export const adminCoursesAPI = {
-    getCategories: () => axios.get('/courses/admin/categories'),
-    createCategory: (data) => axios.post('/courses/admin/categories', data),
-    updateCategory: (id, data) => axios.put(`/courses/admin/categories/${id}`, data),
-    deleteCategory: (id) => axios.delete(`/courses/admin/categories/${id}`),
-    getCourses: () => axios.get('/courses/admin/courses'),
-    createCourse: (data) => axios.post('/courses/admin/courses', data),
-    updateCourse: (id, data) => axios.put(`/courses/admin/courses/${id}`, data),
-    deleteCourse: (id) => axios.delete(`/courses/admin/courses/${id}`),
+    getCategories: () => axios.get(`${API_ENDPOINTS.COURSES}/admin/categories`),
+    createCategory: (data) => axios.post(`${API_ENDPOINTS.COURSES}/admin/categories`, data),
+    updateCategory: (id, data) => axios.put(`${API_ENDPOINTS.COURSES}/admin/categories/${id}`, data),
+    deleteCategory: (id) => axios.delete(`${API_ENDPOINTS.COURSES}/admin/categories/${id}`),
+    getCourses: () => axios.get(`${API_ENDPOINTS.COURSES}/admin/courses`),
+    createCourse: (data) => axios.post(`${API_ENDPOINTS.COURSES}/admin/courses`, data),
+    updateCourse: (id, data) => axios.put(`${API_ENDPOINTS.COURSES}/admin/courses/${id}`, data),
+    deleteCourse: (id) => axios.delete(`${API_ENDPOINTS.COURSES}/admin/courses/${id}`),
 };
 
 export const adminWealthAPI = {
-    getAllFunds: () => axios.get('/wealth/admin/funds'),
-    createFund: (data) => axios.post('/wealth/admin/funds', data, {
+    getAllFunds: () => axios.get(`${API_ENDPOINTS.WEALTH}/admin/funds`),
+    createFund: (data) => axios.post(`${API_ENDPOINTS.WEALTH}/admin/funds`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    updateFund: (id, data) => axios.put(`/wealth/admin/funds/${id}`, data, {
+    updateFund: (id, data) => axios.put(`${API_ENDPOINTS.WEALTH}/admin/funds/${id}`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    deleteFund: (id) => axios.delete(`/wealth/admin/funds/${id}`),
-    getAllInvestments: () => axios.get('/wealth/admin/investments'),
-};
-
-export const adminSystemAPI = {
-    getSettings: () => axios.get('/admin/settings'),
-    updateSettings: (data) => axios.put('/admin/settings', data),
-    processSalaries: () => axios.post('/admin/salaries/process'),
+    deleteFund: (id) => axios.delete(`${API_ENDPOINTS.WEALTH}/admin/funds/${id}`),
+    getAllInvestments: () => axios.get(`${API_ENDPOINTS.WEALTH}/admin/investments`),
 };
 
 export const adminSlotTierAPI = {
-    getAll: () => axios.get('/slot-tiers/admin/all'),
-    create: (data) => axios.post('/slot-tiers/admin', data),
-    update: (id, data) => axios.put(`/slot-tiers/admin/${id}`, data),
-    delete: (id) => axios.delete(`/slot-tiers/admin/${id}`),
-    toggle: (id) => axios.patch(`/slot-tiers/admin/${id}/toggle`),
+    getAll: () => axios.get(`${API_ENDPOINTS.SLOT_TIERS}/admin/all`),
+    create: (data) => axios.post(`${API_ENDPOINTS.SLOT_TIERS}/admin`, data),
+    update: (id, data) => axios.put(`${API_ENDPOINTS.SLOT_TIERS}/admin/${id}`, data),
+    delete: (id) => axios.delete(`${API_ENDPOINTS.SLOT_TIERS}/admin/${id}`),
+    toggle: (id) => axios.patch(`${API_ENDPOINTS.SLOT_TIERS}/admin/${id}/toggle`),
 };
 
 export default axios;
+

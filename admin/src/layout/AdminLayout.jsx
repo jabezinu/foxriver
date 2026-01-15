@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/authStore';
+import { STORAGE_KEYS } from '../config/constants';
 import {
     HiChartBar, HiUsers, HiCurrencyDollar, HiBriefcase,
     HiVideoCamera, HiNewspaper, HiPhotograph, HiMail, HiLogout, HiMenu, HiX, HiCog, HiLibrary, HiTrendingUp, HiAdjustments, HiRefresh, HiShieldCheck, HiChat, HiDesktopComputer, HiAcademicCap
@@ -22,7 +23,7 @@ export default function AdminLayout() {
     // Check for inactivity every minute
     useEffect(() => {
         const checkActivity = () => {
-            const lastActive = localStorage.getItem('foxriver_admin_last_active');
+            const lastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000;
 
@@ -38,10 +39,10 @@ export default function AdminLayout() {
     // Track user activity to keep session alive
     useEffect(() => {
         const handleActivity = () => {
-            const lastActive = parseInt(localStorage.getItem('foxriver_admin_last_active') || '0');
+            const lastActive = parseInt(localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE) || '0');
             // Only update if more than 1 minute has passed since last update
             if (Date.now() - lastActive > 60000) {
-                localStorage.setItem('foxriver_admin_last_active', Date.now().toString());
+                localStorage.setItem(STORAGE_KEYS.LAST_ACTIVE, Date.now().toString());
             }
         };
 
@@ -112,8 +113,8 @@ export default function AdminLayout() {
                     </button>
                     <span className="font-bold text-lg">Admin Panel</span>
                 </div>
-                <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-bold text-sm">
-                    {admin?.phone?.slice(-1)}
+                <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-bold text-sm uppercase">
+                    {String(admin?.phone || 'A').slice(-1)}
                 </div>
             </div>
 
@@ -165,8 +166,8 @@ export default function AdminLayout() {
 
                 <div className="p-4 border-t border-gray-700 mt-auto">
                     <div className="flex items-center gap-3 mb-4 px-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-bold shrink-0">
-                            {admin?.phone?.slice(-1)}
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-black shrink-0 uppercase">
+                            {String(admin?.phone || 'A').slice(-1)}
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-xs font-bold truncate">{admin?.phone}</p>

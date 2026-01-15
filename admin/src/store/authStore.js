@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { adminAuthAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config/constants';
 
 export const useAdminAuthStore = create((set) => ({
     admin: null,
-    token: localStorage.getItem('foxriver_admin_token'),
+    token: localStorage.getItem(STORAGE_KEYS.TOKEN),
     isAuthenticated: false,
     isCheckingAuth: true,
     loading: false,
@@ -19,8 +20,8 @@ export const useAdminAuthStore = create((set) => ({
                 throw new Error('Not authorized as admin');
             }
 
-            localStorage.setItem('foxriver_admin_token', token);
-            localStorage.setItem('foxriver_admin_last_active', Date.now().toString());
+            localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+            localStorage.setItem(STORAGE_KEYS.LAST_ACTIVE, Date.now().toString());
 
             set({
                 admin: user,
@@ -38,14 +39,14 @@ export const useAdminAuthStore = create((set) => ({
     },
 
     logout: () => {
-        localStorage.removeItem('foxriver_admin_token');
-        localStorage.removeItem('foxriver_admin_last_active');
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVE);
         set({ admin: null, token: null, isAuthenticated: false, isCheckingAuth: false });
     },
 
     verifyToken: async () => {
-        const token = localStorage.getItem('foxriver_admin_token');
-        const lastActive = localStorage.getItem('foxriver_admin_last_active');
+        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+        const lastActive = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
 
@@ -56,15 +57,15 @@ export const useAdminAuthStore = create((set) => ({
 
         // Check if session has expired (1 day inactivity)
         if (lastActive && (now - parseInt(lastActive)) > oneDay) {
-            localStorage.removeItem('foxriver_admin_token');
-            localStorage.removeItem('foxriver_admin_last_active');
+            localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVE);
             set({ admin: null, token: null, isAuthenticated: false, isCheckingAuth: false });
             return;
         }
 
         try {
             // Update last active time
-            localStorage.setItem('foxriver_admin_last_active', now.toString());
+            localStorage.setItem(STORAGE_KEYS.LAST_ACTIVE, now.toString());
 
             const response = await adminAuthAPI.verify();
             if (response.data.user.role === 'admin' || response.data.user.role === 'superadmin') {
@@ -77,9 +78,10 @@ export const useAdminAuthStore = create((set) => ({
                 throw new Error('Not an admin');
             }
         } catch (error) {
-            localStorage.removeItem('foxriver_admin_token');
-            localStorage.removeItem('foxriver_admin_last_active');
+            localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVE);
             set({ admin: null, token: null, isAuthenticated: false, isCheckingAuth: false });
         }
     },
 }));
+
