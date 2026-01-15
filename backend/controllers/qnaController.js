@@ -50,6 +50,10 @@ exports.uploadQnA = [
     upload.single('image'),
     async (req, res) => {
         try {
+            console.log('QnA upload request received');
+            console.log('File:', req.file);
+            console.log('User:', req.user);
+
             if (!req.file) {
                 return res.status(400).json({
                     success: false,
@@ -66,8 +70,13 @@ exports.uploadQnA = [
                             resource_type: 'image'
                         },
                         (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result);
+                            if (error) {
+                                console.error('Cloudinary upload error:', error);
+                                reject(error);
+                            } else {
+                                console.log('Cloudinary upload success:', result.secure_url);
+                                resolve(result);
+                            }
                         }
                     );
                     stream.end(req.file.buffer);
@@ -87,6 +96,7 @@ exports.uploadQnA = [
                 qna
             });
         } catch (error) {
+            console.error('QnA upload error:', error);
             res.status(500).json({
                 success: false,
                 message: error.message || 'Server error'

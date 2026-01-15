@@ -86,8 +86,8 @@ const SlotMachine = () => {
             spin.result,
             spin.amountPaid,
             spin.amountWon,
-            spin.balanceBefore,
-            spin.balanceAfter
+            spin.balanceBefore != null ? spin.balanceBefore : 0,
+            spin.balanceAfter != null ? spin.balanceAfter : 0
         ]);
 
         const csvContent = [
@@ -551,10 +551,10 @@ const SlotMachine = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
-                                                    {spin.balanceBefore.toFixed(2)} ETB
+                                                    {typeof spin.balanceBefore === 'number' ? spin.balanceBefore.toFixed(2) : '0.00'} ETB
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
-                                                    {spin.balanceAfter.toFixed(2)} ETB
+                                                    {typeof spin.balanceAfter === 'number' ? spin.balanceAfter.toFixed(2) : '0.00'} ETB
                                                 </td>
                                             </tr>
                                         ))
