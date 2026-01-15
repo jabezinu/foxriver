@@ -1,281 +1,116 @@
-const Course = require('../models/Course');
-const CourseCategory = require('../models/CourseCategory');
+const { Course, CourseCategory } = require('../models');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 
 // @desc    Get all active categories
 // @route   GET /api/courses/categories
 // @access  Private
-exports.getCategories = async (req, res) => {
-    try {
-        const categories = await CourseCategory.findAll({ 
-            where: { status: 'active' },
-            order: [['order', 'ASC']]
-        });
-        
-        res.status(200).json({
-            success: true,
-            count: categories.length,
-            categories
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.getCategories = asyncHandler(async (req, res) => {
+    const categories = await CourseCategory.findAll({
+        where: { status: 'active' },
+        order: [['order', 'ASC']]
+    });
+    res.status(200).json({ success: true, count: categories.length, categories });
+});
 
 // @desc    Get courses by category
 // @route   GET /api/courses/category/:categoryId
 // @access  Private
-exports.getCoursesByCategory = async (req, res) => {
-    try {
-        const courses = await Course.findAll({ 
-            where: {
-                category: req.params.categoryId,
-                status: 'active'
-            },
-            order: [['order', 'ASC']]
-        });
-        
-        res.status(200).json({
-            success: true,
-            count: courses.length,
-            courses
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.getCoursesByCategory = asyncHandler(async (req, res) => {
+    const courses = await Course.findAll({
+        where: { category: req.params.categoryId, status: 'active' },
+        order: [['order', 'ASC']]
+    });
+    res.status(200).json({ success: true, count: courses.length, courses });
+});
 
 // @desc    Get all categories (Admin)
 // @route   GET /api/courses/admin/categories
 // @access  Private/Admin
-exports.getAllCategories = async (req, res) => {
-    try {
-        const categories = await CourseCategory.findAll({ 
-            order: [['order', 'ASC']]
-        });
-        
-        res.status(200).json({
-            success: true,
-            count: categories.length,
-            categories
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.getAllCategories = asyncHandler(async (req, res) => {
+    const categories = await CourseCategory.findAll({ order: [['order', 'ASC']] });
+    res.status(200).json({ success: true, count: categories.length, categories });
+});
 
 // @desc    Create category (Admin)
 // @route   POST /api/courses/admin/categories
 // @access  Private/Admin
-exports.createCategory = async (req, res) => {
-    try {
-        const category = await CourseCategory.create(req.body);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Category created successfully',
-            category
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.createCategory = asyncHandler(async (req, res) => {
+    const category = await CourseCategory.create(req.body);
+    res.status(201).json({ success: true, message: 'Category created', category });
+});
 
 // @desc    Update category (Admin)
 // @route   PUT /api/courses/admin/categories/:id
 // @access  Private/Admin
-exports.updateCategory = async (req, res) => {
-    try {
-        const category = await CourseCategory.findByPk(req.params.id);
+exports.updateCategory = asyncHandler(async (req, res) => {
+    const category = await CourseCategory.findByPk(req.params.id);
+    if (!category) throw new AppError('Category not found', 404);
 
-        if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: 'Category not found'
-            });
-        }
-
-        await category.update(req.body);
-        
-        res.status(200).json({
-            success: true,
-            message: 'Category updated successfully',
-            category
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    await category.update(req.body);
+    res.status(200).json({ success: true, message: 'Category updated', category });
+});
 
 // @desc    Delete category (Admin)
 // @route   DELETE /api/courses/admin/categories/:id
 // @access  Private/Admin
-exports.deleteCategory = async (req, res) => {
-    try {
-        const category = await CourseCategory.findByPk(req.params.id);
+exports.deleteCategory = asyncHandler(async (req, res) => {
+    const category = await CourseCategory.findByPk(req.params.id);
+    if (!category) throw new AppError('Category not found', 404);
 
-        if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: 'Category not found'
-            });
-        }
+    // Delete all courses in this category
+    await Course.destroy({ where: { category: req.params.id } });
+    await category.destroy();
 
-        // Delete all courses in this category
-        await Course.destroy({ where: { category: req.params.id } });
-        await category.destroy();
-        
-        res.status(200).json({
-            success: true,
-            message: 'Category and associated courses deleted successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({ success: true, message: 'Category and courses deleted' });
+});
 
 // @desc    Get all courses (Admin)
 // @route   GET /api/courses/admin/courses
 // @access  Private/Admin
-exports.getAllCourses = async (req, res) => {
-    try {
-        const courses = await Course.findAll({
-            include: [
-                { model: CourseCategory, as: 'categoryDetails' }
-            ],
-            order: [['order', 'ASC']]
-        });
-        
-        res.status(200).json({
-            success: true,
-            count: courses.length,
-            courses
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.getAllCourses = asyncHandler(async (req, res) => {
+    const courses = await Course.findAll({
+        include: [{ model: CourseCategory, as: 'categoryDetails' }],
+        order: [['order', 'ASC']]
+    });
+    res.status(200).json({ success: true, count: courses.length, courses });
+});
 
 // @desc    Create course (Admin)
 // @route   POST /api/courses/admin/courses
 // @access  Private/Admin
-exports.createCourse = async (req, res) => {
-    try {
-        // Ensure category is an integer
-        const courseData = {
-            ...req.body,
-            category: parseInt(req.body.category)
-        };
-
-        const course = await Course.create(courseData);
-        const populatedCourse = await Course.findByPk(course.id, {
-            include: [
-                { model: CourseCategory, as: 'categoryDetails' }
-            ]
-        });
-        
-        res.status(201).json({
-            success: true,
-            message: 'Course created successfully',
-            course: populatedCourse
-        });
-    } catch (error) {
-        console.error('Create course error:', error);
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+exports.createCourse = asyncHandler(async (req, res) => {
+    const courseData = { ...req.body, category: parseInt(req.body.category) };
+    const course = await Course.create(courseData);
+    const populatedCourse = await Course.findByPk(course.id, {
+        include: [{ model: CourseCategory, as: 'categoryDetails' }]
+    });
+    res.status(201).json({ success: true, message: 'Course created', course: populatedCourse });
+});
 
 // @desc    Update course (Admin)
 // @route   PUT /api/courses/admin/courses/:id
 // @access  Private/Admin
-exports.updateCourse = async (req, res) => {
-    try {
-        const course = await Course.findByPk(req.params.id);
+exports.updateCourse = asyncHandler(async (req, res) => {
+    const course = await Course.findByPk(req.params.id);
+    if (!course) throw new AppError('Course not found', 404);
 
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: 'Course not found'
-            });
-        }
+    const updateData = { ...req.body };
+    if (updateData.category) updateData.category = parseInt(updateData.category);
 
-        // Ensure category is an integer if provided
-        const updateData = {
-            ...req.body
-        };
-        if (updateData.category) {
-            updateData.category = parseInt(updateData.category);
-        }
-
-        await course.update(updateData);
-
-        const populatedCourse = await Course.findByPk(course.id, {
-            include: [
-                { model: CourseCategory, as: 'categoryDetails' }
-            ]
-        });
-        
-        res.status(200).json({
-            success: true,
-            message: 'Course updated successfully',
-            course: populatedCourse
-        });
-    } catch (error) {
-        console.error('Update course error:', error);
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    await course.update(updateData);
+    const populatedCourse = await Course.findByPk(course.id, {
+        include: [{ model: CourseCategory, as: 'categoryDetails' }]
+    });
+    res.status(200).json({ success: true, message: 'Course updated', course: populatedCourse });
+});
 
 // @desc    Delete course (Admin)
 // @route   DELETE /api/courses/admin/courses/:id
 // @access  Private/Admin
-exports.deleteCourse = async (req, res) => {
-    try {
-        const course = await Course.findByPk(req.params.id);
+exports.deleteCourse = asyncHandler(async (req, res) => {
+    const course = await Course.findByPk(req.params.id);
+    if (!course) throw new AppError('Course not found', 404);
 
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: 'Course not found'
-            });
-        }
-
-        await course.destroy();
-        
-        res.status(200).json({
-            success: true,
-            message: 'Course deleted successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    await course.destroy();
+    res.status(200).json({ success: true, message: 'Course deleted' });
+});

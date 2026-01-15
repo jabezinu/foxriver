@@ -1,446 +1,192 @@
-const Membership = require('../models/Membership');
-const User = require('../models/User');
+const { Membership, User, sequelize } = require('../models');
 const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 const { Op } = require('sequelize');
 
 // @desc    Get all membership tiers
 // @route   GET /api/memberships/tiers
 // @access  Public
-exports.getTiers = async (req, res) => {
-    try {
-        // Filter out hidden memberships for regular users
-        // Include memberships where hidden is false OR doesn't exist (for backward compatibility)
-        const memberships = await Membership.findAll({ 
-            where: {
-                [Op.or]: [
-                    { hidden: false },
-                    { hidden: null }
-                ]
-            },
-            order: [['order', 'ASC']]
-        });
+exports.getTiers = asyncHandler(async (req, res) => {
+    const memberships = await Membership.findAll({
+        where: {
+            [Op.or]: [
+                { hidden: false },
+                { hidden: null }
+            ]
+        },
+        order: [['order', 'ASC']]
+    });
 
-        const tiersWithDetails = memberships.map(membership => ({
-            level: membership.level,
-            price: membership.price,
-            canWithdraw: membership.canWithdraw,
-            canUseTransactionPassword: membership.canUseTransactionPassword,
-            dailyIncome: membership.getDailyIncome(),
-            perVideoIncome: membership.getPerVideoIncome(),
-            fourDayIncome: membership.getFourDayIncome(),
-            dailyTasks: 4
-        }));
+    const tiersWithDetails = memberships.map(membership => ({
+        level: membership.level,
+        price: membership.price,
+        canWithdraw: membership.canWithdraw,
+        canUseTransactionPassword: membership.canUseTransactionPassword,
+        dailyIncome: membership.getDailyIncome(),
+        perVideoIncome: membership.getPerVideoIncome(),
+        fourDayIncome: membership.getFourDayIncome(),
+        dailyTasks: 4
+    }));
 
-        res.status(200).json({
-            success: true,
-            count: tiersWithDetails.length,
-            tiers: tiersWithDetails
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: tiersWithDetails.length,
+        tiers: tiersWithDetails
+    });
+});
 
 // @desc    Upgrade membership (deducts from selected wallet)
 // @route   POST /api/memberships/upgrade
 // @access  Private
-exports.upgradeMembership = async (req, res) => {
-    try {
-        const { newLevel, walletType } = req.body;
+exports.upgradeMembership = asyncHandler(async (req, res) => {
+    const { newLevel, walletType } = req.body;
 
-        // Validate wallet type
-        if (!['income', 'personal'].includes(walletType)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid wallet type selected'
-            });
-        }
-
-        const user = await User.findByPk(req.user.id);
-        const currentMembership = await Membership.findOne({ where: { level: user.membershipLevel } });
-        const newMembership = await Membership.findOne({ where: { level: newLevel } });
-
-        if (!newMembership) {
-            return res.status(404).json({
-                success: false,
-                message: 'Membership level not found'
-            });
-        }
-
-        // Check if upgrade is valid (can only upgrade to higher level or strictly higher?) 
-        // Logic says "Upgrade", so strictly higher makes sense, but sometimes users might just want to pay to change. 
-        // Based on previous code: newMembership.order <= currentMembership.order check exists. 
-        // I will keep the check.
-        if (newMembership.order <= currentMembership.order) {
-            return res.status(400).json({
-                success: false,
-                message: 'Can only upgrade to a higher membership level'
-            });
-        }
-
-        // Check rank progression restrictions
-        const progressionCheck = await Membership.isProgressionAllowed(user.membershipLevel, newLevel);
-        if (!progressionCheck.allowed) {
-            return res.status(400).json({
-                success: false,
-                message: progressionCheck.reason
-            });
-        }
-
-        // Check Balance
-        const walletField = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
-        if (user[walletField] < newMembership.price) {
-            return res.status(400).json({
-                success: false,
-                message: `Insufficient funds in ${walletType} wallet`
-            });
-        }
-
-        // Deduct funds
-        user[walletField] = parseFloat(user[walletField]) - newMembership.price;
-
-        // Update Level and reset activation date
-        user.membershipLevel = newLevel;
-        user.membershipActivatedAt = new Date(); // Reset activation date for new membership
-        await user.save();
-
-        // Calculate and credit membership commissions
-        await calculateAndCreateMembershipCommissions(user, newMembership);
-
-        res.status(200).json({
-            success: true,
-            message: `Successfully upgraded to ${newLevel}`,
-            user: {
-                membershipLevel: user.membershipLevel,
-                incomeWallet: user.incomeWallet,
-                personalWallet: user.personalWallet
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+    if (!['income', 'personal'].includes(walletType)) {
+        throw new AppError('Invalid wallet type selected', 400);
     }
-};
+
+    const user = await User.findByPk(req.user.id);
+    const [currentMembership, newMembership] = await Promise.all([
+        Membership.findOne({ where: { level: user.membershipLevel } }),
+        Membership.findOne({ where: { level: newLevel } })
+    ]);
+
+    if (!newMembership) throw new AppError('Membership level not found', 404);
+
+    if (newMembership.order <= currentMembership.order) {
+        throw new AppError('Can only upgrade to a higher membership level', 400);
+    }
+
+    const progressionCheck = await Membership.isProgressionAllowed(user.membershipLevel, newLevel);
+    if (!progressionCheck.allowed) {
+        throw new AppError(progressionCheck.reason, 400);
+    }
+
+    const walletField = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
+    if (parseFloat(user[walletField]) < parseFloat(newMembership.price)) {
+        throw new AppError(`Insufficient funds in ${walletType} wallet`, 400);
+    }
+
+    // Atomic upgrade
+    await sequelize.transaction(async (t) => {
+        user[walletField] = parseFloat(user[walletField]) - parseFloat(newMembership.price);
+        user.membershipLevel = newLevel;
+        user.membershipActivatedAt = new Date();
+        await user.save({ transaction: t });
+
+        await calculateAndCreateMembershipCommissions(user, newMembership, { transaction: t });
+    });
+
+    res.status(200).json({
+        success: true,
+        message: `Successfully upgraded to ${newLevel}`,
+        user: {
+            membershipLevel: user.membershipLevel,
+            incomeWallet: user.incomeWallet,
+            personalWallet: user.personalWallet
+        }
+    });
+});
 
 // @desc    Get all membership tiers (including hidden) - Admin only
 // @route   GET /api/memberships/admin/all
 // @access  Private/Admin
-exports.getAllTiers = async (req, res) => {
-    try {
-        const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
+exports.getAllTiers = asyncHandler(async (req, res) => {
+    const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
 
-        const tiersWithDetails = memberships.map(membership => ({
-            id: membership.id,
-            level: membership.level,
-            price: membership.price,
-            canWithdraw: membership.canWithdraw,
-            canUseTransactionPassword: membership.canUseTransactionPassword,
-            order: membership.order,
-            hidden: membership.hidden,
-            dailyIncome: membership.getDailyIncome(),
-            perVideoIncome: membership.getPerVideoIncome(),
-            fourDayIncome: membership.getFourDayIncome(),
-            dailyTasks: 4
-        }));
+    const tiers = memberships.map(m => ({
+        id: m.id,
+        level: m.level,
+        price: m.price,
+        canWithdraw: m.canWithdraw,
+        canUseTransactionPassword: m.canUseTransactionPassword,
+        order: m.order,
+        hidden: m.hidden,
+        dailyIncome: m.getDailyIncome(),
+        perVideoIncome: m.getPerVideoIncome(),
+        fourDayIncome: m.getFourDayIncome(),
+        dailyTasks: 4
+    }));
 
-        res.status(200).json({
-            success: true,
-            count: tiersWithDetails.length,
-            tiers: tiersWithDetails
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: tiers.length,
+        tiers
+    });
+});
 
-// @desc    Hide memberships by rank range
-// @route   PUT /api/memberships/admin/hide-range
+// @desc    Hide/Unhide memberships by range
+// @route   PUT /api/memberships/admin/toggle-range
 // @access  Private/Admin
-exports.hideMembershipsByRange = async (req, res) => {
-    try {
-        const { startRank, endRank } = req.body;
-
-        // Validate input
-        if (!startRank || !endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank and end rank are required'
-            });
-        }
-
-        if (startRank < 1 || startRank > 10 || endRank < 1 || endRank > 10) {
-            return res.status(400).json({
-                success: false,
-                message: 'Ranks must be between 1 and 10'
-            });
-        }
-
-        if (startRank > endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank must be less than or equal to end rank'
-            });
-        }
-
-        // Build level array for the range
-        const levels = [];
-        for (let i = startRank; i <= endRank; i++) {
-            levels.push(`Rank ${i}`);
-        }
-
-        // Update memberships
-        const [affectedCount] = await Membership.update(
-            { hidden: true },
-            { where: { level: { [Op.in]: levels } } }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: `Successfully hidden memberships from Rank ${startRank} to Rank ${endRank}`,
-            modifiedCount: affectedCount
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+const updateVisibilityByRange = async (startRank, endRank, hidden) => {
+    if (!startRank || !endRank) throw new AppError('Start and end ranks are required', 400);
+    if (startRank < 1 || startRank > 10 || endRank < 1 || endRank > 10 || startRank > endRank) {
+        throw new AppError('Invalid rank range', 400);
     }
+
+    const levels = Array.from({ length: endRank - startRank + 1 }, (_, i) => `Rank ${startRank + i}`);
+    return await Membership.update({ hidden }, { where: { level: { [Op.in]: levels } } });
 };
 
-// @desc    Unhide memberships by rank range
-// @route   PUT /api/memberships/admin/unhide-range
+exports.hideMembershipsByRange = asyncHandler(async (req, res) => {
+    const { startRank, endRank } = req.body;
+    const [count] = await updateVisibilityByRange(startRank, endRank, true);
+    res.status(200).json({ success: true, message: `Hidden ${count} memberships` });
+});
+
+exports.unhideMembershipsByRange = asyncHandler(async (req, res) => {
+    const { startRank, endRank } = req.body;
+    const [count] = await updateVisibilityByRange(startRank, endRank, false);
+    res.status(200).json({ success: true, message: `Unhidden ${count} memberships` });
+});
+
+// @desc    Manage restricted range
+// @route   PUT /api/memberships/admin/restricted-range
 // @access  Private/Admin
-exports.unhideMembershipsByRange = async (req, res) => {
-    try {
-        const { startRank, endRank } = req.body;
+exports.setRestrictedRange = asyncHandler(async (req, res) => {
+    const { startRank, endRank } = req.body;
 
-        // Validate input
-        if (!startRank || !endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank and end rank are required'
-            });
-        }
-
-        if (startRank < 1 || startRank > 10 || endRank < 1 || endRank > 10) {
-            return res.status(400).json({
-                success: false,
-                message: 'Ranks must be between 1 and 10'
-            });
-        }
-
-        if (startRank > endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank must be less than or equal to end rank'
-            });
-        }
-
-        // Build level array for the range
-        const levels = [];
-        for (let i = startRank; i <= endRank; i++) {
-            levels.push(`Rank ${i}`);
-        }
-
-        // Update memberships
-        const [affectedCount] = await Membership.update(
-            { hidden: false },
-            { where: { level: { [Op.in]: levels } } }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: `Successfully unhidden memberships from Rank ${startRank} to Rank ${endRank}`,
-            modifiedCount: affectedCount
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+    if (!startRank || !endRank || startRank < 1 || endRank > 10 || startRank >= endRank) {
+        throw new AppError('Invalid restricted range', 400);
     }
-};
 
-// @desc    Set restricted rank progression range
-// @route   PUT /api/memberships/admin/set-restricted-range
-// @access  Private/Admin
-exports.setRestrictedRange = async (req, res) => {
-    try {
-        const { startRank, endRank } = req.body;
+    await Membership.update(
+        { restrictedRangeStart: startRank, restrictedRangeEnd: endRank },
+        { where: { level: 'Intern' } }
+    );
 
-        // Validate input
-        if (!startRank || !endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank and end rank are required'
-            });
-        }
+    res.status(200).json({ success: true, message: 'Sequential progression range updated' });
+});
 
-        if (startRank < 1 || startRank > 10 || endRank < 1 || endRank > 10) {
-            return res.status(400).json({
-                success: false,
-                message: 'Ranks must be between 1 and 10'
-            });
-        }
+exports.getRestrictedRange = asyncHandler(async (req, res) => {
+    const range = await Membership.getRestrictedRange();
+    res.status(200).json({ success: true, restrictedRange: range });
+});
 
-        if (startRank > endRank) {
-            return res.status(400).json({
-                success: false,
-                message: 'Start rank must be less than or equal to end rank'
-            });
-        }
+exports.clearRestrictedRange = asyncHandler(async (req, res) => {
+    await Membership.update(
+        { restrictedRangeStart: null, restrictedRangeEnd: null },
+        { where: { level: 'Intern' } }
+    );
+    res.status(200).json({ success: true, message: 'Restrictions cleared' });
+});
 
-        if (endRank - startRank < 1) {
-            return res.status(400).json({
-                success: false,
-                message: 'Restricted range must include at least 2 ranks'
-            });
-        }
-
-        // Store the restriction in the Intern membership document
-        await Membership.update(
-            { 
-                restrictedRangeStart: startRank,
-                restrictedRangeEnd: endRank
-            },
-            { where: { level: 'Intern' } }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: `Sequential progression is now required from Rank ${startRank} to Rank ${endRank}`,
-            restrictedRange: {
-                start: startRank,
-                end: endRank
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
-
-// @desc    Get restricted rank progression range
-// @route   GET /api/memberships/admin/restricted-range
-// @access  Private/Admin
-exports.getRestrictedRange = async (req, res) => {
-    try {
-        const restrictedRange = await Membership.getRestrictedRange();
-
-        res.status(200).json({
-            success: true,
-            restrictedRange: restrictedRange || null,
-            message: restrictedRange 
-                ? `Sequential progression required from Rank ${restrictedRange.start} to Rank ${restrictedRange.end}`
-                : 'No rank progression restrictions are currently set'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
-
-// @desc    Clear restricted rank progression range
-// @route   DELETE /api/memberships/admin/restricted-range
-// @access  Private/Admin
-exports.clearRestrictedRange = async (req, res) => {
-    try {
-        // Clear the restriction from the Intern membership document
-        await Membership.update(
-            { 
-                restrictedRangeStart: null,
-                restrictedRangeEnd: null
-            },
-            { where: { level: 'Intern' } }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: 'Rank progression restrictions have been cleared. Users can now skip ranks freely.'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
-
-// @desc    Update membership price
+// @desc    Update prices
 // @route   PUT /api/memberships/admin/update-price/:id
 // @access  Private/Admin
-exports.updateMembershipPrice = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { price } = req.body;
+exports.updateMembershipPrice = asyncHandler(async (req, res) => {
+    const { price } = req.body;
+    if (price === undefined || price < 0) throw new AppError('Invalid price', 400);
 
-        // Validate price
-        if (price === undefined || price === null) {
-            return res.status(400).json({
-                success: false,
-                message: 'Price is required'
-            });
-        }
+    const membership = await Membership.findByPk(req.params.id);
+    if (!membership) throw new AppError('Membership not found', 404);
+    if (membership.level === 'Intern' && price !== 0) throw new AppError('Intern must be free', 400);
 
-        if (price < 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Price cannot be negative'
-            });
-        }
+    membership.price = price;
+    await membership.save();
 
-        // Find and update membership
-        const membership = await Membership.findByPk(id);
-        
-        if (!membership) {
-            return res.status(404).json({
-                success: false,
-                message: 'Membership level not found'
-            });
-        }
-
-        // Prevent changing Intern price from 0
-        if (membership.level === 'Intern' && price !== 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Intern membership must remain free (price = 0)'
-            });
-        }
-
-        membership.price = price;
-        await membership.save();
-
-        res.status(200).json({
-            success: true,
-            message: `Successfully updated ${membership.level} price to ${price} ETB`,
-            membership: {
-                id: membership.id,
-                level: membership.level,
-                price: membership.price,
-                dailyIncome: membership.getDailyIncome(),
-                perVideoIncome: membership.getPerVideoIncome(),
-                fourDayIncome: membership.getFourDayIncome()
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({ success: true, membership });
+});
 
 // @desc    Bulk update membership prices
 // @route   PUT /api/memberships/admin/bulk-update-prices
@@ -474,7 +220,7 @@ exports.bulkUpdatePrices = async (req, res) => {
                 }
 
                 const membership = await Membership.findByPk(id);
-                
+
                 if (!membership) {
                     errors.push({ id, error: 'Membership not found' });
                     continue;

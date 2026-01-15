@@ -51,7 +51,7 @@ class UserService {
      */
     async isBankAccountDuplicate(accountNumber, bank, excludeUserId = null) {
         const { sequelize } = require('../config/database');
-        
+
         let query = `
             SELECT id FROM users 
             WHERE (
@@ -79,7 +79,7 @@ class UserService {
      */
     async getReferralStats(userId) {
         const directReferrals = await User.count({ where: { referrerId: userId } });
-        
+
         // Get all direct referrals
         const referrals = await User.findAll({
             where: { referrerId: userId },
@@ -139,11 +139,11 @@ class UserService {
      * Check if user can perform withdrawal
      */
     async canWithdraw(userId) {
-        const user = await User.findByPk(userId, { 
+        const user = await User.findByPk(userId, {
             attributes: ['withdrawalRestrictedUntil'],
-            raw: true 
+            raw: true
         });
-        
+
         if (!user) {
             throw new AppError('User not found', 404);
         }
@@ -169,6 +169,54 @@ class UserService {
         );
 
         logger.info('Withdrawal restricted', { userId, days, until: restrictedUntil });
+    }
+    /**
+     * Update user profile data
+     */
+    async updateProfile(userId, data) {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        if (data.name) {
+            user.name = data.name.trim();
+        }
+
+        await user.save();
+        return user;
+    }
+
+    /**
+     * Process pending bank account change if 3 days have passed
+     */
+    async processPendingBankChange(user) {
+        if (user.bankChangeStatus !== 'pending') return false;
+
+        const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+        const timeDiff = Date.now() - new Date(user.bankChangeRequestDate).getTime();
+
+        if (timeDiff >= threeDaysInMillis) {
+            const isDuplicate = await this.isBankAccountDuplicate(
+                user.pendingBankAccount.accountNumber,
+                user.pendingBankAccount.bank,
+                user.id
+            );
+
+            if (!isDuplicate) {
+                user.bankAccount = {
+                    ...user.pendingBankAccount,
+                    isSet: true
+                };
+                user.bankChangeStatus = 'none';
+                user.pendingBankAccount = null;
+                user.bankChangeRequestDate = null;
+                await user.save();
+                logger.info('Bank account auto-approved', { userId: user.id });
+                return true;
+            }
+        }
+        return false;
     }
 }
 

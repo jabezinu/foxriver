@@ -1,147 +1,79 @@
 const { QnA, User } = require('../models');
-const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
-
-// Configure multer for memory storage (Cloudinary upload)
-const storage = multer.memoryStorage();
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5000000 }, // 5MB
-    fileFilter: function (req, file, cb) {
-        const filetypes = /jpeg|jpg|png|gif/;
-        const mimetype = filetypes.test(file.mimetype);
-
-        if (mimetype) {
-            return cb(null, true);
-        } else {
-            cb(new Error('Only image files are allowed'));
-        }
-    }
-});
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
+const upload = require('../middlewares/upload');
 
 // @desc    Get all Q&A images
 // @route   GET /api/qna
 // @access  Public
-exports.getQnA = async (req, res) => {
-    try {
-        const qnaItems = await QnA.findAll({
-            where: { status: 'active' },
-            order: [['createdAt', 'DESC']]
-        });
+exports.getQnA = asyncHandler(async (req, res) => {
+    const qnaItems = await QnA.findAll({
+        where: { status: 'active' },
+        order: [['createdAt', 'DESC']]
+    });
 
-        res.status(200).json({
-            success: true,
-            count: qnaItems.length,
-            qna: qnaItems
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: qnaItems.length,
+        qna: qnaItems
+    });
+});
 
 // @desc    Upload Q&A image (admin)
 // @route   POST /api/qna/upload
 // @access  Private/Admin
 exports.uploadQnA = [
     upload.single('image'),
-    async (req, res) => {
-        try {
-            console.log('QnA upload request received');
-            console.log('File:', req.file);
-            console.log('User:', req.user);
+    asyncHandler(async (req, res) => {
+        if (!req.file) throw new AppError('Please upload an image file', 400);
 
-            if (!req.file) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please upload an image file'
-                });
-            }
-
-            // Upload to Cloudinary
-            const uploadStream = () => {
-                return new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        {
-                            folder: 'foxriver/qna',
-                            resource_type: 'image'
-                        },
-                        (error, result) => {
-                            if (error) {
-                                console.error('Cloudinary upload error:', error);
-                                reject(error);
-                            } else {
-                                console.log('Cloudinary upload success:', result.secure_url);
-                                resolve(result);
-                            }
-                        }
-                    );
-                    stream.end(req.file.buffer);
-                });
-            };
-
-            const cloudinaryResult = await uploadStream();
-
-            const qna = await QnA.create({
-                imageUrl: cloudinaryResult.secure_url,
-                uploadedBy: req.user.id
+        // Upload to Cloudinary
+        const uploadStream = () => {
+            return new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'foxriver/qna', resource_type: 'image' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
             });
+        };
 
-            res.status(201).json({
-                success: true,
-                message: 'Q&A image uploaded successfully',
-                qna
-            });
-        } catch (error) {
-            console.error('QnA upload error:', error);
-            res.status(500).json({
-                success: false,
-                message: error.message || 'Server error'
-            });
-        }
-    }
+        const result = await uploadStream();
+        const qna = await QnA.create({
+            imageUrl: result.secure_url,
+            uploadedBy: req.user.id
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Q&A image uploaded successfully',
+            qna
+        });
+    })
 ];
 
 // @desc    Delete Q&A image (admin)
 // @route   DELETE /api/qna/:id
 // @access  Private/Admin
-exports.deleteQnA = async (req, res) => {
-    try {
-        const qna = await QnA.findByPk(req.params.id);
+exports.deleteQnA = asyncHandler(async (req, res) => {
+    const qna = await QnA.findByPk(req.params.id);
+    if (!qna) throw new AppError('Q&A image not found', 404);
 
-        if (!qna) {
-            return res.status(404).json({
-                success: false,
-                message: 'Q&A image not found'
-            });
+    // Delete image from Cloudinary
+    if (qna.imageUrl) {
+        try {
+            const urlParts = qna.imageUrl.split('/');
+            const publicIdWithExt = urlParts[urlParts.length - 1];
+            const publicId = `foxriver/qna/${publicIdWithExt.split('.')[0]}`;
+            await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+            console.warn('Cloudinary delete failed:', err.message);
         }
-
-        // Delete image from Cloudinary
-        if (qna.imageUrl) {
-            try {
-                // Extract public_id from the Cloudinary URL
-                const urlParts = qna.imageUrl.split('/');
-                const publicIdWithExt = urlParts[urlParts.length - 1];
-                const publicId = `foxriver/qna/${publicIdWithExt.split('.')[0]}`;
-                await cloudinary.uploader.destroy(publicId);
-            } catch (err) {
-                console.log('Image not found or already deleted from Cloudinary');
-            }
-        }
-
-        await qna.destroy();
-
-        res.status(200).json({
-            success: true,
-            message: 'Q&A image deleted successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
     }
-};
+
+    await qna.destroy();
+    res.status(200).json({ success: true, message: 'Q&A image deleted' });
+});

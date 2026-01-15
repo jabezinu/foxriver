@@ -1,51 +1,32 @@
 const { SystemSetting } = require('../models');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 
 // @desc    Get system settings
 // @route   GET /api/system/admin/settings
 // @access  Private/Admin
-exports.getSystemSettings = async (req, res) => {
-    try {
-        let settings = await SystemSetting.findOne();
-        
-        if (!settings) {
-            settings = await SystemSetting.create({});
-        }
+exports.getSystemSettings = asyncHandler(async (req, res) => {
+    let settings = await SystemSetting.findOne();
+    if (!settings) settings = await SystemSetting.create({});
 
-        res.status(200).json({
-            success: true,
-            data: settings
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to fetch system settings'
-        });
-    }
-};
+    res.status(200).json({ success: true, data: settings });
+});
 
 // @desc    Update system settings
 // @route   PUT /api/system/admin/settings
 // @access  Private/Admin
-exports.updateSystemSettings = async (req, res) => {
-    try {
-        let settings = await SystemSetting.findOne();
-        
-        if (!settings) {
-            settings = await SystemSetting.create(req.body);
-        } else {
-            await settings.update(req.body);
-            settings = await SystemSetting.findOne(); // Refresh the instance
-        }
+exports.updateSystemSettings = asyncHandler(async (req, res) => {
+    let settings = await SystemSetting.findOne();
 
-        res.status(200).json({
-            success: true,
-            data: settings,
-            message: 'System settings updated successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to update system settings'
-        });
+    if (!settings) {
+        settings = await SystemSetting.create(req.body);
+    } else {
+        await settings.update(req.body);
+        await settings.reload();
     }
-};
+
+    res.status(200).json({
+        success: true,
+        data: settings,
+        message: 'System settings updated successfully'
+    });
+});

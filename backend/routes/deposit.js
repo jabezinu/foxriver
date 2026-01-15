@@ -10,8 +10,10 @@ const {
 } = require('../controllers/depositController');
 const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
 
+const upload = require('../middlewares/upload');
+
 router.post('/create', protect, createDeposit);
-router.post('/submit-ft', protect, ...submitTransactionFT);
+router.post('/submit-ft', protect, upload.single('screenshot'), submitTransactionFT);
 router.get('/user', protect, getUserDeposits);
 router.get('/all', protect, adminOnly, checkPermission('manage_deposits'), getAllDeposits);
 router.put('/:id/approve', protect, adminOnly, checkPermission('manage_deposits'), approveDeposit);

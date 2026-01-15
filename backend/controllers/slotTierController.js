@@ -1,151 +1,68 @@
 const { SlotTier } = require('../models');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 
 // @desc    Get all slot tiers (for users - only active)
 // @route   GET /api/slot-tiers
 // @access  Public
-exports.getActiveTiers = async (req, res) => {
-    try {
-        const tiers = await SlotTier.findAll({ 
-            where: { isActive: true },
-            order: [['order', 'ASC']]
-        });
-
-        res.status(200).json({
-            success: true,
-            count: tiers.length,
-            data: tiers
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error fetching slot tiers'
-        });
-    }
-};
+exports.getActiveTiers = asyncHandler(async (req, res) => {
+    const tiers = await SlotTier.findAll({
+        where: { isActive: true },
+        order: [['order', 'ASC']]
+    });
+    res.status(200).json({ success: true, count: tiers.length, data: tiers });
+});
 
 // @desc    Get all slot tiers (for admin - all tiers)
 // @route   GET /api/slot-tiers/admin/all
 // @access  Private/Admin
-exports.getAllTiers = async (req, res) => {
-    try {
-        const tiers = await SlotTier.findAll({ order: [['order', 'ASC']] });
-
-        res.status(200).json({
-            success: true,
-            count: tiers.length,
-            data: tiers
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error fetching slot tiers'
-        });
-    }
-};
+exports.getAllTiers = asyncHandler(async (req, res) => {
+    const tiers = await SlotTier.findAll({ order: [['order', 'ASC']] });
+    res.status(200).json({ success: true, count: tiers.length, data: tiers });
+});
 
 // @desc    Create new slot tier
 // @route   POST /api/slot-tiers/admin
 // @access  Private/Admin
-exports.createTier = async (req, res) => {
-    try {
-        const tier = await SlotTier.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            message: 'Slot tier created successfully',
-            data: tier
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Error creating slot tier'
-        });
-    }
-};
+exports.createTier = asyncHandler(async (req, res) => {
+    const tier = await SlotTier.create(req.body);
+    res.status(201).json({ success: true, message: 'Slot tier created', data: tier });
+});
 
 // @desc    Update slot tier
 // @route   PUT /api/slot-tiers/admin/:id
 // @access  Private/Admin
-exports.updateTier = async (req, res) => {
-    try {
-        const tier = await SlotTier.findByPk(req.params.id);
+exports.updateTier = asyncHandler(async (req, res) => {
+    const tier = await SlotTier.findByPk(req.params.id);
+    if (!tier) throw new AppError('Slot tier not found', 404);
 
-        if (!tier) {
-            return res.status(404).json({
-                success: false,
-                message: 'Slot tier not found'
-            });
-        }
-
-        await tier.update(req.body);
-
-        res.status(200).json({
-            success: true,
-            message: 'Slot tier updated successfully',
-            data: tier
-        });
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'Error updating slot tier'
-        });
-    }
-};
+    await tier.update(req.body);
+    res.status(200).json({ success: true, message: 'Slot tier updated', data: tier });
+});
 
 // @desc    Delete slot tier
 // @route   DELETE /api/slot-tiers/admin/:id
 // @access  Private/Admin
-exports.deleteTier = async (req, res) => {
-    try {
-        const tier = await SlotTier.findByPk(req.params.id);
+exports.deleteTier = asyncHandler(async (req, res) => {
+    const tier = await SlotTier.findByPk(req.params.id);
+    if (!tier) throw new AppError('Slot tier not found', 404);
 
-        if (!tier) {
-            return res.status(404).json({
-                success: false,
-                message: 'Slot tier not found'
-            });
-        }
-
-        await tier.destroy();
-
-        res.status(200).json({
-            success: true,
-            message: 'Slot tier deleted successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error deleting slot tier'
-        });
-    }
-};
+    await tier.destroy();
+    res.status(200).json({ success: true, message: 'Slot tier deleted' });
+});
 
 // @desc    Toggle tier active status
 // @route   PATCH /api/slot-tiers/admin/:id/toggle
 // @access  Private/Admin
-exports.toggleTierStatus = async (req, res) => {
-    try {
-        const tier = await SlotTier.findByPk(req.params.id);
+exports.toggleTierStatus = asyncHandler(async (req, res) => {
+    const tier = await SlotTier.findByPk(req.params.id);
+    if (!tier) throw new AppError('Slot tier not found', 404);
 
-        if (!tier) {
-            return res.status(404).json({
-                success: false,
-                message: 'Slot tier not found'
-            });
-        }
+    tier.isActive = !tier.isActive;
+    await tier.save();
 
-        tier.isActive = !tier.isActive;
-        await tier.save();
-
-        res.status(200).json({
-            success: true,
-            message: `Slot tier ${tier.isActive ? 'activated' : 'deactivated'} successfully`,
-            data: tier
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error toggling tier status'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        message: `Slot tier ${tier.isActive ? 'activated' : 'deactivated'}`,
+        data: tier
+    });
+});

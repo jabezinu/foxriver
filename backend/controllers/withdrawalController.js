@@ -1,223 +1,131 @@
 const { Withdrawal, User } = require('../models');
+const transactionService = require('../services/transactionService');
 const { isValidWithdrawalAmount } = require('../utils/validators');
+const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 
 // @desc    Create withdrawal request
 // @route   POST /api/withdrawals/create
 // @access  Private (Rank 1+)
-exports.createWithdrawal = async (req, res) => {
-    try {
-        const { amount, walletType, transactionPassword } = req.body;
+exports.createWithdrawal = asyncHandler(async (req, res) => {
+    const { amount, walletType, transactionPassword } = req.body;
 
-        // Check if user is Intern (Removed restriction)
-        /*
-        if (req.user.membershipLevel === 'Intern') {
-            return res.status(403).json({
-                success: false,
-                message: 'Intern users cannot withdraw. Please upgrade your level.'
-            });
-        }
-        */
-
-        // Check for withdrawal restriction
-        if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {
-            const restrictedDate = new Date(req.user.withdrawalRestrictedUntil).toLocaleDateString();
-            return res.status(403).json({
-                success: false,
-                message: `Withdrawal restricted until ${restrictedDate}`
-            });
-        }
-
-        // Validate amount
-        if (!isValidWithdrawalAmount(amount)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid withdrawal amount. Please select from allowed amounts.'
-            });
-        }
-
-        // Verify transaction password
-        const user = await User.findByPk(req.user.id);
-
-        if (!user.transactionPassword) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please set transaction password first'
-            });
-        }
-
-        if (transactionPassword.length !== 6) {
-            return res.status(400).json({
-                success: false,
-                message: 'Transaction password must be exactly 6 digits'
-            });
-        }
-
-        const isMatch = await user.matchTransactionPassword(transactionPassword);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: 'Incorrect transaction password'
-            });
-        }
-
-        // Check if user has sufficient balance
-        const walletBalance = walletType === 'income' ? user.incomeWallet : user.personalWallet;
-
-        if (walletBalance < amount) {
-            return res.status(400).json({
-                success: false,
-                message: 'Insufficient wallet balance'
-            });
-        }
-
-        // Create withdrawal (tax calculation is done in model pre-save hook)
-        const withdrawal = await Withdrawal.create({
-            user: req.user.id,
-            amount,
-            walletType
-        });
-
-        res.status(201).json({
-            success: true,
-            message: 'Withdrawal request created. Awaiting admin approval.',
-            withdrawal,
-            note: `10% tax will be deducted. You will receive ${withdrawal.netAmount} ETB`
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
+    // Check for withdrawal restriction
+    if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {
+        const restrictedDate = new Date(req.user.withdrawalRestrictedUntil).toLocaleDateString();
+        throw new AppError(`Withdrawal restricted until ${restrictedDate}`, 403);
     }
-};
+
+    // Validate amount
+    if (!isValidWithdrawalAmount(amount)) {
+        throw new AppError('Invalid withdrawal amount', 400);
+    }
+
+    // Verify transaction password
+    const user = await User.findByPk(req.user.id);
+
+    if (!user.transactionPassword) {
+        throw new AppError('Please set transaction password first', 400);
+    }
+
+    if (transactionPassword.length !== 6) {
+        throw new AppError('Transaction password must be exactly 6 digits', 400);
+    }
+
+    const isMatch = await user.matchTransactionPassword(transactionPassword);
+    if (!isMatch) {
+        throw new AppError('Incorrect transaction password', 401);
+    }
+
+    // Check if user has sufficient balance
+    const walletBalance = walletType === 'income' ? user.incomeWallet : user.personalWallet;
+
+    if (walletBalance < amount) {
+        throw new AppError('Insufficient wallet balance', 400);
+    }
+
+    // Create withdrawal (tax calculation is done in model pre-save hook)
+    const withdrawal = await Withdrawal.create({
+        user: req.user.id,
+        amount,
+        walletType
+    });
+
+    res.status(201).json({
+        success: true,
+        message: 'Withdrawal request created. Awaiting admin approval.',
+        withdrawal,
+        note: `10% tax will be deducted. You will receive ${withdrawal.netAmount} ETB`
+    });
+});
 
 // @desc    Get user's withdrawals
 // @route   GET /api/withdrawals/user
 // @access  Private
-exports.getUserWithdrawals = async (req, res) => {
-    try {
-        const withdrawals = await Withdrawal.findAll({ 
-            where: { user: req.user.id },
-            order: [['createdAt', 'DESC']]
-        });
+exports.getUserWithdrawals = asyncHandler(async (req, res) => {
+    const withdrawals = await Withdrawal.findAll({
+        where: { user: req.user.id },
+        order: [['createdAt', 'DESC']]
+    });
 
-        res.status(200).json({
-            success: true,
-            count: withdrawals.length,
-            withdrawals
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: withdrawals.length,
+        withdrawals
+    });
+});
 
 // @desc    Get all withdrawals (admin)
 // @route   GET /api/withdrawals/all
 // @access  Private/Admin
-exports.getAllWithdrawals = async (req, res) => {
-    try {
-        const { status } = req.query;
-        const where = status ? { status } : {};
+exports.getAllWithdrawals = asyncHandler(async (req, res) => {
+    const { status } = req.query;
+    const where = status ? { status } : {};
 
-        const withdrawals = await Withdrawal.findAll({
-            where,
-            include: [
-                { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel', 'bankAccount'] },
-                { model: User, as: 'approver', attributes: ['phone'] }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
+    const withdrawals = await Withdrawal.findAll({
+        where,
+        include: [
+            { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel', 'bankAccount'] },
+            { model: User, as: 'approver', attributes: ['phone'] }
+        ],
+        order: [['createdAt', 'DESC']]
+    });
 
-        res.status(200).json({
-            success: true,
-            count: withdrawals.length,
-            withdrawals
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        count: withdrawals.length,
+        withdrawals
+    });
+});
 
 // @desc    Approve withdrawal (admin)
 // @route   PUT /api/withdrawals/:id/approve
 // @access  Private/Admin
-exports.approveWithdrawal = async (req, res) => {
-    try {
-        const withdrawal = await Withdrawal.findByPk(req.params.id);
+exports.approveWithdrawal = asyncHandler(async (req, res) => {
+    const withdrawal = await transactionService.approveWithdrawal(
+        req.params.id,
+        req.user.id,
+        req.body.notes
+    );
 
-        if (!withdrawal) {
-            return res.status(404).json({
-                success: false,
-                message: 'Withdrawal not found'
-            });
-        }
-
-        if (withdrawal.status === 'approved') {
-            return res.status(400).json({
-                success: false,
-                message: 'Withdrawal already approved'
-            });
-        }
-
-        // Deduct from user's balance atomically
-        const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' : 'personalWallet';
-        const user = await User.findByPk(withdrawal.user);
-        user[walletField] = parseFloat(user[walletField]) - parseFloat(withdrawal.amount);
-        await user.save();
-
-        // Update withdrawal status
-        withdrawal.status = 'approved';
-        withdrawal.approvedBy = req.user.id;
-        withdrawal.approvedAt = new Date();
-        withdrawal.adminNotes = req.body.notes || '';
-        await withdrawal.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Withdrawal approved and amount deducted from user wallet',
-            withdrawal
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        message: 'Withdrawal approved and amount deducted from user wallet',
+        withdrawal
+    });
+});
 
 // @desc    Reject withdrawal (admin)
 // @route   PUT /api/withdrawals/:id/reject
 // @access  Private/Admin
-exports.rejectWithdrawal = async (req, res) => {
-    try {
-        const withdrawal = await Withdrawal.findByPk(req.params.id);
+exports.rejectWithdrawal = asyncHandler(async (req, res) => {
+    const withdrawal = await transactionService.rejectWithdrawal(
+        req.params.id,
+        req.body.notes
+    );
 
-        if (!withdrawal) {
-            return res.status(404).json({
-                success: false,
-                message: 'Withdrawal not found'
-            });
-        }
-
-        withdrawal.status = 'rejected';
-        withdrawal.adminNotes = req.body.notes || '';
-        await withdrawal.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Withdrawal rejected',
-            withdrawal
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Server error'
-        });
-    }
-};
+    res.status(200).json({
+        success: true,
+        message: 'Withdrawal rejected',
+        withdrawal
+    });
+});
