@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import Card from '../components/ui/Card';
-import axios from 'axios';
+import { wealthAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { getServerUrl, getApiUrl } from '../config/api.config';
+import { getServerUrl } from '../config/api.config';
 
 export default function Wealth() {
     const navigate = useNavigate();
@@ -18,10 +18,7 @@ export default function Wealth() {
 
     const fetchFunds = async () => {
         try {
-            const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${getApiUrl()}/wealth/funds`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await wealthAPI.getFunds();
             
             console.log('✅ API Response:', response.data);
             console.log('📊 Funds count:', response.data.data?.length || 0);

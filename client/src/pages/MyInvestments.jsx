@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Calendar, DollarSign, Clock } from 'lucide-react';
 import Card from '../components/ui/Card';
-import axios from 'axios';
-import { getServerUrl, getApiUrl } from '../config/api.config';
+import { wealthAPI } from '../services/api';
+import { getServerUrl } from '../config/api.config';
 
 export default function MyInvestments() {
     const navigate = useNavigate();
@@ -16,10 +16,7 @@ export default function MyInvestments() {
 
     const fetchInvestments = async () => {
         try {
-            const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${getApiUrl()}/wealth/my-investments`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await wealthAPI.getMyInvestments();
             setInvestments(response.data.data);
         } catch (error) {
             console.error('Error fetching investments:', error);

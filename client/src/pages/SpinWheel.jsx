@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { spinAPI } from '../services/api';
+import { spinAPI, slotTierAPI } from '../services/api';
 import { ArrowLeft, TrendingUp, Trophy, Zap, Sparkles } from 'lucide-react';
-import { getApiUrl } from '../config/api.config';
 
 const SpinWheel = () => {
     const navigate = useNavigate();
@@ -38,10 +37,9 @@ const SpinWheel = () => {
 
     const fetchTiers = async () => {
         try {
-            const response = await fetch(`${getApiUrl()}/slot-tiers`);
-            const data = await response.json();
-            if (data.success) {
-                setTiers(data.data);
+            const response = await slotTierAPI.getTiers();
+            if (response.data.success) {
+                setTiers(response.data.data);
             }
         } catch (error) {
             console.error('Error fetching tiers:', error);

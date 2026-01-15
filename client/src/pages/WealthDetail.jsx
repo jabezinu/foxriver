@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
-import axios from 'axios';
+import { wealthAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { getServerUrl, getApiUrl } from '../config/api.config';
+import { getServerUrl } from '../config/api.config';
 
 export default function WealthDetail() {
     const { id } = useParams();
@@ -37,10 +37,7 @@ export default function WealthDetail() {
 
     const fetchFund = async () => {
         try {
-            const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${getApiUrl()}/wealth/funds/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await wealthAPI.getFundById(id);
             setFund(response.data.data);
         } catch (error) {
             console.error('Error fetching fund:', error);
@@ -109,17 +106,12 @@ export default function WealthDetail() {
 
         setInvesting(true);
         try {
-            const token = localStorage.getItem('foxriver_token');
-            await axios.post(
-                `${getApiUrl()}/wealth/invest`,
-                {
-                    wealthFundId: id,
-                    amount: parseFloat(amount),
-                    fundingSource,
-                    transactionPassword
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await wealthAPI.invest({
+                wealthFundId: id,
+                amount: parseFloat(amount),
+                fundingSource,
+                transactionPassword
+            });
             
             alert('Investment successful!');
             navigate('/wealth');

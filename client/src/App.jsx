@@ -2,8 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
-import { newsAPI } from './services/api';
-import { getApiUrl } from './config/api.config';
+import { newsAPI, systemAPI } from './services/api';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -92,22 +91,10 @@ function App() {
 
   const checkSystemSettings = async () => {
     try {
-      const response = await fetch(`${getApiUrl()}/system/settings`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+      const response = await systemAPI.getSettings();
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch system settings');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setFrontendDisabled(data.settings?.frontendDisabled || false);
+      if (response.data.success) {
+        setFrontendDisabled(response.data.settings?.frontendDisabled || false);
       }
     } catch (error) {
       console.error('Failed to check system settings:', error);

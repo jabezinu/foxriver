@@ -6,7 +6,7 @@ export default function NewsPopup({ news, onClose }) {
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in">
-            <div className="bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg sm:mx-4 max-h-[75vh] sm:max-h-[85vh] mb-20 sm:mb-0 flex flex-col animate-slide-up shadow-2xl relative overflow-hidden border-t border-zinc-800 sm:border">
+            <div className="bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg sm:mx-4 max-h-[75vh] sm:max-h-[85vh] mb-32 sm:mb-0 flex flex-col animate-slide-up shadow-2xl relative overflow-hidden border-t border-zinc-800 sm:border">
                 {/* Header with close button */}
                 <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
                     <div className="flex items-start justify-between mb-3">
