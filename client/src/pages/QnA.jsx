@@ -62,18 +62,24 @@ export default function QnA() {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {images.map((img) => (
-                            <Card key={img._id} className="p-2 overflow-hidden hover:shadow-glow transition-all duration-300 border-zinc-800 bg-zinc-900">
-                                <div className="relative rounded-2xl overflow-hidden bg-zinc-950">
-                                    <img
-                                        src={img.imageUrl.startsWith('http') ? img.imageUrl : `${import.meta.env.VITE_API_URL.replace('/api', '')}${img.imageUrl}`}
-                                        alt="Q&A Guide"
-                                        loading="lazy"
-                                        className="w-full h-auto block"
-                                    />
-                                </div>
-                            </Card>
-                        ))}
+                        {images.map((img) => {
+                            const imageUrl = img.imageUrl || '';
+                            const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5002';
+                            const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`;
+                            
+                            return (
+                                <Card key={img.id || img._id} className="p-2 overflow-hidden hover:shadow-glow transition-all duration-300 border-zinc-800 bg-zinc-900">
+                                    <div className="relative rounded-2xl overflow-hidden bg-zinc-950">
+                                        <img
+                                            src={fullImageUrl}
+                                            alt="Q&A Guide"
+                                            loading="lazy"
+                                            className="w-full h-auto block"
+                                        />
+                                    </div>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </div>

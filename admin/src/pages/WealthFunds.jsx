@@ -313,16 +313,16 @@ export default function WealthFunds() {
                                     <tr key={inv._id} className="table-row">
                                         <td className="px-6 py-4">
                                             <div>
-                                                <div className="font-bold text-gray-800">{inv.user?.phone || 'Unknown User'}</div>
-                                                <div className="text-[10px] text-gray-400 font-bold uppercase">{inv.user?.name || 'Customer'}</div>
+                                                <div className="font-bold text-gray-800">{inv.investor?.phone || 'Unknown User'}</div>
+                                                <div className="text-[10px] text-gray-400 font-bold uppercase">{inv.investor?.membershipLevel || 'Customer'}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                                                    <img src={renderImageUrl(inv.wealthFund?.image)} className="w-full h-full object-cover" />
+                                                    <img src={renderImageUrl(inv.fund?.image)} className="w-full h-full object-cover" />
                                                 </div>
-                                                <span className="text-xs font-bold text-gray-700">{inv.wealthFund?.name}</span>
+                                                <span className="text-xs font-bold text-gray-700">{inv.fund?.name}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

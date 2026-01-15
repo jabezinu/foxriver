@@ -192,7 +192,7 @@ exports.createInvestment = async (req, res) => {
         });
 
         const populatedInvestment = await WealthInvestment.findByPk(investment.id, {
-            include: [{ model: WealthFund, as: 'wealthFund' }]
+            include: [{ model: WealthFund, as: 'fund' }]
         });
 
         res.status(201).json({
@@ -216,7 +216,7 @@ exports.getMyInvestments = async (req, res) => {
     try {
         const investments = await WealthInvestment.findAll({
             where: { user: req.user.id },
-            include: [{ model: WealthFund, as: 'wealthFund' }],
+            include: [{ model: WealthFund, as: 'fund' }],
             order: [['createdAt', 'DESC']]
         });
 
@@ -349,8 +349,8 @@ exports.getAllInvestments = async (req, res) => {
     try {
         const investments = await WealthInvestment.findAll({
             include: [
-                { model: User, as: 'user', attributes: ['name', 'phone'] },
-                { model: WealthFund, as: 'wealthFund' }
+                { model: User, as: 'investor', attributes: ['phone', 'membershipLevel'] },
+                { model: WealthFund, as: 'fund' }
             ],
             order: [['createdAt', 'DESC']]
         });

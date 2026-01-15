@@ -239,7 +239,7 @@ export default function TaskManagement() {
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {tasks.map((task) => (
-                                        <div key={task._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col group">
+                                        <div key={String(task._id)} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col group">
                                             <div className="aspect-video bg-gray-900 rounded-xl mb-4 overflow-hidden relative flex items-center justify-center">
                                                 {task.videoUrl && (task.videoUrl.includes('youtube.com') || task.videoUrl.includes('youtu.be')) ? (
                                                     <iframe
@@ -265,7 +265,7 @@ export default function TaskManagement() {
                                                             {new Date(task.createdAt).toLocaleDateString()}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs font-mono text-gray-800 font-bold">#{task._id.slice(-8)}</p>
+                                                    <p className="text-xs font-mono text-gray-800 font-bold">#{String(task._id).padStart(8, '0')}</p>
                                                     {task.uploadedBy && (
                                                         <p className="text-[9px] text-gray-400 font-medium">By: {task.uploadedBy.phone}</p>
                                                     )}
@@ -354,7 +354,7 @@ export default function TaskManagement() {
                             ) : (
                                 <div className="space-y-4">
                                     {playlists.map((pl) => (
-                                        <div key={pl._id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between group gap-4">
+                                        <div key={String(pl._id)} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between group gap-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-indigo-500 shadow-sm">
                                                     <HiCollection className="text-2xl" />

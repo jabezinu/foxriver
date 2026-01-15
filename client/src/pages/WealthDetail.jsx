@@ -4,6 +4,7 @@ import { ArrowLeft, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { getServerUrl } from '../config/api.config';
 
 export default function WealthDetail() {
     const { id } = useParams();
@@ -155,6 +156,11 @@ export default function WealthDetail() {
         }
     };
 
+    const renderImageUrl = (image) => {
+        if (!image) return null;
+        return image.startsWith('http') ? image : `${getServerUrl()}${image}`;
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -187,7 +193,7 @@ export default function WealthDetail() {
                 <Card className="bg-zinc-900/80 border-zinc-800">
                     <div className="flex items-center gap-4 mb-4">
                         <img
-                            src={fund.image}
+                            src={renderImageUrl(fund.image)}
                             alt={fund.name}
                             className="w-20 h-20 rounded-xl object-cover"
                         />

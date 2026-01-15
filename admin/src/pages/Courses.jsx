@@ -66,7 +66,7 @@ export default function Courses() {
 
     const handleEditCategory = (category) => {
         setCategoryForm({ name: category.name, description: category.description || '' });
-        setEditingCategoryId(category._id);
+        setEditingCategoryId(category.id);
         setShowCategoryForm(true);
     };
 
@@ -113,9 +113,9 @@ export default function Courses() {
         setCourseForm({ 
             title: course.title, 
             videoUrl: course.videoUrl,
-            category: course.category._id
+            category: course.category
         });
-        setEditingCourseId(course._id);
+        setEditingCourseId(course.id);
         setShowCourseForm(true);
     };
 
@@ -256,7 +256,7 @@ export default function Courses() {
                         ) : (
                             <div className="space-y-3">
                                 {categories.map((category) => (
-                                    <div key={category._id} className="p-4 rounded-xl border bg-gray-50 hover:bg-white transition-all">
+                                    <div key={category.id} className="p-4 rounded-xl border bg-gray-50 hover:bg-white transition-all">
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-500">
@@ -277,7 +277,7 @@ export default function Courses() {
                                                     <HiPencil />
                                                 </button>
                                                 <button
-                                                    onClick={() => setDeleteCategoryId(category._id)}
+                                                    onClick={() => setDeleteCategoryId(category.id)}
                                                     className="p-2 text-red-500 hover:bg-red-100 rounded-lg"
                                                 >
                                                     <HiTrash />
@@ -338,7 +338,7 @@ export default function Courses() {
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map(cat => (
-                                        <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
                                 <input
@@ -380,7 +380,7 @@ export default function Courses() {
                         ) : (
                             <div className="space-y-3">
                                 {courses.map((course) => (
-                                    <div key={course._id} className="p-4 rounded-xl border bg-gray-50 hover:bg-white transition-all">
+                                    <div key={course.id} className="p-4 rounded-xl border bg-gray-50 hover:bg-white transition-all">
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-3 flex-1">
                                                 <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-500">
@@ -389,7 +389,7 @@ export default function Courses() {
                                                 <div className="flex-1">
                                                     <h4 className="font-bold text-gray-800">{course.title}</h4>
                                                     <p className="text-xs text-gray-500 mt-1">
-                                                        Category: {course.category?.name || 'N/A'}
+                                                        Category: {course.categoryDetails?.name || 'N/A'}
                                                     </p>
                                                     <p className="text-xs text-blue-500 mt-1 truncate">{course.videoUrl}</p>
                                                 </div>
@@ -402,7 +402,7 @@ export default function Courses() {
                                                     <HiPencil />
                                                 </button>
                                                 <button
-                                                    onClick={() => setDeleteCourseId(course._id)}
+                                                    onClick={() => setDeleteCourseId(course.id)}
                                                     className="p-2 text-red-500 hover:bg-red-100 rounded-lg"
                                                 >
                                                     <HiTrash />

@@ -119,22 +119,28 @@ export default function QnaManagement() {
                             <div className="py-20 text-center text-gray-400 font-bold uppercase tracking-widest">Loading Visuals...</div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {images.map((img) => (
-                                    <div key={img._id} className="relative group rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm">
-                                        <img
-                                            src={img.imageUrl.startsWith('http') ? img.imageUrl : `${import.meta.env.VITE_API_URL.replace('/api', '')}${img.imageUrl}`}
-                                            className="w-full aspect-[4/3] object-contain bg-gray-50"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                            <button
-                                                onClick={() => handleDelete(img._id)}
-                                                className="w-12 h-12 bg-white rounded-2xl text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-xl"
-                                            >
-                                                <HiTrash className="text-2xl" />
-                                            </button>
+                                {images.map((img) => {
+                                    const imageUrl = img.imageUrl || '';
+                                    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5002';
+                                    const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`;
+                                    
+                                    return (
+                                        <div key={img.id || img._id} className="relative group rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm">
+                                            <img
+                                                src={fullImageUrl}
+                                                className="w-full aspect-[4/3] object-contain bg-gray-50"
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                                <button
+                                                    onClick={() => handleDelete(img.id || img._id)}
+                                                    className="w-12 h-12 bg-white rounded-2xl text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                                                >
+                                                    <HiTrash className="text-2xl" />
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {images.length === 0 && (
                                     <div className="col-span-full py-20 text-center text-gray-300 font-bold uppercase tracking-widest">No instructional graphics found</div>
                                 )}

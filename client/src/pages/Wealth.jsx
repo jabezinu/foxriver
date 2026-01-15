@@ -4,6 +4,7 @@ import { TrendingUp, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { getServerUrl } from '../config/api.config';
 
 export default function Wealth() {
     const navigate = useNavigate();
@@ -18,12 +19,22 @@ export default function Wealth() {
     const fetchFunds = async () => {
         try {
             const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/wealth/funds`, {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
+            console.log('🔍 Fetching funds from:', `${apiUrl}/wealth/funds`);
+            console.log('🔑 Token exists:', !!token);
+            
+            const response = await axios.get(`${apiUrl}/wealth/funds`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            
+            console.log('✅ API Response:', response.data);
+            console.log('📊 Funds count:', response.data.data?.length || 0);
+            
             setFunds(response.data.data || []);
         } catch (error) {
-            console.error('Error fetching funds:', error);
+            console.error('❌ Error fetching funds:', error);
+            console.error('❌ Error response:', error.response?.data);
+            console.error('❌ Error status:', error.response?.status);
             setFunds([]);
         } finally {
             setLoading(false);
@@ -33,6 +44,11 @@ export default function Wealth() {
     const calculateProgress = (fund) => {
         // Mock progress calculation - you can customize this
         return Math.random() * 100;
+    };
+
+    const renderImageUrl = (image) => {
+        if (!image) return null;
+        return image.startsWith('http') ? image : `${getServerUrl()}${image}`;
     };
 
     return (
@@ -85,7 +101,7 @@ export default function Wealth() {
                                 >
                                     <div className="flex items-center gap-4">
                                         <img
-                                            src={fund.image}
+                                            src={renderImageUrl(fund.image)}
                                             alt={fund.name}
                                             className="w-20 h-20 rounded-xl object-cover"
                                         />

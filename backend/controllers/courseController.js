@@ -181,10 +181,16 @@ exports.getAllCourses = async (req, res) => {
 // @access  Private/Admin
 exports.createCourse = async (req, res) => {
     try {
-        const course = await Course.create(req.body);
+        // Ensure category is an integer
+        const courseData = {
+            ...req.body,
+            category: parseInt(req.body.category)
+        };
+
+        const course = await Course.create(courseData);
         const populatedCourse = await Course.findByPk(course.id, {
             include: [
-                { model: CourseCategory, as: 'category' }
+                { model: CourseCategory, as: 'categoryDetails' }
             ]
         });
         
@@ -194,6 +200,7 @@ exports.createCourse = async (req, res) => {
             course: populatedCourse
         });
     } catch (error) {
+        console.error('Create course error:', error);
         res.status(400).json({
             success: false,
             message: error.message || 'Server error'
@@ -215,11 +222,19 @@ exports.updateCourse = async (req, res) => {
             });
         }
 
-        await course.update(req.body);
+        // Ensure category is an integer if provided
+        const updateData = {
+            ...req.body
+        };
+        if (updateData.category) {
+            updateData.category = parseInt(updateData.category);
+        }
+
+        await course.update(updateData);
 
         const populatedCourse = await Course.findByPk(course.id, {
             include: [
-                { model: CourseCategory, as: 'category' }
+                { model: CourseCategory, as: 'categoryDetails' }
             ]
         });
         
@@ -229,6 +244,7 @@ exports.updateCourse = async (req, res) => {
             course: populatedCourse
         });
     } catch (error) {
+        console.error('Update course error:', error);
         res.status(400).json({
             success: false,
             message: error.message || 'Server error'

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Calendar, DollarSign, Clock } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
+import { getServerUrl } from '../config/api.config';
 
 export default function MyInvestments() {
     const navigate = useNavigate();
@@ -56,6 +57,11 @@ export default function MyInvestments() {
         return diffDays > 0 ? diffDays : 0;
     };
 
+    const renderImageUrl = (image) => {
+        if (!image) return null;
+        return image.startsWith('http') ? image : `${getServerUrl()}${image}`;
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -90,7 +96,7 @@ export default function MyInvestments() {
                                 {/* Fund Info */}
                                 <div className="flex items-center gap-4 mb-4">
                                     <img
-                                        src={investment.wealthFund?.image}
+                                        src={renderImageUrl(investment.wealthFund?.image)}
                                         alt={investment.wealthFund?.name}
                                         className="w-16 h-16 rounded-xl object-cover"
                                     />
