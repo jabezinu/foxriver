@@ -1,26 +1,18 @@
 const { QnA, User } = require('../models');
 const multer = require('multer');
-const path = require('path');
+const cloudinary = require('../config/cloudinary');
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/qna');
-    },
-    filename: function (req, file, cb) {
-        cb(null, `qna-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
+// Configure multer for memory storage (Cloudinary upload)
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage: storage,
     limits: { fileSize: 5000000 }, // 5MB
     fileFilter: function (req, file, cb) {
         const filetypes = /jpeg|jpg|png|gif/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
         const mimetype = filetypes.test(file.mimetype);
 
-        if (mimetype && extname) {
+        if (mimetype) {
             return cb(null, true);
         } else {
             cb(new Error('Only image files are allowed'));
@@ -65,10 +57,27 @@ exports.uploadQnA = [
                 });
             }
 
-            const imageUrl = `/uploads/qna/${req.file.filename}`;
+            // Upload to Cloudinary
+            const uploadStream = () => {
+                return new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream(
+                        {
+                            folder: 'foxriver/qna',
+                            resource_type: 'image'
+                        },
+                        (error, result) => {
+                            if (error) reject(error);
+                            else resolve(result);
+                        }
+                    );
+                    stream.end(req.file.buffer);
+                });
+            };
+
+            const cloudinaryResult = await uploadStream();
 
             const qna = await QnA.create({
-                imageUrl,
+                imageUrl: cloudinaryResult.secure_url,
                 uploadedBy: req.user.id
             });
 
@@ -98,6 +107,19 @@ exports.deleteQnA = async (req, res) => {
                 success: false,
                 message: 'Q&A image not found'
             });
+        }
+
+        // Delete image from Cloudinary
+        if (qna.imageUrl) {
+            try {
+                // Extract public_id from the Cloudinary URL
+                const urlParts = qna.imageUrl.split('/');
+                const publicIdWithExt = urlParts[urlParts.length - 1];
+                const publicId = `foxriver/qna/${publicIdWithExt.split('.')[0]}`;
+                await cloudinary.uploader.destroy(publicId);
+            } catch (err) {
+                console.log('Image not found or already deleted from Cloudinary');
+            }
         }
 
         await qna.destroy();
