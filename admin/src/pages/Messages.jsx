@@ -78,8 +78,8 @@ export default function Messages() {
     };
 
     const getUserInfo = (chat) => {
-        const userParticipant = chat.participants.find(p => p.role === 'user');
-        return userParticipant?.user;
+        // Backend returns user data in 'customer' association
+        return chat.customer;
     };
 
     return (
@@ -116,7 +116,12 @@ export default function Messages() {
                                                 <HiUser className="text-white" size={16} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-gray-800 text-sm truncate">{user?.phone || 'Unknown User'}</h4>
+                                                <h4 className="font-bold text-gray-800 text-sm truncate">
+                                                    {user?.name || user?.phone || 'Unknown User'}
+                                                </h4>
+                                                <p className="text-xs text-gray-600 truncate">
+                                                    📱 {user?.phone || 'N/A'}
+                                                </p>
                                                 <p className="text-xs text-gray-500 truncate">
                                                     {chat.lastMessage?.content || 'No messages yet'}
                                                 </p>
@@ -151,8 +156,12 @@ export default function Messages() {
                                         <HiUser className="text-white" size={16} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-800">{getUserInfo(selectedChat)?.phone || 'Unknown User'}</h3>
-                                        <p className="text-xs text-gray-500">Customer Support Chat</p>
+                                        <h3 className="font-bold text-gray-800">
+                                            {getUserInfo(selectedChat)?.name || getUserInfo(selectedChat)?.phone || 'Unknown User'}
+                                        </h3>
+                                        <p className="text-xs text-gray-500">
+                                            Phone: {getUserInfo(selectedChat)?.phone || 'N/A'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -167,7 +176,7 @@ export default function Messages() {
                                 ) : (
                                     <div className="space-y-3">
                                         {messages.map((message) => {
-                                            const isAdmin = message.sender.role === 'admin';
+                                            const isAdmin = message.senderDetails?.role === 'admin' || message.senderDetails?.role === 'superadmin';
                                             return (
                                                 <div
                                                     key={message._id}
