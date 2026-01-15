@@ -7,6 +7,7 @@ import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { getServerUrl } from '../config/api.config';
 
 import { useUserStore } from '../store/userStore';
 
@@ -352,7 +353,7 @@ export default function Task() {
                         {/* Video Player - Full screen */}
                         <div className="flex-1 flex items-center justify-center bg-black">
                             <ReactPlayer
-                                url={activeVideo.url.startsWith('http') ? activeVideo.url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${activeVideo.url}`}
+                                url={activeVideo.url.startsWith('http') ? activeVideo.url : `${getServerUrl()}${activeVideo.url}`}
                                 controls={false}
                                 width="100%"
                                 height="100%"

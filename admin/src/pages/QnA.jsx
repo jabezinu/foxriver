@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminQnaAPI } from '../services/api';
 import { HiPhotograph, HiPlus, HiTrash } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
+import { getServerUrl } from '../config/api.config';
 
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -121,8 +122,7 @@ export default function QnaManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                                 {images.map((img) => {
                                     const imageUrl = img.imageUrl || '';
-                                    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5002';
-                                    const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`;
+                                    const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${getServerUrl()}${imageUrl}`;
                                     
                                     return (
                                         <div key={img.id || img._id} className="relative group rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm">

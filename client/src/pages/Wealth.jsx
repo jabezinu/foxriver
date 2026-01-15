@@ -4,7 +4,7 @@ import { TrendingUp, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
-import { getServerUrl } from '../config/api.config';
+import { getServerUrl, getApiUrl } from '../config/api.config';
 
 export default function Wealth() {
     const navigate = useNavigate();
@@ -19,11 +19,7 @@ export default function Wealth() {
     const fetchFunds = async () => {
         try {
             const token = localStorage.getItem('foxriver_token');
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
-            console.log('🔍 Fetching funds from:', `${apiUrl}/wealth/funds`);
-            console.log('🔑 Token exists:', !!token);
-            
-            const response = await axios.get(`${apiUrl}/wealth/funds`, {
+            const response = await axios.get(`${getApiUrl()}/wealth/funds`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             

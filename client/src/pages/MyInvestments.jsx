@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Calendar, DollarSign, Clock } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
-import { getServerUrl } from '../config/api.config';
+import { getServerUrl, getApiUrl } from '../config/api.config';
 
 export default function MyInvestments() {
     const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function MyInvestments() {
     const fetchInvestments = async () => {
         try {
             const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/wealth/my-investments`, {
+            const response = await axios.get(`${getApiUrl()}/wealth/my-investments`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setInvestments(response.data.data);

@@ -5,6 +5,7 @@ import { ChevronLeft, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
+import { getServerUrl } from '../config/api.config';
 
 export default function QnA() {
     const navigate = useNavigate();
@@ -64,8 +65,7 @@ export default function QnA() {
                     <div className="space-y-6">
                         {images.map((img) => {
                             const imageUrl = img.imageUrl || '';
-                            const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5002';
-                            const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`;
+                            const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${getServerUrl()}${imageUrl}`;
                             
                             return (
                                 <Card key={img.id || img._id} className="p-2 overflow-hidden hover:shadow-glow transition-all duration-300 border-zinc-800 bg-zinc-900">

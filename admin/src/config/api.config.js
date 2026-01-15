@@ -4,8 +4,7 @@
  */
 
 export const API_CONFIG = {
-  // baseURL: 'http://localhost:5002/api',
-  baseURL: 'https://everest-db.everest12.com/api',
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',

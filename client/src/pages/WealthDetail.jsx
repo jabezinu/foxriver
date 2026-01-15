@@ -4,7 +4,7 @@ import { ArrowLeft, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
-import { getServerUrl } from '../config/api.config';
+import { getServerUrl, getApiUrl } from '../config/api.config';
 
 export default function WealthDetail() {
     const { id } = useParams();
@@ -38,7 +38,7 @@ export default function WealthDetail() {
     const fetchFund = async () => {
         try {
             const token = localStorage.getItem('foxriver_token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/wealth/funds/${id}`, {
+            const response = await axios.get(`${getApiUrl()}/wealth/funds/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setFund(response.data.data);
@@ -111,7 +111,7 @@ export default function WealthDetail() {
         try {
             const token = localStorage.getItem('foxriver_token');
             await axios.post(
-                `${import.meta.env.VITE_API_URL}/wealth/invest`,
+                `${getApiUrl()}/wealth/invest`,
                 {
                     wealthFundId: id,
                     amount: parseFloat(amount),
