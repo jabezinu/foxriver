@@ -19,8 +19,8 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
         setLoading(true);
         try {
             const [depositsRes, withdrawalsRes] = await Promise.all([
-                adminUserAPI.getUserDeposits(user._id),
-                adminUserAPI.getUserWithdrawals(user._id)
+                adminUserAPI.getUserDeposits(user.id),
+                adminUserAPI.getUserWithdrawals(user.id)
             ]);
             setDeposits(depositsRes.data.deposits);
             setWithdrawals(withdrawalsRes.data.withdrawals);
@@ -121,7 +121,7 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 bg-white">
                                         {deposits.map((deposit) => (
-                                            <tr key={deposit._id} className="hover:bg-gray-50 transition-colors">
+                                            <tr key={deposit.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 text-xs font-medium text-gray-900">
                                                     {new Date(deposit.createdAt).toLocaleString()}
                                                 </td>
@@ -167,7 +167,7 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 bg-white">
                                         {withdrawals.map((withdrawal) => (
-                                            <tr key={withdrawal._id} className="hover:bg-gray-50 transition-colors">
+                                            <tr key={withdrawal.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 text-xs font-medium text-gray-900">
                                                     {new Date(withdrawal.createdAt).toLocaleString()}
                                                 </td>

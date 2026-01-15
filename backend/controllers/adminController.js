@@ -206,6 +206,7 @@ exports.getUserDetails = async (req, res) => {
 // @access  Private/Admin
 exports.updateUser = async (req, res) => {
     try {
+        console.log('Update user request:', { id: req.params.id, body: req.body });
         const { membershipLevel, incomeWallet, personalWallet } = req.body;
         const user = await User.findByPk(req.params.id);
 
@@ -216,22 +217,32 @@ exports.updateUser = async (req, res) => {
             });
         }
 
+        console.log('User found:', { id: user.id, currentLevel: user.membershipLevel });
+
         if (membershipLevel) {
             const oldLevel = user.membershipLevel;
             user.membershipLevel = membershipLevel;
 
             // If level changed and it's not Intern, trigger commissions
             if (oldLevel !== membershipLevel && membershipLevel !== 'Intern') {
-                const membership = await Membership.findOne({ where: { level: membershipLevel } });
-                if (membership) {
-                    await calculateAndCreateMembershipCommissions(user, membership);
+                try {
+                    const membership = await Membership.findOne({ where: { level: membershipLevel } });
+                    if (membership) {
+                        await calculateAndCreateMembershipCommissions(user, membership);
+                    } else {
+                        console.warn(`Membership level ${membershipLevel} not found in database`);
+                    }
+                } catch (commissionError) {
+                    console.error('Error calculating commissions:', commissionError);
+                    // Don't fail the entire update if commission calculation fails
                 }
             }
         }
         if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
         if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
         if (req.body.withdrawalRestrictedUntil !== undefined) {
-            user.withdrawalRestrictedUntil = req.body.withdrawalRestrictedUntil;
+            // Handle empty string as null
+            user.withdrawalRestrictedUntil = req.body.withdrawalRestrictedUntil === '' ? null : req.body.withdrawalRestrictedUntil;
         }
 
         // Handle bank change approval
@@ -277,6 +288,7 @@ exports.updateUser = async (req, res) => {
             message: 'User updated successfully'
         });
     } catch (error) {
+        console.error('Error updating user:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Update failed'

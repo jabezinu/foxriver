@@ -248,9 +248,9 @@ export default function Deposit() {
                                             onClick={() => setIsDropdownOpen(false)}
                                         />
                                         <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl z-20 overflow-hidden animate-slide-up p-1.5">
-                                            {methods.map((method, index) => (
+                                            {methods.map((method) => (
                                                 <button
-                                                    key={method.id || index}
+                                                    key={method.id}
                                                     onClick={() => {
                                                         setPaymentMethod(method.id);
                                                         setIsDropdownOpen(false);
@@ -311,8 +311,8 @@ export default function Deposit() {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {history.map((item) => (
-                                        <div key={item._id} className="bg-zinc-900 rounded-2xl p-4 shadow-sm border border-zinc-800 flex items-center justify-between">
+                                    {history.map((item, index) => (
+                                        <div key={item._id || `deposit-${index}`} className="bg-zinc-900 rounded-2xl p-4 shadow-sm border border-zinc-800 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className={`
                                                     p-2.5 rounded-xl

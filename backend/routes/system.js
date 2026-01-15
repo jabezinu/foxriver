@@ -33,7 +33,8 @@ router.get('/settings', async (req, res) => {
                 videoPaymentAmount: settings.videoPaymentAmount,
                 videosPerDay: settings.videosPerDay,
                 videoWatchTimeRequired: settings.videoWatchTimeRequired,
-                tasksDisabled: settings.tasksDisabled || false
+                tasksDisabled: settings.tasksDisabled || false,
+                frontendDisabled: settings.frontendDisabled || false
             }
         });
     } catch (error) {

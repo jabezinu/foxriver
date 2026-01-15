@@ -1,4 +1,5 @@
 const { sequelize } = require('../config/database');
+const { addMongoCompatibility } = require('../utils/modelHelpers');
 
 // Import all models
 const User = require('./User');
@@ -102,6 +103,16 @@ QnA.belongsTo(User, { foreignKey: 'uploadedBy', as: 'uploader' });
 
 // DailyVideoAssignment associations
 DailyVideoAssignment.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
+
+// Add MongoDB compatibility (_id alias) to all models
+const models = [
+    User, Membership, Task, TaskCompletion, Course, CourseCategory,
+    DailyVideoAssignment, VideoPool, Playlist, SystemSetting, Commission,
+    Salary, Deposit, Withdrawal, BankAccount, WealthFund, WealthInvestment,
+    SpinResult, SlotTier, News, Message, Chat, ChatMessage, QnA
+];
+
+models.forEach(model => addMongoCompatibility(model));
 
 module.exports = {
     sequelize,

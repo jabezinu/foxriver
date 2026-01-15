@@ -183,7 +183,7 @@ export default function WithdrawalRequests() {
                                                 {wit.status === 'approved' ? 'Funds Disbursed' : 'Payment Dismissed'}
                                             </span>
                                         </div>
-                                        <span className="text-[9px] text-gray-400 font-bold uppercase">Transaction ID: #{wit._id.slice(-8)}</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase">Transaction ID: #{String(wit._id).slice(-8)}</span>
                                     </div>
                                 )}
                             </div>
