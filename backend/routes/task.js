@@ -5,6 +5,7 @@ const {
     completeTask,
     uploadTask,
     getAllTasks,
+    getPoolVideos, // Add this
     deleteTask,
     addPlaylist,
     getPlaylists,
@@ -16,7 +17,8 @@ const { protect, adminOnly, checkInternEarningRestriction, checkPermission } = r
 router.get('/daily', protect, getDailyTasks);
 router.post('/:id/complete', protect, checkInternEarningRestriction, completeTask);
 router.post('/upload', protect, adminOnly, checkPermission('manage_tasks'), uploadTask);
-router.get('/all', protect, adminOnly, checkPermission('manage_tasks'), getAllTasks);
+router.get('/all', protect, adminOnly, checkPermission('manage_tasks'), getAllTasks); // Modified to return pool videos
+router.get('/pool', protect, adminOnly, checkPermission('manage_tasks'), getPoolVideos); // New explicit route
 router.delete('/:id', protect, adminOnly, checkPermission('manage_tasks'), deleteTask);
 
 // Playlist management

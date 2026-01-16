@@ -29,12 +29,17 @@ export default function TaskManagement() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [tasksRes, playlistsRes] = await Promise.all([adminTaskAPI.getTasks(), adminTaskAPI.getPlaylists()]);
-            setTasks(tasksRes.data.tasks);
+            // Fetch POOL videos instead of active tasks
+            const [tasksRes, playlistsRes] = await Promise.all([adminTaskAPI.getPool(), adminTaskAPI.getPlaylists()]);
+            // Backend returns { videos: [...] } for getPool, need to check
+            // My backend implementation for getPoolVideos returns { success: true, count: ..., videos: [...] }
+            // API.js getPool calls /pool
+            setTasks(tasksRes.data.videos || []);
             setPlaylists(playlistsRes.data.playlists);
             setVideoCount(playlistsRes.data.videoCount);
         } catch (error) {
             toast.error('Matrix Uplink Failed');
+            console.error(error);
         } finally { setLoading(false); }
     };
 
@@ -45,8 +50,8 @@ export default function TaskManagement() {
             await adminTaskAPI.upload({ youtubeUrl, title: taskTitle });
             toast.success('Protocol Active');
             setYoutubeUrl(''); setTaskTitle('');
-            const res = await adminTaskAPI.getTasks();
-            setTasks(res.data.tasks);
+            const res = await adminTaskAPI.getPool(); // Refresh POOL
+            setTasks(res.data.videos || []);
         } catch (error) { toast.error('Uplink Failed'); } finally { setUploading(false); }
     };
 
@@ -54,8 +59,8 @@ export default function TaskManagement() {
         try {
             await adminTaskAPI.delete(deleteTaskId);
             toast.success('Unit Terminated');
-            const res = await adminTaskAPI.getTasks();
-            setTasks(res.data.tasks);
+            const res = await adminTaskAPI.getPool(); // Refresh POOL
+            setTasks(res.data.videos || []);
         } catch (error) { toast.error('Termination Failed'); } finally { setDeleteTaskId(null); }
     };
 

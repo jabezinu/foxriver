@@ -64,7 +64,8 @@ export const adminWithdrawalAPI = {
 
 
 export const adminTaskAPI = {
-    getTasks: () => axios.get(`${API_ENDPOINTS.TASKS}/all`),
+    getTasks: () => axios.get(`${API_ENDPOINTS.TASKS}/all`), // Effectively gets pool now
+    getPool: () => axios.get(`${API_ENDPOINTS.TASKS}/pool`), // Explicit pool fetch
     upload: (data) => axios.post(`${API_ENDPOINTS.TASKS}/upload`, data),
     delete: (id) => axios.delete(`${API_ENDPOINTS.TASKS}/${id}`),
     getPlaylists: () => axios.get(`${API_ENDPOINTS.TASKS}/playlists`),

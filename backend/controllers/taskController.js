@@ -51,7 +51,7 @@ exports.completeTask = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Upload task YouTube URL (admin)
+// @desc    Upload task YouTube URL (admin) -> Adds to Video Pool
 // @route   POST /api/tasks/upload
 // @access  Private/Admin
 exports.uploadTask = asyncHandler(async (req, res) => {
@@ -61,43 +61,91 @@ exports.uploadTask = asyncHandler(async (req, res) => {
         throw new AppError('Please provide a YouTube URL', 400);
     }
 
-    const task = await Task.create({
+    // Extract video ID from URL (simple check)
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = youtubeUrl.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+    if (!videoId) {
+        throw new AppError('Invalid YouTube URL', 400);
+    }
+
+    // Check if exists in pool
+    const existing = await VideoPool.findOne({ where: { videoId } });
+    if (existing) {
+        throw new AppError('Video already in pool', 400);
+    }
+
+    const poolVideo = await VideoPool.create({
+        videoId,
         videoUrl: youtubeUrl,
         title: title || 'YouTube Video Task',
-        uploadedBy: req.user.id
+        // playlist: null (default)
     });
 
     res.status(201).json({
         success: true,
-        message: 'Task created successfully',
-        task
+        message: 'Video added to pool successfully',
+        task: poolVideo // Returning as 'task' to maintain some frontend compat if needed, but better to be explicit
     });
 });
 
-// @desc    Get all tasks (admin)
-// @route   GET /api/tasks/all
+// @desc    Get all pool videos (admin)
+// @route   GET /api/tasks/pool
 // @access  Private/Admin
 exports.getAllTasks = asyncHandler(async (req, res) => {
-    const tasks = await Task.findAll({
-        include: [{ model: User, as: 'uploader', attributes: ['phone'] }],
+    // We are repurposing 'getAllTasks' or creating a new one. 
+    // The plan said "Add getPoolVideos", so let's keep getAllTasks for now if needed for legacy, 
+    // but the frontend uses logic to fetch "Active Manual Pool".
+    // Let's CHANGE getAllTasks to fetch from VIDEO POOL instead, 
+    // as the goal is to manage the POOL, not active tasks directly.
+
+    const videos = await VideoPool.findAll({
         order: [['createdAt', 'DESC']]
     });
 
     res.status(200).json({
         success: true,
-        count: tasks.length,
-        tasks
+        count: videos.length,
+        tasks: videos // Sending as 'tasks' to match frontend expectation
     });
 });
 
-// @desc    Delete task (admin)
+// @desc    Get pool videos explicitly (new endpoint)
+// @route   GET /api/tasks/pool
+// @access  Private/Admin
+exports.getPoolVideos = asyncHandler(async (req, res) => {
+    const videos = await VideoPool.findAll({
+        order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+        success: true,
+        count: videos.length,
+        videos
+    });
+});
+
+// @desc    Delete video from pool (admin)
 // @route   DELETE /api/tasks/:id
 // @access  Private/Admin
 exports.deleteTask = asyncHandler(async (req, res) => {
+    // Check VideoPool first
+    const video = await VideoPool.findByPk(req.params.id);
+
+    if (video) {
+        await video.destroy();
+        return res.status(200).json({
+            success: true,
+            message: 'Video removed from pool successfully'
+        });
+    }
+
+    // Fallback: Check Task (if we still need to delete active tasks)
     const task = await Task.findByPk(req.params.id);
 
     if (!task) {
-        throw new AppError('Task not found', 404);
+        throw new AppError('Video/Task not found', 404);
     }
 
     await task.destroy();

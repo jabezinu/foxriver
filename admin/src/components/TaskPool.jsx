@@ -17,16 +17,16 @@ export default function TaskPool({ tasks, loading, onDelete, getYoutubeId }) {
         <Card noPadding className="overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                 <div>
-                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest">Active Manual Pool</h3>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">Personnel duty assignments</p>
+                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest">Video Pool Content</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Videos available for daily selection</p>
                 </div>
-                <Badge variant="indigo" className="font-black">{tasks.length} Active</Badge>
+                <Badge variant="indigo" className="font-black">{tasks.length} Videos</Badge>
             </div>
 
             <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {tasks.map((task) => (
-                        <div key={String(task._id)} className="bg-white rounded-2xl border border-gray-100 overflow-hidden group hover:border-indigo-200 transition-all shadow-sm hover:shadow-md">
+                        <div key={String(task.id)} className="bg-white rounded-2xl border border-gray-100 overflow-hidden group hover:border-indigo-200 transition-all shadow-sm hover:shadow-md">
                             <div className="aspect-video bg-gray-900 overflow-hidden relative group-hover:bg-black transition-colors">
                                 {task.videoUrl && (task.videoUrl.includes('youtube.com') || task.videoUrl.includes('youtu.be')) ? (
                                     <iframe
@@ -66,7 +66,7 @@ export default function TaskPool({ tasks, loading, onDelete, getYoutubeId }) {
                                     )}
                                 </div>
                                 <button
-                                    onClick={() => onDelete(task._id)}
+                                    onClick={() => onDelete(task.id)}
                                     className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"
                                 >
                                     <HiTrash />
