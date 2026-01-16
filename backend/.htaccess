@@ -1,14 +1,18 @@
-RewriteEngine On
-RewriteBase /
+# Security: Prevent viewing of source code files
+<FilesMatch "\.(js|json|env|log|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-# Redirect all requests to server.js through Node.js
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /server.js [L,QSA]
+# Security: Prevent viewing of dotfiles
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-# Enable CORS headers
-<IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-</IfModule>
+# Disable directory listing
+Options -Indexes
+
+# NOTE: The actual Node.js application startup is handled by the cPanel "Setup Node.js App"
+# feature, which will use Phusion Passenger. You typically do not need custom rewrite rules
+# here if you configure that correctly.

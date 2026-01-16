@@ -26,8 +26,31 @@ export default function AdminManagement() {
         setLoading(true);
         try {
             const res = await adminManagementAPI.getAdmins();
-            setAdmins(res.data.admins);
-        } catch (error) { toast.error('Registry Access Error'); } finally { setLoading(false); }
+            const normalizedAdmins = res.data.admins.map(admin => {
+                let parsedPermissions = admin.permissions || [];
+                if (typeof parsedPermissions === 'string') {
+                    try {
+                        parsedPermissions = JSON.parse(parsedPermissions);
+                    } catch (e) {
+                        console.error('Failed to parse permissions for admin', admin.id, e);
+                        parsedPermissions = [];
+                    }
+                }
+                // Ensure it's an array
+                if (!Array.isArray(parsedPermissions)) parsedPermissions = [];
+
+                return {
+                    ...admin,
+                    permissions: parsedPermissions
+                };
+            });
+            setAdmins(normalizedAdmins);
+        } catch (error) {
+            console.error('Fetch admins error:', error);
+            toast.error('Registry Access Error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleOpenEdit = (admin) => {
