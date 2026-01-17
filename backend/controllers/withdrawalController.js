@@ -2,6 +2,7 @@ const { Withdrawal, User } = require('../models');
 const transactionService = require('../services/transactionService');
 const { isValidWithdrawalAmount } = require('../utils/validators');
 const { asyncHandler, AppError } = require('../middlewares/errorHandler');
+const { Op } = require('sequelize');
 
 // @desc    Create withdrawal request
 // @route   POST /api/withdrawals/create
@@ -13,6 +14,26 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {
         const restrictedDate = new Date(req.user.withdrawalRestrictedUntil).toLocaleDateString();
         throw new AppError(`Withdrawal restricted until ${restrictedDate}`, 403);
+    }
+
+    // Check if user already made a withdrawal request today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todayWithdrawal = await Withdrawal.findOne({
+        where: {
+            user: req.user.id,
+            createdAt: {
+                [Op.between]: [startOfDay, endOfDay]
+            }
+        }
+    });
+
+    if (todayWithdrawal) {
+        throw new AppError('You can only make one withdrawal request per day. Please try again tomorrow.', 400);
     }
 
     // Validate amount
