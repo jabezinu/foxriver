@@ -34,7 +34,7 @@ export default function Deposit() {
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
 
-    const amounts = [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000];
+    const amounts = [3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000];
 
     useEffect(() => {
         const fetchData = async () => {

@@ -26,7 +26,7 @@ export default function Withdraw() {
     const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    const amounts = [100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000];
+    const amounts = [100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000];
 
     useEffect(() => {
         const init = async () => {
