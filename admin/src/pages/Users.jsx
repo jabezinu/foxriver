@@ -29,7 +29,9 @@ export default function UserManagement() {
         membershipLevel: '',
         incomeWallet: '',
         personalWallet: '',
-        withdrawalRestrictedUntil: ''
+        withdrawalRestrictedUntil: '',
+        password: '',
+        transactionPassword: ''
     });
 
     // Restrict All Modal State
@@ -68,7 +70,9 @@ export default function UserManagement() {
             membershipLevel: user.membershipLevel,
             incomeWallet: user.incomeWallet,
             personalWallet: user.personalWallet,
-            withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : ''
+            withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : '',
+            password: '',
+            transactionPassword: ''
         });
     };
 

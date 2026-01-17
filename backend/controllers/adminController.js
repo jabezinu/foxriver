@@ -88,9 +88,18 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
         User.count({ where: { referrerId: user.id } })
     ]);
 
+    // Add password status indicators (not the actual passwords)
+    const passwordInfo = {
+        hasPassword: !!user.dataValues.password,
+        hasTransactionPassword: !!user.dataValues.transactionPassword
+    };
+
     res.status(200).json({
         success: true,
-        user,
+        user: {
+            ...user.toJSON(),
+            passwordInfo
+        },
         deposits,
         withdrawals,
         referralCount
@@ -101,7 +110,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res) => {
-    const { membershipLevel, incomeWallet, personalWallet, withdrawalRestrictedUntil, approveBankChange } = req.body;
+    const { membershipLevel, incomeWallet, personalWallet, withdrawalRestrictedUntil, approveBankChange, password, transactionPassword } = req.body;
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
@@ -126,6 +135,25 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
     if (withdrawalRestrictedUntil !== undefined) {
         user.withdrawalRestrictedUntil = withdrawalRestrictedUntil === '' ? null : withdrawalRestrictedUntil;
+    }
+
+    // Handle password updates
+    if (password && password.trim() !== '') {
+        user.password = password;
+    }
+
+    // Handle transaction password updates
+    if (transactionPassword !== undefined) {
+        if (transactionPassword === '' || transactionPassword === null) {
+            // Allow clearing transaction password
+            user.transactionPassword = null;
+        } else if (transactionPassword.trim() !== '') {
+            // Validate 6 digits
+            if (!/^\d{6}$/.test(transactionPassword)) {
+                throw new AppError('Transaction password must be exactly 6 digits', 400);
+            }
+            user.transactionPassword = transactionPassword;
+        }
     }
 
     // Handle bank change approval

@@ -1,14 +1,17 @@
-import React from 'react';
-import { HiX } from 'react-icons/hi';
+import React, { useState } from 'react';
+import { HiX, HiEye, HiEyeOff } from 'react-icons/hi';
 import { TIERS } from '../config/constants';
 
 export default function UserEditModal({ user, form, onChange, onClose, onSave }) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showTransactionPassword, setShowTransactionPassword] = useState(false);
+
     if (!user) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-10">
                     <h3 className="font-bold text-gray-800">Edit Operative: {user.phone}</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-red-500">
                         <HiX className="text-xl" />
@@ -49,6 +52,62 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                             />
                         </div>
                     </div>
+                    <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                        <p className="text-red-800 font-bold text-xs uppercase mb-3">Password Management</p>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                    Login Password
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        className="admin-input pr-10"
+                                        placeholder="Enter new password (leave empty to keep current)"
+                                        value={form.password || ''}
+                                        onChange={e => onChange({ ...form, password: e.target.value })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <HiEyeOff /> : <HiEye />}
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1 italic">Only fill to change password</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                    Transaction Password (6 digits)
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showTransactionPassword ? "text" : "password"}
+                                        className="admin-input pr-10"
+                                        placeholder="Enter 6-digit PIN (leave empty to keep current)"
+                                        value={form.transactionPassword || ''}
+                                        maxLength={6}
+                                        onChange={e => {
+                                            const value = e.target.value.replace(/\D/g, '');
+                                            onChange({ ...form, transactionPassword: value });
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTransactionPassword(!showTransactionPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showTransactionPassword ? <HiEyeOff /> : <HiEye />}
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1 italic">Must be exactly 6 digits</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <label className="flex items-center gap-2 cursor-pointer mb-3">
                             <input
