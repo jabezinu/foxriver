@@ -120,11 +120,18 @@ export default function Settings() {
         {
             label: 'Bank Account',
             icon: Landmark,
-            desc: profile.bankAccount?.isSet ? `${profile.bankAccount.bankName} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked',
+            desc: profile.membershipLevel === 'Intern'
+                ? 'Upgrade to Rank 1 required'
+                : (profile.bankAccount?.isSet ? `${profile.bankAccount.bank} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked'),
             action: () => {
-                setModalType('bank');
+                if (profile.membershipLevel === 'Intern') {
+                    toast.error('Please upgrade to Rank 1 or higher to set up bank account');
+                } else {
+                    setModalType('bank');
+                }
             },
-            color: 'text-blue-500 bg-blue-500/10 border-blue-500/20'
+            color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+            disabled: profile.membershipLevel === 'Intern'
         },
         {
             label: 'Transaction Password',
@@ -183,7 +190,10 @@ export default function Settings() {
                         <div
                             key={idx}
                             onClick={item.action}
-                            className="bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 cursor-pointer border border-zinc-800 shadow-sm hover:border-zinc-700 hover:bg-zinc-800 transition-all active:scale-[0.98]"
+                            className={`bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm transition-all ${item.disabled
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'cursor-pointer hover:border-zinc-700 hover:bg-zinc-800 active:scale-[0.98]'
+                                }`}
                         >
                             <div className={`p-3 rounded-xl border ${item.color}`}>
                                 <item.icon size={22} />

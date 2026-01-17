@@ -169,6 +169,11 @@ exports.setBankAccount = asyncHandler(async (req, res) => {
 
     const user = await User.findByPk(req.user.id);
 
+    // Check if user is Intern - only Rank 1+ can set bank account
+    if (user.membershipLevel === 'Intern') {
+        throw new AppError('Please upgrade to Rank 1 or higher to set up bank account', 403);
+    }
+
     // Check if another user already has this bank account
     const isDuplicate = await userService.isBankAccountDuplicate(accountNumber, bank, user.id);
 

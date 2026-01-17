@@ -19,7 +19,7 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     // Check if user already made a withdrawal request today
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
-    
+
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
@@ -43,6 +43,11 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
 
     // Verify transaction password
     const user = await User.findByPk(req.user.id);
+
+    // Check if user has set bank account details
+    if (!user.bankAccount || !user.bankAccount.isSet) {
+        throw new AppError('Please set up your bank account in Settings before making a withdrawal', 400);
+    }
 
     if (!user.transactionPassword) {
         throw new AppError('Please set transaction password first', 400);
