@@ -140,6 +140,27 @@ exports.unhideMembershipsByRange = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: `Unhidden ${count} memberships` });
 });
 
+// @desc    Toggle individual membership visibility
+// @route   PUT /api/memberships/admin/toggle-visibility/:id
+// @access  Private/Admin
+exports.toggleMembershipVisibility = asyncHandler(async (req, res) => {
+    const membership = await Membership.findByPk(req.params.id);
+    if (!membership) throw new AppError('Membership not found', 404);
+
+    membership.hidden = !membership.hidden;
+    await membership.save();
+
+    res.status(200).json({
+        success: true,
+        message: `Membership ${membership.hidden ? 'hidden' : 'visible'}`,
+        membership: {
+            id: membership.id,
+            level: membership.level,
+            hidden: membership.hidden
+        }
+    });
+});
+
 // @desc    Manage restricted range
 // @route   PUT /api/memberships/admin/restricted-range
 // @access  Private/Admin

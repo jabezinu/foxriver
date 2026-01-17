@@ -131,6 +131,7 @@ export const adminMembershipAPI = {
     getAllTiers: () => axios.get(`${API_ENDPOINTS.MEMBERSHIPS}/admin/all`),
     hideRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/hide-range`, data),
     unhideRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/unhide-range`, data),
+    toggleVisibility: (id) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/toggle-visibility/${id}`),
     setRestrictedRange: (data) => axios.put(`${API_ENDPOINTS.MEMBERSHIPS}/admin/set-restricted-range`, data),
     getRestrictedRange: () => axios.get(`${API_ENDPOINTS.MEMBERSHIPS}/admin/restricted-range`),
     clearRestrictedRange: () => axios.delete(`${API_ENDPOINTS.MEMBERSHIPS}/admin/restricted-range`),

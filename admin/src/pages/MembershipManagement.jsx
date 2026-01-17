@@ -4,17 +4,11 @@ import Loading from '../components/Loading';
 import { toast } from 'react-hot-toast';
 import PageHeader from '../components/shared/PageHeader';
 import RankProgressionPanel from '../components/RankProgressionPanel';
-import VisibilityControlPanel from '../components/VisibilityControlPanel';
 import MembershipTierTable from '../components/MembershipTierTable';
 
 export default function MembershipManagement() {
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Visibility state
-    const [visStart, setVisStart] = useState('');
-    const [visEnd, setVisEnd] = useState('');
-    const [actionLoading, setActionLoading] = useState(false);
 
     // Restriction state
     const [restrictedRange, setRestrictedRange] = useState(null);
@@ -25,6 +19,9 @@ export default function MembershipManagement() {
     // Price editing state
     const [editingPrices, setEditingPrices] = useState({});
     const [savingPrices, setSavingPrices] = useState({});
+
+    // Visibility toggling state
+    const [togglingVisibility, setTogglingVisibility] = useState({});
 
     useEffect(() => {
         fetchTiers();
@@ -50,23 +47,16 @@ export default function MembershipManagement() {
         } catch (error) { }
     };
 
-    const handleVisibilityAction = async (action) => {
-        if (!visStart || !visEnd) return toast.error('Select rank range');
-        const start = parseInt(visStart);
-        const end = parseInt(visEnd);
-        if (start > end) return toast.error('Check range logic');
-
+    const handleToggleVisibility = async (tierId) => {
         try {
-            setActionLoading(true);
-            const apiCall = action === 'hide' ? adminMembershipAPI.hideRange : adminMembershipAPI.unhideRange;
-            const res = await apiCall({ startRank: start, endRank: end });
+            setTogglingVisibility(prev => ({ ...prev, [tierId]: true }));
+            const res = await adminMembershipAPI.toggleVisibility(tierId);
             toast.success(res.data.message);
             fetchTiers();
-            setVisStart(''); setVisEnd('');
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Operation failed');
+            toast.error(error.response?.data?.message || 'Failed to toggle visibility');
         } finally {
-            setActionLoading(false);
+            setTogglingVisibility(prev => ({ ...prev, [tierId]: false }));
         }
     };
 
@@ -142,14 +132,6 @@ export default function MembershipManagement() {
                 loading={restrictionLoading}
             />
 
-            <VisibilityControlPanel
-                start={visStart} setStart={setVisStart}
-                end={visEnd} setEnd={setVisEnd}
-                onHide={() => handleVisibilityAction('hide')}
-                onUnhide={() => handleVisibilityAction('unhide')}
-                loading={actionLoading}
-            />
-
             <MembershipTierTable
                 tiers={tiers}
                 editingPrices={editingPrices}
@@ -161,6 +143,8 @@ export default function MembershipManagement() {
                 }}
                 onSavePrice={handleSavePrice}
                 savingPrices={savingPrices}
+                onToggleVisibility={handleToggleVisibility}
+                togglingVisibility={togglingVisibility}
             />
         </div>
     );

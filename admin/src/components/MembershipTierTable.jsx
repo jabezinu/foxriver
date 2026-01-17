@@ -4,7 +4,7 @@ import Badge from './shared/Badge';
 import Card from './shared/Card';
 import { formatNumber } from '../utils/formatNumber';
 
-export default function MembershipTierTable({ tiers, editingPrices, onEditPrice, onCancelEdit, onPriceChange, onSavePrice, savingPrices }) {
+export default function MembershipTierTable({ tiers, editingPrices, onEditPrice, onCancelEdit, onPriceChange, onSavePrice, savingPrices, onToggleVisibility, togglingVisibility }) {
     return (
         <Card noPadding className="overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
@@ -28,7 +28,7 @@ export default function MembershipTierTable({ tiers, editingPrices, onEditPrice,
                             <th className="table-header">Valuation (ETB)</th>
                             <th className="table-header">Daily Yield</th>
                             <th className="table-header">Yield/Unit</th>
-                            <th className="table-header">Status</th>
+                            <th className="table-header">Visibility</th>
                             <th className="table-header text-right">Commands</th>
                         </tr>
                     </thead>
@@ -36,6 +36,7 @@ export default function MembershipTierTable({ tiers, editingPrices, onEditPrice,
                         {tiers.map((tier) => {
                             const isEditing = editingPrices.hasOwnProperty(tier.id);
                             const isSaving = savingPrices[tier.id];
+                            const isToggling = togglingVisibility[tier.id];
                             const isIntern = tier.level === 'Intern';
 
                             return (
@@ -67,10 +68,23 @@ export default function MembershipTierTable({ tiers, editingPrices, onEditPrice,
                                         {formatNumber(tier.perVideoIncome)} ETB
                                     </td>
                                     <td className="px-6 py-4">
-                                        <Badge variant={tier.hidden ? 'red' : 'green'}>
-                                            {tier.hidden ? <HiEyeOff className="mr-1" /> : <HiEye className="mr-1" />}
-                                            {tier.hidden ? 'Hidden' : 'Visible'}
-                                        </Badge>
+                                        <button
+                                            onClick={() => onToggleVisibility(tier.id)}
+                                            disabled={isToggling}
+                                            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                                                tier.hidden ? 'bg-gray-300' : 'bg-green-500'
+                                            } ${isToggling ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            title={tier.hidden ? 'Click to show' : 'Click to hide'}
+                                        >
+                                            <span
+                                                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                                                    tier.hidden ? 'translate-x-1' : 'translate-x-8'
+                                                }`}
+                                            />
+                                            <span className={`absolute text-[9px] font-bold uppercase ${tier.hidden ? 'left-7 text-gray-600' : 'left-1.5 text-white'}`}>
+                                                {tier.hidden ? 'Off' : 'On'}
+                                            </span>
+                                        </button>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         {isEditing ? (

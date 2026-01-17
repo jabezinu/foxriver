@@ -6,6 +6,7 @@ const {
     getAllTiers,
     hideMembershipsByRange,
     unhideMembershipsByRange,
+    toggleMembershipVisibility,
     setRestrictedRange,
     getRestrictedRange,
     clearRestrictedRange,
@@ -21,6 +22,7 @@ router.post('/upgrade', protect, upgradeMembership);
 router.get('/admin/all', protect, adminOnly, checkPermission('manage_membership'), getAllTiers);
 router.put('/admin/hide-range', protect, adminOnly, checkPermission('manage_membership'), hideMembershipsByRange);
 router.put('/admin/unhide-range', protect, adminOnly, checkPermission('manage_membership'), unhideMembershipsByRange);
+router.put('/admin/toggle-visibility/:id', protect, adminOnly, checkPermission('manage_membership'), toggleMembershipVisibility);
 router.put('/admin/set-restricted-range', protect, adminOnly, checkPermission('manage_membership'), setRestrictedRange);
 router.get('/admin/restricted-range', protect, adminOnly, checkPermission('manage_membership'), getRestrictedRange);
 router.delete('/admin/restricted-range', protect, adminOnly, checkPermission('manage_membership'), clearRestrictedRange);

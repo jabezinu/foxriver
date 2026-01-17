@@ -226,6 +226,13 @@ export default function Withdraw() {
                     Submit Request
                 </Button>
 
+                {/* Withdrawal Restrictions Notice */}
+                <div className="mt-6 bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
+                    <p className="text-xs text-amber-200/80 text-center leading-relaxed">
+                        ⚠️ Please note: Withdrawals are not processed on Sundays and public holidays.
+                    </p>
+                </div>
+
             </div>
         </div>
     );
