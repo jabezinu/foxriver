@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminBankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { HiPlus, HiRefresh } from 'react-icons/hi';
+import { HiPlus } from 'react-icons/hi';
 import Loading from '../components/Loading';
 import PageHeader from '../components/shared/PageHeader';
 import BankCard from '../components/BankCard';
@@ -79,14 +79,9 @@ export default function BankSettings() {
                 title="Financial Node Topology"
                 subtitle="Configure and monitor administrative bank accounts for global capital intake."
                 extra={
-                    <div className="flex gap-3">
-                        <button onClick={fetchBanks} className="admin-btn-secondary flex items-center gap-2">
-                            <HiRefresh /> Re-Sync
-                        </button>
-                        <button onClick={() => handleOpenModal()} className="admin-btn-primary flex items-center gap-2">
-                            <HiPlus /> Register Node
-                        </button>
-                    </div>
+                    <button onClick={() => handleOpenModal()} className="admin-btn-primary flex items-center gap-2">
+                        <HiPlus /> Register Node
+                    </button>
                 }
             />
 
