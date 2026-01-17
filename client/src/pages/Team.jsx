@@ -38,6 +38,9 @@ export default function Team() {
 
     const fetchData = async () => {
         try {
+            // Add a small delay to prevent rapid successive calls
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             const [downlineRes, commissionRes, salaryRes] = await Promise.all([
                 referralAPI.getDownline(),
                 referralAPI.getCommissions(),
@@ -48,7 +51,12 @@ export default function Team() {
             setCommissionTotals(commissionRes.data.totals);
             setSalaryData(salaryRes.data);
         } catch (error) {
-            toast.error('Failed to load team data');
+            // Check if it's a rate limit error
+            if (error.response?.status === 429) {
+                toast.error('Too many requests. Please wait a moment and try again.');
+            } else {
+                toast.error('Failed to load team data');
+            }
             console.error(error);
         } finally {
             setLoading(false);

@@ -1,11 +1,24 @@
 const { User, Commission, Membership, TaskCompletion } = require('../models');
 const { calculateMonthlySalary } = require('../utils/salary');
 const { asyncHandler, AppError } = require('../middlewares/errorHandler');
+const cache = require('../utils/cache');
 
 // @desc    Get user's downline (A/B/C levels)
 // @route   GET /api/referrals/downline
 // @access  Private
 exports.getDownline = asyncHandler(async (req, res) => {
+    // Check cache first
+    const cacheKey = `downline:${req.user.id}`;
+    const cachedData = cache.get(cacheKey);
+    
+    if (cachedData) {
+        return res.status(200).json({
+            success: true,
+            downline: cachedData,
+            cached: true
+        });
+    }
+
     const memberships = await Membership.findAll({ order: [['order', 'ASC']] });
     const membershipOrder = {};
     memberships.forEach(m => { membershipOrder[m.level] = m.order; });
@@ -48,15 +61,20 @@ exports.getDownline = asyncHandler(async (req, res) => {
         qualifiedCLevel = allCLevel.filter(filterQualified);
     }
 
+    const downlineData = {
+        aLevel: { count: qualifiedALevel.length, totalCount: allALevel.length, users: qualifiedALevel, allUsers: allALevel },
+        bLevel: { count: qualifiedBLevel.length, totalCount: allBLevel.length, users: qualifiedBLevel, allUsers: allBLevel },
+        cLevel: { count: qualifiedCLevel.length, totalCount: allCLevel.length, users: qualifiedCLevel, allUsers: allCLevel },
+        total: qualifiedALevel.length + qualifiedBLevel.length + qualifiedCLevel.length,
+        totalAll: allALevel.length + allBLevel.length + allCLevel.length
+    };
+
+    // Cache for 2 minutes (120 seconds) for high traffic
+    cache.set(cacheKey, downlineData, 120);
+
     res.status(200).json({
         success: true,
-        downline: {
-            aLevel: { count: qualifiedALevel.length, totalCount: allALevel.length, users: qualifiedALevel, allUsers: allALevel },
-            bLevel: { count: qualifiedBLevel.length, totalCount: allBLevel.length, users: qualifiedBLevel, allUsers: allBLevel },
-            cLevel: { count: qualifiedCLevel.length, totalCount: allCLevel.length, users: qualifiedCLevel, allUsers: allCLevel },
-            total: qualifiedALevel.length + qualifiedBLevel.length + qualifiedCLevel.length,
-            totalAll: allALevel.length + allBLevel.length + allCLevel.length
-        }
+        downline: downlineData
     });
 });
 
@@ -64,6 +82,18 @@ exports.getDownline = asyncHandler(async (req, res) => {
 // @route   GET /api/referrals/commissions
 // @access  Private
 exports.getCommissions = asyncHandler(async (req, res) => {
+    // Check cache first
+    const cacheKey = `commissions:${req.user.id}`;
+    const cachedData = cache.get(cacheKey);
+    
+    if (cachedData) {
+        return res.status(200).json({
+            success: true,
+            ...cachedData,
+            cached: true
+        });
+    }
+
     const commissions = await Commission.findAll({
         where: { user: req.user.id },
         include: [
@@ -80,13 +110,35 @@ exports.getCommissions = asyncHandler(async (req, res) => {
         totals.total += amount;
     });
 
-    res.status(200).json({ success: true, count: commissions.length, totals, commissions });
+    const responseData = { count: commissions.length, totals, commissions };
+    
+    // Cache for 2 minutes (120 seconds) for high traffic
+    cache.set(cacheKey, responseData, 120);
+
+    res.status(200).json({ success: true, ...responseData });
 });
 
 // @desc    Get monthly salary calculation
 // @route   GET /api/referrals/salary
 // @access  Private
 exports.getMonthlySalary = asyncHandler(async (req, res) => {
+    // Check cache first
+    const cacheKey = `salary:${req.user.id}`;
+    const cachedData = cache.get(cacheKey);
+    
+    if (cachedData) {
+        return res.status(200).json({
+            success: true,
+            ...cachedData,
+            cached: true
+        });
+    }
+
     const salaryData = await calculateMonthlySalary(req.user.id);
-    res.status(200).json({ success: true, salary: salaryData.salary, breakdown: salaryData.breakdown });
+    const responseData = { salary: salaryData.salary, breakdown: salaryData.breakdown };
+    
+    // Cache for 2 minutes (120 seconds) for high traffic
+    cache.set(cacheKey, responseData, 120);
+    
+    res.status(200).json({ success: true, ...responseData });
 });

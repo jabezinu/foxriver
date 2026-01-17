@@ -20,13 +20,21 @@ exports.authLimiter = rateLimit({
 // Rate limiter for general API endpoints
 exports.apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 100, // 100 requests per minute
+    max: 1000, // 1000 requests per minute for high traffic
     message: {
         success: false,
         message: 'Too many requests. Please slow down.'
     },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => {
+        // Skip rate limiting for static files and uploads
+        return req.path.startsWith('/uploads') || 
+               req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/);
+    },
+    // Skip rate limiting for authenticated users (they have other protections)
+    skipSuccessfulRequests: false,
+    skipFailedRequests: true // Don't count failed requests
 });
 
 // Rate limiter for deposit/withdrawal endpoints
@@ -43,6 +51,11 @@ exports.transactionLimiter = rateLimit({
 
 // Security headers configuration
 exports.securityHeaders = (req, res, next) => {
+    // Skip security headers for static assets to prevent MIME type issues
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map)$/)) {
+        return next();
+    }
+    
     // Prevent clickjacking
     res.setHeader('X-Frame-Options', 'DENY');
     
@@ -61,11 +74,13 @@ exports.securityHeaders = (req, res, next) => {
         "default-src 'self'; img-src 'self' https://res.cloudinary.com data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
     );
     
-    // Prevent caching of API responses
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+    // Prevent caching of API responses (only for API routes)
+    if (req.path.startsWith('/api')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
     
     next();
 };

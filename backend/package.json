@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "add-indexes": "node scripts/addIndexes.js",
+    "optimize-db": "node scripts/addIndexes.js"
   },
   "keywords": [],
   "author": "",

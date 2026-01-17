@@ -25,11 +25,25 @@ axios.interceptors.request.use(
 // Response interceptor to handle errors
 axios.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+        
+        // Handle 429 (Too Many Requests) with retry
+        if (error.response?.status === 429 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            
+            // Wait for 2 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            return axios(originalRequest);
+        }
+        
+        // Handle 401 (Unauthorized)
         if (error.response?.status === 401) {
             localStorage.removeItem('foxriver_token');
             window.location.href = '/login';
         }
+        
         return Promise.reject(error);
     }
 );

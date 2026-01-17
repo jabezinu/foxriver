@@ -16,6 +16,15 @@ const app = express();
 // Connect to MySQL
 connectDB();
 
+// Add database indexes automatically on startup (runs once, safe to run multiple times)
+setTimeout(() => {
+    const { addAllIndexes } = require('./scripts/addIndexes');
+    addAllIndexes().catch(err => {
+        logger.warn('Could not add database indexes:', err.message);
+        logger.info('Server will continue running. You can add indexes manually later with: npm run add-indexes');
+    });
+}, 3000);
+
 // Initialize salary scheduler after DB connection
 setTimeout(() => {
     initializeSalaryScheduler();
@@ -41,11 +50,11 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting for API routes
-app.use('/api/', apiLimiter);
-
-// Static folder for uploads
+// Static folder for uploads (before rate limiting)
 app.use('/uploads', express.static('uploads'));
+
+// Rate limiting for API routes only (not static files)
+app.use('/api/', apiLimiter);
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
