@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class Deposit extends Model {}
+class Deposit extends Model { }
 
 Deposit.init({
     id: {
@@ -21,7 +21,7 @@ Deposit.init({
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
         validate: {
-            isIn: [[3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000]]
+            isIn: [[3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000]]
         }
     },
     paymentMethod: {

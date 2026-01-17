@@ -6,12 +6,12 @@ exports.isValidEthiopianPhone = (phone) => {
 
 // Allowed deposit amounts in ETB
 exports.ALLOWED_DEPOSIT_AMOUNTS = [
-    3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000
+    3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000
 ];
 
 // Allowed withdrawal amounts in ETB
 exports.ALLOWED_WITHDRAWAL_AMOUNTS = [
-    100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000, 3000000, 5000000
+    100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000
 ];
 
 // Validate deposit amount

@@ -48,7 +48,7 @@ exports.depositValidation = [
         .isInt({ min: 100 })
         .withMessage('Invalid deposit amount')
         .custom((value) => {
-            const allowedAmounts = [3300, 9600, 27000, 50000, 78000, 100000, 150000, 200000];
+            const allowedAmounts = [3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000];
             if (!allowedAmounts.includes(Number(value))) {
                 throw new Error('Amount must be one of the allowed values');
             }

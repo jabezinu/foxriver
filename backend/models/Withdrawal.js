@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class Withdrawal extends Model {}
+class Withdrawal extends Model { }
 
 Withdrawal.init({
     id: {
@@ -21,7 +21,7 @@ Withdrawal.init({
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
         validate: {
-            isIn: [[100, 200, 3300, 9600, 10000, 27000, 50000, 78000, 100000, 300000, 500000, 3000000, 5000000]]
+            isIn: [[100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000]]
         }
     },
     walletType: {
