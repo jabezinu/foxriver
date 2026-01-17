@@ -19,12 +19,46 @@ export default function ReferralSettingsForm({ settings, onChange, onSave, savin
                 <div className="p-8 space-y-10">
                     <section>
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                            <span className="w-8 h-px bg-gray-100"></span> Commission Scales (%)
+                            <span className="w-8 h-px bg-gray-100"></span> Task Commission Scales (%)
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <ScaleInput label="Primary (Level A)" value={settings.commissionPercentA} onChange={(v) => onChange({ ...settings, commissionPercentA: v })} />
                             <ScaleInput label="Secondary (Level B)" value={settings.commissionPercentB} onChange={(v) => onChange({ ...settings, commissionPercentB: v })} />
                             <ScaleInput label="Tertiary (Level C)" value={settings.commissionPercentC} onChange={(v) => onChange({ ...settings, commissionPercentC: v })} />
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <span className="w-8 h-px bg-gray-100"></span> Membership Upgrade Scales (%)
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <ScaleInput label="Primary (Level A)" value={settings.upgradeCommissionPercentA} onChange={(v) => onChange({ ...settings, upgradeCommissionPercentA: v })} />
+                            <ScaleInput label="Secondary (Level B)" value={settings.upgradeCommissionPercentB} onChange={(v) => onChange({ ...settings, upgradeCommissionPercentB: v })} />
+                            <ScaleInput label="Tertiary (Level C)" value={settings.upgradeCommissionPercentC} onChange={(v) => onChange({ ...settings, upgradeCommissionPercentC: v })} />
+                        </div>
+                    </section>
+
+                    <section>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <span className="w-8 h-px bg-gray-100"></span> System Protocol Architecture
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase px-1">Referral Commission Cap (Max Referrals)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        value={settings.maxReferralsPerUser}
+                                        onChange={(e) => onChange({ ...settings, maxReferralsPerUser: Number(e.target.value) })}
+                                        className="admin-input pr-10 font-black text-indigo-600"
+                                        placeholder="0 for unlimited"
+                                        required
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 font-black text-[10px]">USERS</span>
+                                </div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase px-1 italic">Sets the maximum number of referrals a user can earn commissions from. Use 0 for unlimited.</p>
+                            </div>
                         </div>
                     </section>
 

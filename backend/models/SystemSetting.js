@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class SystemSetting extends Model {}
+class SystemSetting extends Model { }
 
 SystemSetting.init({
     id: {
@@ -18,6 +18,18 @@ SystemSetting.init({
         defaultValue: 5
     },
     commissionPercentC: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 2
+    },
+    upgradeCommissionPercentA: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 10
+    },
+    upgradeCommissionPercentB: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 5
+    },
+    upgradeCommissionPercentC: {
         type: DataTypes.DECIMAL(5, 2),
         defaultValue: 2
     },

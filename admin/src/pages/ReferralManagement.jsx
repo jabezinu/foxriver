@@ -16,6 +16,7 @@ export default function ReferralManagement() {
     const [search, setSearch] = useState('');
     const [settings, setSettings] = useState({
         commissionPercentA: 10, commissionPercentB: 5, commissionPercentC: 2,
+        upgradeCommissionPercentA: 10, upgradeCommissionPercentB: 5, upgradeCommissionPercentC: 2,
         maxReferralsPerUser: 0,
         salaryDirect15Threshold: 15, salaryDirect15Amount: 15000,
         salaryDirect20Threshold: 20, salaryDirect20Amount: 20000,

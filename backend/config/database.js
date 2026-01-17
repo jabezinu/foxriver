@@ -27,9 +27,9 @@ const connectDB = async () => {
     try {
         await sequelize.authenticate();
         logger.info(`MySQL Connected: ${sequelize.config.host}`);
-        
-        // Sync all models - create tables if they don't exist
-        await sequelize.sync({ alter: false });
+
+        // Sync all models - allow schema updates
+        await sequelize.sync({ alter: true });
         logger.info('Database synchronized');
     } catch (error) {
         logger.error('MySQL connection failed', { error: error.message });
