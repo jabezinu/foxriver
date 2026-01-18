@@ -19,15 +19,9 @@ export default function Wealth() {
     const fetchFunds = async () => {
         try {
             const response = await wealthAPI.getFunds();
-            
-            console.log('✅ API Response:', response.data);
-            console.log('📊 Funds count:', response.data.data?.length || 0);
-            
             setFunds(response.data.data || []);
         } catch (error) {
-            console.error('❌ Error fetching funds:', error);
-            console.error('❌ Error response:', error.response?.data);
-            console.error('❌ Error status:', error.response?.status);
+            console.error('Error fetching funds:', error);
             setFunds([]);
         } finally {
             setLoading(false);

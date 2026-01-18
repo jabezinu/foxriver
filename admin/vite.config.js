@@ -8,7 +8,8 @@ export default defineConfig({
     proxy: {
       '/api': {
         // target: 'http://localhost:5002',
-        target: 'https://everest-db.everest12.com',
+        // target: 'https://everest-db.everest12.com',
+        target: 'https://everest-bea.everest12.com',
         changeOrigin: true,
         secure: false,
       }
