@@ -46,10 +46,12 @@ export default function Team() {
                 referralAPI.getCommissions(),
                 referralAPI.getSalary()
             ]);
-            setDownline(downlineRes.data.downline);
-            setCommissions(commissionRes.data.commissions);
-            setCommissionTotals(commissionRes.data.totals);
-            setSalaryData(salaryRes.data);
+            
+            // Set data with fallbacks
+            setDownline(downlineRes.data.downline || null);
+            setCommissions(commissionRes.data.commissions || []);
+            setCommissionTotals(commissionRes.data.totals || { A: 0, B: 0, C: 0, total: 0 });
+            setSalaryData(salaryRes.data || null);
         } catch (error) {
             // Check if it's a rate limit error
             if (error.response?.status === 429) {
@@ -337,7 +339,7 @@ export default function Team() {
                             </div>
                         ) : (
                             <div className="space-y-1">
-                                {commissions.slice(0, 10).map((comm, idx) => (
+                                {commissions && commissions.length > 0 && commissions.slice(0, 10).map((comm, idx) => (
                                     <div key={idx} className="flex items-center justify-between p-3 hover:bg-zinc-800 rounded-xl transition-colors border border-transparent hover:border-zinc-800">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm text-white ${comm.level === 'A' ? 'bg-primary-600 shadow-primary-500/20' : comm.level === 'B' ? 'bg-emerald-600 shadow-emerald-500/20' : 'bg-blue-600 shadow-blue-500/20'
@@ -346,7 +348,7 @@ export default function Team() {
                                             </div>
                                             <div>
                                                 <p className="text-xs font-bold text-white leading-none mb-1">
-                                                    {comm.downlineUser ? comm.downlineUser.phone.slice(-4) : 'User'} Upgrade
+                                                    {comm.downlineUser?.phone ? comm.downlineUser.phone.slice(-4) : 'User'} Upgrade
                                                 </p>
                                                 <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">
                                                     {new Date(comm.createdAt).toLocaleString()}
