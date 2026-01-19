@@ -179,7 +179,7 @@ export default function Home() {
             <div className="bg-zinc-900/80 backdrop-blur-md px-5 py-4 flex justify-between items-center sticky top-0 z-30 border-b border-zinc-800">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-black text-sm shadow-glow">F</div>
-                    <span className="font-bold text-white text-lg tracking-tight">Everest</span>
+                    <span className="font-bold text-white text-lg tracking-tight">Novis2026</span>
                 </div>
                 <div className="flex gap-2">
                     <button
