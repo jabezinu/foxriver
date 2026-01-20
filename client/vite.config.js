@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // target: 'http://localhost:5002',
+        target: 'http://localhost:5002',
         // target: 'https://everest-db.everest12.com',
         // target: 'https://everest-bea.everest12.com',
-        target: 'https://novis-be.novis2026.com',
+        // target: 'https://novis-be.novis2026.com',
         changeOrigin: true,
         secure: false,
       }
