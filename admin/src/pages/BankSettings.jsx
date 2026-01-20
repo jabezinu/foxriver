@@ -62,12 +62,29 @@ export default function BankSettings() {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Initiate termination of this financial node? This will sever the deposit relay.')) {
+        if (window.confirm('Deactivate this financial node? It will be hidden from users but historical data will be preserved.')) {
             try {
                 await adminBankAPI.delete(id);
-                toast.success('Node Decommissioned');
+                toast.success('Node Deactivated Successfully');
                 fetchBanks();
-            } catch (error) { toast.error('Termination Aborted'); }
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || 'Deactivation Failed';
+                toast.error(errorMessage);
+            }
+        }
+    };
+
+    const handleReactivate = async (id) => {
+        if (window.confirm('Reactivate this financial node? It will become available for deposits again.')) {
+            try {
+                const bank = banks.find(b => b.id === id);
+                await adminBankAPI.update(id, { ...bank, isActive: true });
+                toast.success('Node Reactivated Successfully');
+                fetchBanks();
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || 'Reactivation Failed';
+                toast.error(errorMessage);
+            }
         }
     };
 
@@ -92,6 +109,7 @@ export default function BankSettings() {
                         bank={bank}
                         onEdit={handleOpenModal}
                         onDelete={handleDelete}
+                        onReactivate={handleReactivate}
                     />
                 ))}
             </div>

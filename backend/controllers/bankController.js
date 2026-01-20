@@ -36,13 +36,14 @@ exports.updateBankAccount = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: bank, message: 'Bank account updated' });
 });
 
-// @desc    Delete a bank account
+// @desc    Delete a bank account (soft delete by deactivating)
 // @route   DELETE /api/bank/:id
 // @access  Private/Admin
 exports.deleteBankAccount = asyncHandler(async (req, res) => {
     const bank = await BankAccount.findByPk(req.params.id);
     if (!bank) throw new AppError('Bank account not found', 404);
 
-    await bank.destroy();
-    res.status(200).json({ success: true, message: 'Bank account deleted' });
+    // Soft delete by setting isActive to false
+    await bank.update({ isActive: false });
+    res.status(200).json({ success: true, message: 'Bank account deactivated successfully' });
 });

@@ -1,9 +1,9 @@
 import React from 'react';
-import { HiPencil, HiTrash, HiOfficeBuilding, HiChip, HiUser, HiPhone } from 'react-icons/hi';
+import { HiPencil, HiTrash, HiOfficeBuilding, HiChip, HiUser, HiCheckCircle } from 'react-icons/hi';
 import Badge from './shared/Badge';
 import Card from './shared/Card';
 
-export default function BankCard({ bank, onEdit, onDelete }) {
+export default function BankCard({ bank, onEdit, onDelete, onReactivate }) {
     return (
         <Card noPadding className="group overflow-hidden relative border-t-4 border-t-indigo-600">
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -13,12 +13,23 @@ export default function BankCard({ bank, onEdit, onDelete }) {
                 >
                     <HiPencil />
                 </button>
-                <button
-                    onClick={() => onDelete(bank.id)}
-                    className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm text-gray-600 hover:text-rose-600 flex items-center justify-center shadow-lg border border-gray-100 transition-all"
-                >
-                    <HiTrash />
-                </button>
+                {bank.isActive ? (
+                    <button
+                        onClick={() => onDelete(bank.id)}
+                        className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm text-gray-600 hover:text-rose-600 flex items-center justify-center shadow-lg border border-gray-100 transition-all"
+                        title="Deactivate"
+                    >
+                        <HiTrash />
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => onReactivate(bank.id)}
+                        className="w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm text-gray-600 hover:text-green-600 flex items-center justify-center shadow-lg border border-gray-100 transition-all"
+                        title="Reactivate"
+                    >
+                        <HiCheckCircle />
+                    </button>
+                )}
             </div>
 
             <div className="p-6 space-y-6">
