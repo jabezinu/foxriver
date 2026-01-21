@@ -22,7 +22,6 @@ const WealthInvestment = require('./WealthInvestment');
 const SpinResult = require('./SpinResult');
 const SlotTier = require('./SlotTier');
 const News = require('./News');
-const Message = require('./Message');
 const Chat = require('./Chat');
 const ChatMessage = require('./ChatMessage');
 const QnA = require('./QnA');
@@ -89,9 +88,6 @@ SlotTier.hasMany(SpinResult, { foreignKey: 'tier', as: 'results' });
 // News associations
 News.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
 
-// Message associations
-Message.belongsTo(User, { foreignKey: 'sender', as: 'senderDetails' });
-
 // Chat associations
 ChatMessage.belongsTo(Chat, { foreignKey: 'chat', as: 'chatDetails' });
 ChatMessage.belongsTo(User, { foreignKey: 'sender', as: 'senderDetails' });
@@ -109,7 +105,7 @@ const models = [
     User, Membership, Task, TaskCompletion, Course, CourseCategory,
     DailyVideoAssignment, VideoPool, Playlist, SystemSetting, Commission,
     Salary, Deposit, Withdrawal, BankAccount, WealthFund, WealthInvestment,
-    SpinResult, SlotTier, News, Message, Chat, ChatMessage, QnA
+    SpinResult, SlotTier, News, Chat, ChatMessage, QnA
 ];
 
 models.forEach(model => addMongoCompatibility(model));
@@ -136,7 +132,6 @@ module.exports = {
     SpinResult,
     SlotTier,
     News,
-    Message,
     Chat,
     ChatMessage,
     QnA

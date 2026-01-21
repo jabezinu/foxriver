@@ -104,12 +104,6 @@ export const videoTaskAPI = {
     getVideoTaskStats: () => axios.get('/video-tasks/stats'),
 };
 
-// Message endpoints
-export const messageAPI = {
-    getUserMessages: () => axios.get('/messages/user'),
-    markAsRead: (messageId) => axios.put(`/messages/${messageId}/read`),
-};
-
 // Membership endpoints
 export const membershipAPI = {
     getTiers: () => axios.get('/memberships/tiers'),

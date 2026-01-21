@@ -9,7 +9,6 @@ const ALL_PERMISSIONS = [
     { id: 'manage_courses', label: 'Knowledge Base', description: 'Educational content' },
     { id: 'manage_wealth', label: 'Equity Assets', description: 'Investment oversight' },
     { id: 'manage_qna', label: 'Information Desk', description: 'Technical documentation' },
-    { id: 'manage_messages', label: 'Signal Broadcast', description: 'System communications' },
     { id: 'manage_news', label: 'Intel Feed', description: 'Public bulletins' },
     { id: 'manage_slot_machine', label: 'Probability Engine', description: 'Algorithmic results' },
     { id: 'manage_bank_settings', label: 'Fiscal Nodes', description: 'Banking infrastructure' },

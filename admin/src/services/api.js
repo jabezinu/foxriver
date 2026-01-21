@@ -75,10 +75,7 @@ export const adminTaskAPI = {
 };
 
 export const adminMessageAPI = {
-    getAll: () => axios.get(`${API_ENDPOINTS.MESSAGES}/all`),
-    send: (data) => axios.post(`${API_ENDPOINTS.MESSAGES}/send`, data),
-    update: (id, data) => axios.put(`${API_ENDPOINTS.MESSAGES}/${id}`, data),
-    delete: (id) => axios.delete(`${API_ENDPOINTS.MESSAGES}/${id}`),
+    // Removed - message feature deleted
 };
 
 export const adminNewsAPI = {

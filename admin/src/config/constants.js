@@ -23,7 +23,6 @@ export const API_ENDPOINTS = {
     DEPOSITS: '/deposits',
     WITHDRAWALS: '/withdrawals',
     TASKS: '/tasks',
-    MESSAGES: '/messages',
     NEWS: '/news',
     CHAT: '/chat',
     QNA: '/qna',

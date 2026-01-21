@@ -139,26 +139,6 @@ const indexes = [
         name: 'idx_createdAt',
         column: 'createdAt',
         description: 'Speeds up date sorting'
-    },
-    
-    // Messages table indexes
-    {
-        table: 'messages',
-        name: 'idx_userId',
-        column: 'userId',
-        description: 'Speeds up message queries'
-    },
-    {
-        table: 'messages',
-        name: 'idx_isRead',
-        column: 'isRead',
-        description: 'Speeds up unread filtering'
-    },
-    {
-        table: 'messages',
-        name: 'idx_createdAt',
-        column: 'createdAt',
-        description: 'Speeds up date sorting'
     }
 ];
 
@@ -266,7 +246,7 @@ async function addAllIndexes() {
         if (isCalledDirectly) {
             console.log('🔍 Analyzing tables for optimization...');
         }
-        const tables = ['users', 'commissions', 'task_completions', 'deposits', 'withdrawals', 'messages'];
+        const tables = ['users', 'commissions', 'task_completions', 'deposits', 'withdrawals'];
         
         for (const table of tables) {
             try {

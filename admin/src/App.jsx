@@ -14,7 +14,6 @@ const DepositRequests = lazy(() => import('./pages/Deposits'));
 const WithdrawalRequests = lazy(() => import('./pages/Withdrawals'));
 const TaskManagement = lazy(() => import('./pages/Tasks'));
 const QnaManagement = lazy(() => import('./pages/QnA'));
-const Messages = lazy(() => import('./pages/Messages'));
 const News = lazy(() => import('./pages/News'));
 const BankSettings = lazy(() => import('./pages/BankSettings'));
 const ReferralManagement = lazy(() => import('./pages/ReferralManagement'));
@@ -87,7 +86,6 @@ function App() {
             <Route path="withdrawals" element={<WithdrawalRequests />} />
             <Route path="tasks" element={<TaskManagement />} />
             <Route path="qna" element={<QnaManagement />} />
-            <Route path="messages" element={<Messages />} />
             <Route path="news" element={<News />} />
             <Route path="bank-settings" element={<BankSettings />} />
             <Route path="referral-management" element={<ReferralManagement />} />
