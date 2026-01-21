@@ -1,4 +1,3 @@
-import React from 'react';
 import { HiCheck, HiX, HiPhotograph, HiFingerPrint, HiOfficeBuilding, HiChip } from 'react-icons/hi';
 import { formatNumber } from '../utils/formatNumber';
 import Badge from './shared/Badge';
@@ -34,13 +33,13 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-indigo-900 text-white flex items-center justify-center font-black shadow-lg shadow-indigo-100 uppercase">
-                                {String(deposit.user?.phone || 'U').slice(-1)}
+                                {String(deposit.userDetails?.phone || 'U').slice(-1)}
                             </div>
                             <div>
-                                <h4 className="text-sm font-black text-gray-800 tracking-tight">{deposit.user?.phone}</h4>
+                                <h4 className="text-sm font-black text-gray-800 tracking-tight">{deposit.userDetails?.phone || 'Unknown'}</h4>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     <HiFingerPrint className="text-gray-300 text-xs" />
-                                    <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Level: {deposit.user?.membershipLevel}</span>
+                                    <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Level: {deposit.userDetails?.membershipLevel || 'N/A'}</span>
                                 </div>
                             </div>
                         </div>
@@ -51,8 +50,8 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2 border-t border-gray-50">
-                        <DataField icon={<HiOfficeBuilding />} label="Financial Node" value={deposit.paymentMethod?.bankName || 'Unknown Site'} />
-                        <DataField icon={<HiChip />} label="Node ID" value={deposit.paymentMethod?.accountNumber || 'N/A'} />
+                        <DataField icon={<HiOfficeBuilding />} label="Financial Node" value={deposit.paymentMethodDetails?.bankName || 'Unknown Site'} />
+                        <DataField icon={<HiChip />} label="Node ID" value={deposit.paymentMethodDetails?.accountNumber || 'N/A'} />
                         <div className="flex flex-col gap-1">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Evidence</span>
                             {deposit.transactionScreenshot ? (

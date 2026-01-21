@@ -16,6 +16,14 @@ const app = express();
 // Connect to MySQL
 connectDB();
 
+// Create admin user automatically on startup
+setTimeout(() => {
+    const createAdminUser = require('./scripts/createAdminUser');
+    createAdminUser().catch(err => {
+        logger.warn('Could not create admin user:', err.message);
+    });
+}, 2000);
+
 // Add database indexes automatically on startup (runs once, safe to run multiple times)
 setTimeout(() => {
     const { addAllIndexes } = require('./scripts/addIndexes');
