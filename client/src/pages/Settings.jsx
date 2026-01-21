@@ -38,7 +38,7 @@ export default function Settings() {
             setProfile(res.data.user);
             setFormData(prev => ({
                 ...prev,
-                bankName: res.data.user.bankAccount?.bankName || '',
+                bankName: res.data.user.bankAccount?.bank || '',
                 accountNumber: res.data.user.bankAccount?.accountNumber || '',
                 accountName: res.data.user.bankAccount?.accountName || '',
                 bankPhone: res.data.user.bankAccount?.phone || ''

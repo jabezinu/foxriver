@@ -249,7 +249,7 @@ export default function UserManagement() {
                                                 </Badge>
                                                 {user.bankAccount?.isSet ? (
                                                     <div className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">
-                                                        {user.bankAccount.bankName} • {String(user.bankAccount.accountNumber || '').slice(-4)}
+                                                        {user.bankAccount.bank} • {String(user.bankAccount.accountNumber || '').slice(-4)}
                                                     </div>
                                                 ) : (
                                                     <span className="text-[9px] text-red-300 font-bold uppercase italic tracking-tighter">No Bank linked</span>

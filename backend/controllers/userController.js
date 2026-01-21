@@ -167,6 +167,11 @@ exports.getWalletBalance = asyncHandler(async (req, res) => {
 exports.setBankAccount = asyncHandler(async (req, res) => {
     const { accountName, bank, accountNumber, phone } = req.body;
 
+    // Validate required fields
+    if (!accountName || !bank || !accountNumber || !phone) {
+        throw new AppError('All bank account fields are required', 400);
+    }
+
     const user = await User.findByPk(req.user.id);
 
     // Check if user is Intern - only Rank 1+ can set bank account
@@ -182,7 +187,7 @@ exports.setBankAccount = asyncHandler(async (req, res) => {
     }
 
     // If bank account is already set, handle as change request
-    if (user.bankAccount.isSet) {
+    if (user.bankAccount && user.bankAccount.isSet) {
         user.pendingBankAccount = {
             accountName,
             bank,

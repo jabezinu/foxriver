@@ -110,7 +110,7 @@ exports.getAllWithdrawals = asyncHandler(async (req, res) => {
     const withdrawals = await Withdrawal.findAll({
         where,
         include: [
-            { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel', 'bankAccount'] },
+            { model: User, as: 'userDetails', attributes: ['id', 'name', 'phone', 'membershipLevel', 'bankAccount'] },
             { model: User, as: 'approver', attributes: ['phone'] }
         ],
         order: [['createdAt', 'DESC']]

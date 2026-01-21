@@ -6,6 +6,7 @@ import Card from './shared/Card';
 
 export default function WithdrawalItem({ withdrawal, onApprove, onReject }) {
     const isPending = withdrawal.status === 'pending';
+    const user = withdrawal.userDetails || withdrawal.user; // Support both field names
 
     return (
         <Card noPadding className="group overflow-hidden relative">
@@ -33,12 +34,13 @@ export default function WithdrawalItem({ withdrawal, onApprove, onReject }) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-gray-900 text-white flex items-center justify-center font-black shadow-xl shadow-gray-200 uppercase">
-                                {String(withdrawal.user?.phone || 'U').slice(-1)}
+                                {user?.name ? user.name.charAt(0).toUpperCase() : String(user?.phone || 'U').slice(-1)}
                             </div>
                             <div>
-                                <h4 className="text-base font-black text-gray-800 tracking-tight">{withdrawal.user?.phone}</h4>
+                                <h4 className="text-base font-black text-gray-800 tracking-tight">{user?.name || 'Unknown User'}</h4>
+                                <p className="text-xs text-gray-500 font-mono">{user?.phone || 'N/A'}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <Badge variant="indigo" className="text-[8px] font-black">{withdrawal.user?.membershipLevel} AGENT</Badge>
+                                    <Badge variant="indigo" className="text-[8px] font-black">{user?.membershipLevel || 'N/A'} AGENT</Badge>
                                     <span className="text-[10px] font-mono text-gray-400 font-bold uppercase tracking-tighter">ID: {String(withdrawal.id || withdrawal._id || '0000').slice(-8).toUpperCase()}</span>
                                 </div>
                             </div>
@@ -53,23 +55,25 @@ export default function WithdrawalItem({ withdrawal, onApprove, onReject }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Final Destination (Bank) */}
-                        <div className="bg-indigo-900 rounded-3xl p-6 text-white shadow-2xl shadow-indigo-100 relative overflow-hidden group/bank">
+                        <div className={`rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden group/bank ${user?.bankAccount?.isSet ? 'bg-indigo-900 shadow-indigo-100' : 'bg-rose-900 shadow-rose-100'}`}>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover/bank:bg-white/10 transition-all duration-700"></div>
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 bg-white/10 rounded-lg"><HiCreditCard className="text-indigo-400" /></div>
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Target Node</span>
+                                <div className="p-2 bg-white/10 rounded-lg"><HiCreditCard className={user?.bankAccount?.isSet ? 'text-indigo-400' : 'text-rose-400'} /></div>
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${user?.bankAccount?.isSet ? 'text-indigo-300' : 'text-rose-300'}`}>
+                                    {user?.bankAccount?.isSet ? 'Target Node' : 'Bank Not Linked'}
+                                </span>
                             </div>
                             <div className="space-y-3">
-                                <p className="text-xl font-black tracking-tight">{withdrawal.user?.bankAccount?.bankName || 'OFFLINE NODE'}</p>
+                                <p className="text-xl font-black tracking-tight">{user?.bankAccount?.bank || 'OFFLINE NODE'}</p>
                                 <div className="space-y-1">
-                                    <p className="font-mono text-sm font-black text-indigo-100 truncate">{withdrawal.user?.bankAccount?.accountNumber || 'NOTSET_00000'}</p>
+                                    <p className="font-mono text-sm font-black text-indigo-100 truncate">{user?.bankAccount?.accountNumber || 'NOTSET_00000'}</p>
                                     <div className="flex items-center gap-2 text-indigo-400">
                                         <HiUser className="text-xs" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest">{withdrawal.user?.bankAccount?.accountName || 'NO IDENTITY'}</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest">{user?.bankAccount?.accountName || 'NO IDENTITY'}</p>
                                     </div>
                                     <div className="flex items-center gap-2 text-indigo-400">
                                         <HiPhone className="text-xs" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest">PH: {withdrawal.user?.bankAccount?.phone || 'N/A'}</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest">PH: {user?.bankAccount?.phone || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>
