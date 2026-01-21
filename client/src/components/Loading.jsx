@@ -1,11 +1,15 @@
+import logo from '../assets/logo.png';
+
 export default function Loading() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-950">
             <div className="relative">
-                <div className="w-12 h-12 border-4 border-primary-100 rounded-full"></div>
-                <div className="w-12 h-12 border-4 border-primary-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+                <img 
+                    src={logo} 
+                    alt="Loading" 
+                    className="w-72 h-72 object-contain animate-pulse"
+                />
             </div>
-            <p className="mt-4 text-sm font-medium text-gray-500 animate-pulse">Loading...</p>
         </div>
     );
 }

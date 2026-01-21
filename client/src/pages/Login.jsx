@@ -8,6 +8,7 @@ import CanvasCaptcha from '../components/CanvasCaptcha';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
+import Loading from '../components/Loading';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -69,6 +70,10 @@ export default function Login() {
             captchaRef.current?.refreshCaptcha();
         }
     };
+
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-950 overflow-hidden relative">
@@ -142,7 +147,7 @@ export default function Login() {
                         </div>
                     </div>
 
-                    <Button type="submit" loading={loading} fullWidth size="lg" className="shadow-glow font-bold">
+                    <Button type="submit" fullWidth size="lg" className="shadow-glow font-bold">
                         {t('auth.login')}
                     </Button>
                 </form>

@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import { formatNumber } from '../utils/formatNumber';
+import logo from '../assets/logo.png';
 
 import { useUserStore } from '../store/userStore';
 
@@ -303,7 +304,11 @@ export default function Deposit() {
 
                             {loadingHistory ? (
                                 <div className="text-center py-8">
-                                    <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <img 
+                                        src={logo} 
+                                        alt="Loading" 
+                                        className="w-12 h-12 object-contain animate-pulse mx-auto"
+                                    />
                                 </div>
                             ) : history.length === 0 ? (
                                 <div className="text-center py-8 border border-dashed border-zinc-800 rounded-xl bg-zinc-900/50">

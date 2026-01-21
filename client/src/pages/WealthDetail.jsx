@@ -5,6 +5,7 @@ import Card from '../components/ui/Card';
 import { wealthAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { getServerUrl } from '../config/api.config';
+import logo from '../assets/logo.png';
 
 export default function WealthDetail() {
     const { id } = useParams();
@@ -156,7 +157,11 @@ export default function WealthDetail() {
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-                <div className="animate-spin w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+                <img 
+                    src={logo} 
+                    alt="Loading" 
+                    className="w-24 h-24 object-contain animate-pulse"
+                />
             </div>
         );
     }

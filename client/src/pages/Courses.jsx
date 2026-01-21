@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { HiFolder, HiVideoCamera, HiArrowLeft } from 'react-icons/hi';
 import Loading from '../components/Loading';
 import ReactPlayer from 'react-player';
+import logo from '../assets/logo.png';
 
 export default function Courses() {
     const [categories, setCategories] = useState([]);
@@ -96,7 +97,11 @@ export default function Courses() {
                     <div className="space-y-3">
                         {loadingCourses ? (
                             <div className="py-20 text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
+                                <img 
+                                    src={logo} 
+                                    alt="Loading" 
+                                    className="w-16 h-16 object-contain animate-pulse mx-auto"
+                                />
                             </div>
                         ) : courses.length > 0 ? (
                             courses.map((course) => (

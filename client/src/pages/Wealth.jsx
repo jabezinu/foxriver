@@ -5,6 +5,7 @@ import Card from '../components/ui/Card';
 import { wealthAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { getServerUrl } from '../config/api.config';
+import logo from '../assets/logo.png';
 
 export default function Wealth() {
     const navigate = useNavigate();
@@ -72,8 +73,11 @@ export default function Wealth() {
             <div className="space-y-6">
                 {loading ? (
                     <Card className="text-center py-8">
-                        <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
-                        <p className="text-zinc-400 mt-4">Loading funds...</p>
+                        <img 
+                            src={logo} 
+                            alt="Loading" 
+                            className="w-16 h-16 object-contain animate-pulse mx-auto"
+                        />
                     </Card>
                 ) : funds.length > 0 ? (
                     <>

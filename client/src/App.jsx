@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import { newsAPI, systemAPI } from './services/api';
+import logo from './assets/logo.png';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));
@@ -32,8 +33,12 @@ import MainLayout from './layout/MainLayout';
 
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gray-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+    <img 
+      src={logo} 
+      alt="Loading" 
+      className="w-72 h-72 object-contain animate-pulse"
+    />
   </div>
 );
 
@@ -43,8 +48,12 @@ function ProtectedRoute({ children }) {
 
   if (isInitializing) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+        <img 
+          src={logo} 
+          alt="Loading" 
+          className="w-72 h-72 object-contain animate-pulse"
+        />
       </div>
     );
   }
@@ -116,8 +125,12 @@ function App() {
   // Show loading spinner while checking system settings
   if (systemSettingsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-zinc-950">
+        <img 
+          src={logo} 
+          alt="Loading" 
+          className="w-72 h-72 object-contain animate-pulse"
+        />
       </div>
     );
   }

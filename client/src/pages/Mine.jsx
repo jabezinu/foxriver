@@ -12,6 +12,7 @@ import Modal from '../components/Modal';
 import { getServerUrl } from '../config/api.config';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import logo from '../assets/logo.png';
 
 export default function Mine() {
     const navigate = useNavigate();
@@ -202,7 +203,11 @@ export default function Mine() {
                                 className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-600 transition-colors shadow-lg border-2 border-zinc-900"
                             >
                                 {uploadingPhoto ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <img 
+                                        src={logo} 
+                                        alt="Uploading" 
+                                        className="w-4 h-4 object-contain animate-pulse"
+                                    />
                                 ) : (
                                     <Camera size={16} className="text-white" />
                                 )}

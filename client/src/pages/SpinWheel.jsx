@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { spinAPI, slotTierAPI } from '../services/api';
 import { ArrowLeft, TrendingUp, Trophy, Zap, Sparkles } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const SpinWheel = () => {
     const navigate = useNavigate();
@@ -238,7 +239,11 @@ const SpinWheel = () => {
                     >
                         {spinning ? (
                             <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <img 
+                                    src={logo} 
+                                    alt="Spinning" 
+                                    className="w-5 h-5 object-contain animate-pulse"
+                                />
                                 SPINNING...
                             </>
                         ) : tiers.length === 0 ? (
