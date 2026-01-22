@@ -67,7 +67,7 @@ User.init({
         allowNull: false,
         unique: true,
         validate: {
-            is: /^\+251\d{9}$/
+            is: /^\+251[79]\d{8}$/
         }
     },
     password: {

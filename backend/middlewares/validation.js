@@ -20,7 +20,7 @@ exports.validate = (req, res, next) => {
 exports.registerValidation = [
     body('phone')
         .trim()
-        .matches(/^\+251\d{9}$/)
+        .matches(/^\+251[79]\d{8}$/)
         .withMessage('Please provide a valid Ethiopian phone number (+251XXXXXXXXX)'),
     body('password')
         .isLength({ min: 6 })
@@ -90,7 +90,7 @@ exports.bankAccountValidation = [
         .withMessage('Invalid account number'),
     body('phone')
         .trim()
-        .matches(/^\+251\d{9}$/)
+        .matches(/^\+251[79]\d{8}$/)
         .withMessage('Please provide a valid Ethiopian phone number')
 ];
 

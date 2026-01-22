@@ -118,7 +118,7 @@ export default function Register() {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="+251912345678"
+                        placeholder="+251912345678 or +251712345678"
                         icon={<Phone size={18} />}
                         required
                     />

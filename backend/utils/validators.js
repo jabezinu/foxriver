@@ -1,6 +1,6 @@
 // Phone number validation for Ethiopia (+251)
 exports.isValidEthiopianPhone = (phone) => {
-    const phoneRegex = /^\+251\d{9}$/;
+    const phoneRegex = /^\+251[79]\d{8}$/;
     return phoneRegex.test(phone);
 };
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, Fingerprint, BookOpen } from 'lucide-react';
+import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import Loading from '../components/Loading';
@@ -9,7 +9,6 @@ import Modal from '../components/Modal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import BankChangeConfirmation from '../components/BankChangeConfirmation';
-import BankAccountDebug from '../components/BankAccountDebug';
 import { getServerUrl } from '../config/api.config';
 
 export default function Settings() {
@@ -38,13 +37,6 @@ export default function Settings() {
     const fetchProfile = async () => {
         try {
             const res = await userAPI.getProfile();
-            console.log('🔍 fetchProfile - Received data:', {
-                user: res.data.user,
-                bankAccount: res.data.user.bankAccount,
-                bankAccountIsSet: res.data.user.bankAccount?.isSet,
-                bankChangeInfo: res.data.bankChangeInfo
-            });
-            
             setProfile(res.data.user);
             setBankChangeInfo(res.data.bankChangeInfo);
             setFormData(prev => ({
@@ -55,7 +47,7 @@ export default function Settings() {
                 bankPhone: res.data.user.bankAccount?.phone || ''
             }));
         } catch (error) {
-            console.error('❌ fetchProfile error:', error);
+            console.error('Failed to fetch profile:', error);
         } finally {
             setLoading(false);
         }
@@ -69,6 +61,12 @@ export default function Settings() {
                 accountName: formData.accountName,
                 phone: formData.bankPhone
             });
+            
+            if (res.data.noChanges) {
+                toast.success(res.data.message || 'No changes detected');
+                setModalType(null);
+                return; // Don't need to fetch profile since nothing changed
+            }
             
             if (res.data.isPending) {
                 toast.success(res.data.message || 'Bank account change requested!');
@@ -416,13 +414,6 @@ export default function Settings() {
                     </div>
                 </div>
             </Modal>
-
-            {/* Debug Component - Remove in production */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="max-w-md mx-auto px-4 py-6">
-                    <BankAccountDebug />
-                </div>
-            )}
         </div >
     );
 }
