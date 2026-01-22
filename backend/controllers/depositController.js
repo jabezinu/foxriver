@@ -6,13 +6,36 @@ const logger = require('../config/logger');
 const cloudinary = require('cloudinary').v2;
 const { Op } = require('sequelize');
 
+// @desc    Get allowed deposit amounts
+// @route   GET /api/deposits/allowed-amounts
+// @access  Public
+exports.getAllowedDepositAmounts = asyncHandler(async (req, res) => {
+    const Membership = require('../models/Membership');
+    const { Op } = require('sequelize');
+    
+    const memberships = await Membership.findAll({
+        attributes: ['price'],
+        where: {
+            price: { [Op.gt]: 0 } // Exclude free memberships (Intern)
+        }
+    });
+    
+    // Extract prices and convert to numbers - ONLY membership prices
+    const allowedAmounts = memberships.map(m => parseFloat(m.price)).sort((a, b) => a - b);
+
+    res.status(200).json({
+        success: true,
+        allowedAmounts
+    });
+});
+
 // @desc    Create deposit request
 // @route   POST /api/deposits/create
 // @access  Private
 exports.createDeposit = asyncHandler(async (req, res) => {
     const { amount, paymentMethod } = req.body;
 
-    if (!isValidDepositAmount(amount)) {
+    if (!(await isValidDepositAmount(amount))) {
         throw new AppError('Invalid deposit amount', 400);
     }
 

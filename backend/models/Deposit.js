@@ -21,7 +21,24 @@ Deposit.init({
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
         validate: {
-            isIn: [[3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000]]
+            async isValidAmount(value) {
+                // Dynamically get allowed amounts from membership tiers ONLY
+                const Membership = require('./Membership');
+                const memberships = await Membership.findAll({
+                    attributes: ['price'],
+                    where: {
+                        price: { [require('sequelize').Op.gt]: 0 } // Exclude free memberships (Intern)
+                    }
+                });
+                
+                // Extract prices and convert to numbers - ONLY membership prices
+                const allowedAmounts = memberships.map(m => parseFloat(m.price)).sort((a, b) => a - b);
+                
+                const numValue = parseFloat(value);
+                if (!allowedAmounts.includes(numValue)) {
+                    throw new Error(`Amount must be one of the membership tier prices: ${allowedAmounts.join(', ')}`);
+                }
+            }
         }
     },
     paymentMethod: {

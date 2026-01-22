@@ -35,57 +35,13 @@ exports.getTiers = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Upgrade membership (deducts from selected wallet)
+// @desc    Upgrade membership (DEPRECATED - Use rank upgrade requests instead)
 // @route   POST /api/memberships/upgrade
 // @access  Private
 exports.upgradeMembership = asyncHandler(async (req, res) => {
-    const { newLevel, walletType } = req.body;
-
-    if (!['income', 'personal'].includes(walletType)) {
-        throw new AppError('Invalid wallet type selected', 400);
-    }
-
-    const user = await User.findByPk(req.user.id);
-    const [currentMembership, newMembership] = await Promise.all([
-        Membership.findOne({ where: { level: user.membershipLevel } }),
-        Membership.findOne({ where: { level: newLevel } })
-    ]);
-
-    if (!newMembership) throw new AppError('Membership level not found', 404);
-
-    if (newMembership.order <= currentMembership.order) {
-        throw new AppError('Can only upgrade to a higher membership level', 400);
-    }
-
-    const progressionCheck = await Membership.isProgressionAllowed(user.membershipLevel, newLevel);
-    if (!progressionCheck.allowed) {
-        throw new AppError(progressionCheck.reason, 400);
-    }
-
-    const walletField = walletType === 'income' ? 'incomeWallet' : 'personalWallet';
-    if (parseFloat(user[walletField]) < parseFloat(newMembership.price)) {
-        throw new AppError(`Insufficient funds in ${walletType} wallet`, 400);
-    }
-
-    // Atomic upgrade
-    await sequelize.transaction(async (t) => {
-        user[walletField] = parseFloat(user[walletField]) - parseFloat(newMembership.price);
-        user.membershipLevel = newLevel;
-        user.membershipActivatedAt = new Date();
-        await user.save({ transaction: t });
-
-        await calculateAndCreateMembershipCommissions(user, newMembership, { transaction: t });
-    });
-
-    res.status(200).json({
-        success: true,
-        message: `Successfully upgraded to ${newLevel}`,
-        user: {
-            membershipLevel: user.membershipLevel,
-            incomeWallet: user.incomeWallet,
-            personalWallet: user.personalWallet
-        }
-    });
+    // This endpoint is now deprecated in favor of the new rank upgrade request system
+    // that requires a deposit for every upgrade
+    throw new AppError('Direct membership upgrades are no longer allowed. Please use the rank upgrade request system that requires a deposit.', 400);
 });
 
 // @desc    Get all membership tiers (including hidden) - Admin only

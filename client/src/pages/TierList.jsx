@@ -1,24 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { membershipAPI } from '../services/api';
+import { membershipAPI, rankUpgradeAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star } from 'lucide-react';
+import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, AlertTriangle } from 'lucide-react';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Modal from '../components/Modal';
 
 export default function TierList() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedTier, setSelectedTier] = useState(null);
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('personal'); // 'personal' or 'income'
 
     useEffect(() => {
         const fetchTiers = async () => {
@@ -42,31 +37,8 @@ export default function TierList() {
         return tierIdx > currentIdx;
     };
 
-    const handleJoinClick = (tier) => {
-        setSelectedTier(tier);
-        setPaymentMethod('personal');
-        setShowModal(true);
-    };
-
-    const handleConfirmUpgrade = async () => {
-        if (!selectedTier) return;
-        setConfirmLoading(true);
-        try {
-            const res = await membershipAPI.upgrade({
-                newLevel: selectedTier.level,
-                walletType: paymentMethod
-            });
-
-            if (res.data.success) {
-                toast.success(res.data.message);
-                setShowModal(false);
-                window.location.reload();
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Upgrade failed');
-        } finally {
-            setConfirmLoading(false);
-        }
+    const handleUpgradeClick = () => {
+        navigate('/rank-upgrade');
     };
 
     if (loading) return <Loading />;
@@ -85,6 +57,28 @@ export default function TierList() {
             </div>
 
             <div className="px-4 py-6 space-y-4">
+                {/* Important Notice */}
+                <div className="bg-amber-900/20 border border-amber-500/20 rounded-2xl p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-amber-500/10 p-2 rounded-lg">
+                            <AlertTriangle size={20} className="text-amber-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-amber-400 font-bold text-sm mb-1">New Upgrade Process</h3>
+                            <p className="text-amber-200/80 text-xs leading-relaxed mb-2">
+                                All rank upgrades now require a new deposit. You can no longer upgrade using existing wallet funds.
+                            </p>
+                            <Button
+                                onClick={handleUpgradeClick}
+                                size="sm"
+                                className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
+                            >
+                                Go to New Upgrade Process
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
                 {tiers.map((tier, index) => {
                     const isCurrent = user?.membershipLevel === tier.level;
                     const canUpgrade = isHigherLevel(tier.level);
@@ -151,11 +145,11 @@ export default function TierList() {
 
                                 {canUpgrade ? (
                                     <Button
-                                        onClick={() => handleJoinClick(tier)}
+                                        onClick={handleUpgradeClick}
                                         className="w-full shadow-glow bg-primary-500 hover:bg-primary-600 text-black font-bold"
                                     >
                                         <Zap size={16} className="mr-2 fill-black text-black" />
-                                        Upgrade Now
+                                        Upgrade with Deposit
                                     </Button>
                                 ) : isCurrent ? (
                                     <div className="w-full py-3 bg-primary-500/10 text-primary-500 rounded-xl font-bold text-center border border-primary-500/20 text-xs flex items-center justify-center gap-2">
@@ -176,93 +170,6 @@ export default function TierList() {
                     );
                 })}
             </div>
-
-            {/* Upgrade Modal */}
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title={selectedTier ? `Upgrade to ${selectedTier.level}` : 'Confirm Upgrade'}
-            >
-                {selectedTier && (
-                    <div className="space-y-5">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center text-center">
-                                <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wide mb-1">Income Wallet</span>
-                                <span className="text-sm font-black text-primary-500">{formatNumber(user?.incomeWallet || 0)} ETB</span>
-                            </div>
-                            <div className="p-3 bg-zinc-950 rounded-xl border border-zinc-800 flex flex-col items-center text-center">
-                                <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wide mb-1">Personal Wallet</span>
-                                <span className="text-sm font-black text-white">{formatNumber(user?.personalWallet || 0)} ETB</span>
-                            </div>
-                        </div>
-
-                        <div className="bg-zinc-950 text-white p-4 rounded-xl shadow-lg flex justify-between items-center border border-zinc-800">
-                            <span className="text-sm font-medium text-zinc-400">Upgrade Cost</span>
-                            <span className="text-xl font-black text-primary-500">{formatNumber(selectedTier.price)} ETB</span>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wide ml-1">Payment Source</label>
-
-                            <div
-                                className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'personal'
-                                    ? 'border-primary-500 bg-primary-500/10'
-                                    : 'border-zinc-800 bg-zinc-900 hover:bg-zinc-800'
-                                    }`}
-                                onClick={() => setPaymentMethod('personal')}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'personal' ? 'border-primary-500' : 'border-zinc-600'
-                                        }`}>
-                                        {paymentMethod === 'personal' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-white">Personal Wallet</span>
-                                        <span className="text-[10px] text-zinc-500">Use your deposited funds</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${paymentMethod === 'income'
-                                    ? 'border-primary-500 bg-primary-500/10'
-                                    : 'border-zinc-800 bg-zinc-900 hover:bg-zinc-800'
-                                    }`}
-                                onClick={() => setPaymentMethod('income')}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'income' ? 'border-primary-500' : 'border-zinc-600'
-                                        }`}>
-                                        {paymentMethod === 'income' && <div className="w-2.5 h-2.5 rounded-full bg-primary-500" />}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-white">Income Wallet</span>
-                                        <span className="text-[10px] text-zinc-500">Use your earnings</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => setShowModal(false)}
-                                className="flex-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handleConfirmUpgrade}
-                                loading={confirmLoading}
-                                disabled={confirmLoading}
-                                className="flex-[2] shadow-glow"
-                            >
-                                Confirm Payment
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </div>
     );
 }

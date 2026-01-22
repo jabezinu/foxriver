@@ -162,7 +162,7 @@ export default function Home() {
     const menuItems = [
         { icon: Download, label: t('home.deposit'), color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
         { icon: Upload, label: t('home.withdraw'), color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
-        { icon: LayoutGrid, label: 'Level', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/tiers' },
+        { icon: LayoutGrid, label: 'Upgrade Rank', color: 'bg-purple-500/10 text-purple-400 border border-purple-500/20', path: '/rank-upgrade' },
         { icon: Gamepad2, label: t('home.slotMachine'), color: 'bg-gradient-to-br from-pink-500 to-purple-600 text-white border-0 shadow-lg shadow-pink-500/50', path: '/spin', description: t('home.spinToWin') },
         { icon: Zap, label: t('home.wealth'), color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
         { icon: GraduationCap, label: t('home.courses'), color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },

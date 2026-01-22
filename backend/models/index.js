@@ -25,6 +25,7 @@ const News = require('./News');
 const Chat = require('./Chat');
 const ChatMessage = require('./ChatMessage');
 const QnA = require('./QnA');
+const RankUpgradeRequest = require('./RankUpgradeRequest');
 
 // Define associations
 // User associations
@@ -36,6 +37,7 @@ User.hasMany(Withdrawal, { foreignKey: 'user', as: 'withdrawals' });
 User.hasMany(WealthInvestment, { foreignKey: 'user', as: 'investments' });
 User.hasMany(SpinResult, { foreignKey: 'user', as: 'spinResults' });
 User.hasMany(DailyVideoAssignment, { foreignKey: 'user', as: 'videoAssignments' });
+User.hasMany(RankUpgradeRequest, { foreignKey: 'user', as: 'rankUpgradeRequests' });
 User.belongsTo(User, { foreignKey: 'referrerId', as: 'referrer' });
 User.hasMany(User, { foreignKey: 'referrerId', as: 'referrals' });
 User.hasOne(Chat, { foreignKey: 'user', as: 'chat' });
@@ -70,6 +72,12 @@ Salary.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
 Deposit.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
 Deposit.belongsTo(BankAccount, { foreignKey: 'paymentMethod', as: 'paymentMethodDetails' });
 Deposit.belongsTo(User, { foreignKey: 'approvedBy', as: 'approver' });
+Deposit.hasOne(RankUpgradeRequest, { foreignKey: 'depositId', as: 'rankUpgradeRequest' });
+
+// RankUpgradeRequest associations
+RankUpgradeRequest.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
+RankUpgradeRequest.belongsTo(Deposit, { foreignKey: 'depositId', as: 'deposit' });
+RankUpgradeRequest.belongsTo(User, { foreignKey: 'approvedBy', as: 'approver' });
 
 // Withdrawal associations
 Withdrawal.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
@@ -105,7 +113,7 @@ const models = [
     User, Membership, Task, TaskCompletion, Course, CourseCategory,
     DailyVideoAssignment, VideoPool, Playlist, SystemSetting, Commission,
     Salary, Deposit, Withdrawal, BankAccount, WealthFund, WealthInvestment,
-    SpinResult, SlotTier, News, Chat, ChatMessage, QnA
+    SpinResult, SlotTier, News, Chat, ChatMessage, QnA, RankUpgradeRequest
 ];
 
 models.forEach(model => addMongoCompatibility(model));
@@ -134,5 +142,6 @@ module.exports = {
     News,
     Chat,
     ChatMessage,
-    QnA
+    QnA,
+    RankUpgradeRequest
 };

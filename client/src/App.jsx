@@ -20,6 +20,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const CompanyNews = lazy(() => import('./pages/CompanyNews'));
 const QnA = lazy(() => import('./pages/QnA'));
 const TierList = lazy(() => import('./pages/TierList'));
+const RankUpgrade = lazy(() => import('./pages/RankUpgrade'));
 const Team = lazy(() => import('./pages/Team'));
 const SpinWheel = lazy(() => import('./pages/SpinWheel'));
 const AppRules = lazy(() => import('./pages/AppRules'));
@@ -183,6 +184,7 @@ function App() {
             <Route path="news" element={<CompanyNews />} />
             <Route path="qna" element={<QnA />} />
             <Route path="tiers" element={<TierList />} />
+            <Route path="rank-upgrade" element={<RankUpgrade />} />
             <Route path="team" element={<Team />} />
             <Route path="spin" element={<SpinWheel />} />
             <Route path="app-rules" element={<AppRules />} />

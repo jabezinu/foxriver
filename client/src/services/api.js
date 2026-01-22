@@ -84,6 +84,7 @@ export const depositAPI = {
         },
     }),
     getUserDeposits: () => axios.get('/deposits/user'),
+    getAllowedAmounts: () => axios.get('/deposits/allowed-amounts'),
 };
 
 // Withdrawal endpoints
@@ -109,7 +110,14 @@ export const videoTaskAPI = {
 // Membership endpoints
 export const membershipAPI = {
     getTiers: () => axios.get('/memberships/tiers'),
-    upgrade: (data) => axios.post('/memberships/upgrade', data),
+    upgrade: (data) => axios.post('/memberships/upgrade', data), // DEPRECATED
+};
+
+// Rank Upgrade endpoints
+export const rankUpgradeAPI = {
+    createRequest: (data) => axios.post('/rank-upgrades/request', data),
+    getUserRequests: () => axios.get('/rank-upgrades/user'),
+    cancelRequest: (id) => axios.delete(`/rank-upgrades/${id}/cancel`),
 };
 
 // Referral endpoints

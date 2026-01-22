@@ -4,19 +4,27 @@ exports.isValidEthiopianPhone = (phone) => {
     return phoneRegex.test(phone);
 };
 
-// Allowed deposit amounts in ETB
-exports.ALLOWED_DEPOSIT_AMOUNTS = [
-    3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000
-];
-
 // Allowed withdrawal amounts in ETB
 exports.ALLOWED_WITHDRAWAL_AMOUNTS = [
     100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000
 ];
 
-// Validate deposit amount
-exports.isValidDepositAmount = (amount) => {
-    return exports.ALLOWED_DEPOSIT_AMOUNTS.includes(Number(amount));
+// Validate deposit amount dynamically - ONLY membership tier prices
+exports.isValidDepositAmount = async (amount) => {
+    const Membership = require('../models/Membership');
+    const { Op } = require('sequelize');
+    
+    const memberships = await Membership.findAll({
+        attributes: ['price'],
+        where: {
+            price: { [Op.gt]: 0 } // Exclude free memberships (Intern)
+        }
+    });
+    
+    // Extract prices and convert to numbers - ONLY membership prices
+    const allowedAmounts = memberships.map(m => parseFloat(m.price)).sort((a, b) => a - b);
+    
+    return allowedAmounts.includes(Number(amount));
 };
 
 // Validate withdrawal amount

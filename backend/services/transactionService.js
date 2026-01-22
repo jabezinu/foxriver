@@ -1,4 +1,5 @@
-const { Deposit, Withdrawal, User } = require('../models');
+const { Deposit, Withdrawal, User, RankUpgradeRequest, Membership, sequelize } = require('../models');
+const { calculateAndCreateMembershipCommissions } = require('../utils/commission');
 const { AppError } = require('../middlewares/errorHandler');
 const logger = require('../config/logger');
 
@@ -7,7 +8,14 @@ class TransactionService {
      * Approve a deposit request
      */
     async approveDeposit(depositId, adminId, notes = '') {
-        const deposit = await Deposit.findByPk(depositId);
+        const deposit = await Deposit.findByPk(depositId, {
+            include: [
+                {
+                    model: RankUpgradeRequest,
+                    as: 'rankUpgradeRequest'
+                }
+            ]
+        });
 
         if (!deposit) {
             throw new AppError('Deposit not found', 404);
@@ -22,18 +30,70 @@ class TransactionService {
             throw new AppError('User not found', 404);
         }
 
-        // Credit user's personal balance
-        user.personalWallet = parseFloat(user.personalWallet) + parseFloat(deposit.amount);
-        await user.save();
+        // Use transaction to ensure atomicity
+        await sequelize.transaction(async (t) => {
+            // Check if this deposit is for a rank upgrade
+            const isRankUpgradeDeposit = deposit.rankUpgradeRequest && deposit.rankUpgradeRequest.status === 'pending';
+            
+            // Only credit user's personal balance if this is NOT a rank upgrade deposit
+            if (!isRankUpgradeDeposit) {
+                user.personalWallet = parseFloat(user.personalWallet) + parseFloat(deposit.amount);
+                await user.save({ transaction: t });
+                logger.info('Regular deposit - credited to personal wallet', { depositId, amount: deposit.amount });
+            } else {
+                logger.info('Rank upgrade deposit - amount used for upgrade, not credited to wallet', { depositId, amount: deposit.amount });
+            }
 
-        // Update deposit status
-        deposit.status = 'approved';
-        deposit.approvedBy = adminId;
-        deposit.approvedAt = new Date();
-        deposit.adminNotes = notes;
-        await deposit.save();
+            // Update deposit status
+            deposit.status = 'approved';
+            deposit.approvedBy = adminId;
+            deposit.approvedAt = new Date();
+            deposit.adminNotes = notes;
+            await deposit.save({ transaction: t });
 
-        logger.info('Deposit approved', { depositId, adminId, amount: deposit.amount, userId: user.id });
+            // If this deposit is associated with a rank upgrade request, approve it automatically
+            if (isRankUpgradeDeposit) {
+                const rankUpgradeRequest = deposit.rankUpgradeRequest;
+                
+                // Get the target membership
+                const newMembership = await Membership.findOne({
+                    where: { level: rankUpgradeRequest.requestedLevel }
+                });
+
+                if (newMembership) {
+                    // Update user's membership level
+                    user.membershipLevel = rankUpgradeRequest.requestedLevel;
+                    user.membershipActivatedAt = new Date();
+                    await user.save({ transaction: t });
+
+                    // Update rank upgrade request status
+                    rankUpgradeRequest.status = 'approved';
+                    rankUpgradeRequest.approvedBy = adminId;
+                    rankUpgradeRequest.approvedAt = new Date();
+                    await rankUpgradeRequest.save({ transaction: t });
+
+                    // Calculate and create membership commissions
+                    await calculateAndCreateMembershipCommissions(user, newMembership, { transaction: t });
+
+                    logger.info('Rank upgrade approved automatically with deposit', {
+                        depositId,
+                        rankUpgradeRequestId: rankUpgradeRequest.id,
+                        userId: user.id,
+                        newLevel: rankUpgradeRequest.requestedLevel,
+                        amountUsedForUpgrade: deposit.amount
+                    });
+                }
+            }
+        });
+
+        const depositType = deposit.rankUpgradeRequest ? 'rank upgrade' : 'regular';
+        logger.info(`${depositType} deposit approved`, { 
+            depositId, 
+            adminId, 
+            amount: deposit.amount, 
+            userId: user.id,
+            creditedToWallet: !deposit.rankUpgradeRequest
+        });
         return deposit;
     }
 

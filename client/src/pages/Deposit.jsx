@@ -34,20 +34,17 @@ export default function Deposit() {
     const [methods, setMethods] = useState([]);
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
-
-    const amounts = [3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000];
+    const [amounts, setAmounts] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch wallet (cached) and banks (fresh)
-                // We run them in parallel
-                const [_, bankRes] = await Promise.all([
+                // Fetch wallet, banks, and allowed amounts in parallel
+                const [_, bankRes, amountsRes] = await Promise.all([
                     fetchWallet(),
-                    bankAPI.getBanks()
+                    bankAPI.getBanks(),
+                    depositAPI.getAllowedAmounts()
                 ]);
-
-                // setBalance(walletRes.data.wallet.personalWallet); // No longer needed, derived from store
 
                 const bankMethods = bankRes.data.data.map(bank => ({
                     id: bank._id || bank.id,
@@ -56,6 +53,7 @@ export default function Deposit() {
                     holder: bank.accountHolderName
                 }));
                 setMethods(bankMethods);
+                setAmounts(amountsRes.data.allowedAmounts);
             } catch (error) {
                 toast.error('Failed to load data');
                 console.error(error);
