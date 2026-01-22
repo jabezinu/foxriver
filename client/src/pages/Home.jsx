@@ -14,6 +14,7 @@ import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import LanguageSelector from '../components/LanguageSelector';
+import BankChangeConfirmation from '../components/BankChangeConfirmation';
 import { useUserStore } from '../store/userStore';
 
 const MenuItem = ({ item, navigate, isLarge = false }) => (
@@ -119,14 +120,27 @@ export default function Home() {
     const [showInvitation, setShowInvitation] = useState(false);
     const [referralLink, setReferralLink] = useState('');
     const [isSyncing, setIsSyncing] = useState(false);
+    const [bankChangeInfo, setBankChangeInfo] = useState(null);
 
     useEffect(() => {
         const init = async () => {
             await fetchWallet();
+            await checkBankChangeStatus();
             setIsInitialLoad(false);
         };
         init();
     }, [fetchWallet]);
+
+    const checkBankChangeStatus = async () => {
+        try {
+            const res = await userAPI.getProfile();
+            if (res.data.bankChangeInfo) {
+                setBankChangeInfo(res.data.bankChangeInfo);
+            }
+        } catch (error) {
+            console.error('Failed to check bank change status:', error);
+        }
+    };
 
     const handleSync = async () => {
         setIsSyncing(true);
@@ -301,6 +315,13 @@ export default function Home() {
                     </Button>
                 </div>
             </Modal>
+
+            {/* Bank Change Confirmation Modal */}
+            <BankChangeConfirmation
+                bankChangeInfo={bankChangeInfo}
+                onConfirmed={checkBankChangeStatus}
+                onDeclined={checkBankChangeStatus}
+            />
         </div>
     );
 }

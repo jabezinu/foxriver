@@ -117,8 +117,12 @@ User.init({
         allowNull: true
     },
     bankChangeStatus: {
-        type: DataTypes.ENUM('none', 'pending'),
+        type: DataTypes.ENUM('none', 'pending', 'declined'),
         defaultValue: 'none'
+    },
+    bankChangeConfirmations: {
+        type: DataTypes.JSON,
+        defaultValue: []
     },
     referrerId: {
         type: DataTypes.INTEGER,

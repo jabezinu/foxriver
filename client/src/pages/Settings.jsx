@@ -8,6 +8,7 @@ import Loading from '../components/Loading';
 import Modal from '../components/Modal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import BankChangeConfirmation from '../components/BankChangeConfirmation';
 import { getServerUrl } from '../config/api.config';
 
 export default function Settings() {
@@ -15,6 +16,7 @@ export default function Settings() {
     const { logout, user, updateUser } = useAuthStore();
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState(null);
+    const [bankChangeInfo, setBankChangeInfo] = useState(null);
 
     const [modalType, setModalType] = useState(null); // bank, transPass, loginPass
     const [formData, setFormData] = useState({
@@ -36,6 +38,7 @@ export default function Settings() {
         try {
             const res = await userAPI.getProfile();
             setProfile(res.data.user);
+            setBankChangeInfo(res.data.bankChangeInfo);
             setFormData(prev => ({
                 ...prev,
                 bankName: res.data.user.bankAccount?.bank || '',
@@ -58,11 +61,33 @@ export default function Settings() {
                 accountName: formData.accountName,
                 phone: formData.bankPhone
             });
-            toast.success(res.data.message || 'Bank account updated!');
+            
+            if (res.data.isPending) {
+                toast.success(res.data.message || 'Bank account change requested!');
+                setBankChangeInfo({
+                    needsConfirmation: true,
+                    confirmationCount: 0,
+                    oldAccount: res.data.oldAccount,
+                    newAccount: res.data.newAccount
+                });
+            } else {
+                toast.success(res.data.message || 'Bank account updated!');
+            }
+            
             setModalType(null);
             fetchProfile();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Update failed.');
+        }
+    };
+
+    const handleCancelBankChange = async () => {
+        try {
+            await userAPI.cancelBankChange();
+            toast.success('Bank account change request cancelled');
+            fetchProfile();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to cancel request');
         }
     };
 
@@ -225,16 +250,43 @@ export default function Settings() {
                             <p className="text-violet-500 font-bold text-xs uppercase tracking-wide mb-1">
                                 Change Pending
                             </p>
-                            <p className="text-violet-200/80 text-xs leading-relaxed">
-                                Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}<br />
-                                Effective: {new Date(new Date(profile.bankChangeRequestDate).getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                            <p className="text-violet-200/80 text-xs leading-relaxed mb-2">
+                                Confirmations: {profile.bankChangeConfirmations?.length || 0} of 3<br />
+                                Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}
                             </p>
+                            <Button
+                                onClick={handleCancelBankChange}
+                                variant="danger"
+                                size="sm"
+                                className="w-full"
+                            >
+                                Cancel Request
+                            </Button>
                         </div>
                     )}
 
-                    {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && (
+                    {profile.bankChangeStatus === 'declined' && (
+                        <div className="bg-red-500/10 p-4 rounded-xl border border-red-500/20 mb-2">
+                            <p className="text-red-500 font-bold text-xs uppercase tracking-wide mb-1">
+                                Request Declined
+                            </p>
+                            <p className="text-red-200/80 text-xs leading-relaxed mb-2">
+                                Your previous bank account change request was declined. You can submit a new request or cancel.
+                            </p>
+                            <Button
+                                onClick={handleCancelBankChange}
+                                variant="danger"
+                                size="sm"
+                                className="w-full"
+                            >
+                                Clear Status
+                            </Button>
+                        </div>
+                    )}
+
+                    {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && profile.bankChangeStatus !== 'declined' && (
                         <p className="text-xs text-blue-400 bg-blue-500/10 p-3 rounded-xl font-medium mb-2 border border-blue-500/20">
-                            Changes to bank details will take 3 days to verify.
+                            Changes to bank details require confirmation once per day for 3 consecutive days.
                         </p>
                     )}
 
@@ -276,6 +328,14 @@ export default function Settings() {
                     )}
                 </div>
             </Modal>
+
+            {/* Bank Change Confirmation Modal */}
+            <BankChangeConfirmation
+                bankChangeInfo={bankChangeInfo}
+                profile={profile}
+                onConfirmed={fetchProfile}
+                onDeclined={fetchProfile}
+            />
 
             {/* Login Password Modal */}
             <Modal isOpen={modalType === 'loginPass'} onClose={() => setModalType(null)} title="Change Password">

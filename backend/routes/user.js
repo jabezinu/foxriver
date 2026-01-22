@@ -7,6 +7,8 @@ const {
     deleteProfilePhoto,
     getWalletBalance,
     setBankAccount,
+    confirmBankChange,
+    cancelBankChange,
     setTransactionPassword,
     changeLoginPassword,
     getReferralLink
@@ -20,6 +22,8 @@ router.post('/profile-photo', protect, upload.single('photo'), uploadProfilePhot
 router.delete('/profile-photo', protect, deleteProfilePhoto);
 router.get('/wallet', protect, getWalletBalance);
 router.put('/bank-account', protect, setBankAccount);
+router.post('/bank-account/confirm', protect, confirmBankChange);
+router.delete('/bank-account/pending', protect, cancelBankChange);
 router.put('/transaction-password', protect, isV1OrHigher, setTransactionPassword);
 router.put('/login-password', protect, changeLoginPassword);
 router.get('/referral-link', protect, getReferralLink);

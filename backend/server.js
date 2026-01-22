@@ -24,6 +24,28 @@ setTimeout(() => {
     });
 }, 2000);
 
+// Run database schema check and fixes on startup
+setTimeout(() => {
+    const { runStartupDatabaseCheck } = require('./scripts/startup-database-check');
+    runStartupDatabaseCheck().then(success => {
+        if (success) {
+            // If database check passed, optionally run bank account API test
+            // Only run in development or if BANK_TEST_ON_STARTUP is set
+            if (process.env.NODE_ENV === 'development' || process.env.BANK_TEST_ON_STARTUP === 'true') {
+                setTimeout(() => {
+                    const { testBankAccountAPI } = require('./scripts/test-bank-account-api');
+                    testBankAccountAPI().catch(err => {
+                        logger.warn('Bank account API test failed:', err.message);
+                    });
+                }, 1000);
+            }
+        }
+    }).catch(err => {
+        logger.error('Database schema check failed:', err.message);
+        logger.warn('Bank account functionality may not work properly');
+    });
+}, 2500);
+
 // Add database indexes automatically on startup (runs once, safe to run multiple times)
 setTimeout(() => {
     const { addAllIndexes } = require('./scripts/addIndexes');
@@ -93,6 +115,48 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
     });
+});
+
+// Database check route (for manual testing)
+app.get('/api/database-check', async (req, res) => {
+    try {
+        const { runStartupDatabaseCheck } = require('./scripts/startup-database-check');
+        const result = await runStartupDatabaseCheck();
+        
+        res.json({
+            status: result ? 'OK' : 'FAILED',
+            message: result ? 'Database check passed' : 'Database check failed',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Database check error',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// Bank account API test route (for manual testing)
+app.get('/api/test-bank-account', async (req, res) => {
+    try {
+        const { testBankAccountAPI } = require('./scripts/test-bank-account-api');
+        const result = await testBankAccountAPI();
+        
+        res.json({
+            status: result ? 'OK' : 'FAILED',
+            message: result ? 'Bank account API test passed' : 'Bank account API test failed',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Bank account API test error',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // 404 handler (must be before error handler)
