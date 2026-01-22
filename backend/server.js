@@ -159,6 +159,60 @@ app.get('/api/test-bank-account', async (req, res) => {
     }
 });
 
+// Debug endpoint to check user bank account data
+app.get('/api/debug/user-bank-account/:userId', async (req, res) => {
+    try {
+        const User = require('./models/User');
+        const user = await User.findByPk(req.params.userId);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({
+            userId: user.id,
+            bankAccount: user.bankAccount,
+            bankAccountType: typeof user.bankAccount,
+            bankAccountRaw: user.getDataValue('bankAccount'),
+            pendingBankAccount: user.pendingBankAccount,
+            bankChangeStatus: user.bankChangeStatus
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Debug endpoint to run bank account diagnosis
+app.get('/api/debug/diagnose-bank-accounts', async (req, res) => {
+    try {
+        const { diagnoseBankAccountIssue } = require('./scripts/diagnose-bank-account-issue');
+        
+        // Capture console output
+        const originalLog = console.log;
+        const logs = [];
+        console.log = (...args) => {
+            logs.push(args.join(' '));
+            originalLog(...args);
+        };
+        
+        await diagnoseBankAccountIssue();
+        
+        // Restore console.log
+        console.log = originalLog;
+        
+        res.json({
+            status: 'completed',
+            logs: logs,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: error.message,
+            stack: error.stack 
+        });
+    }
+});
+
 // 404 handler (must be before error handler)
 app.use(notFound);
 

@@ -15,8 +15,17 @@ exports.getProfile = asyncHandler(async (req, res) => {
         throw new AppError('User not found', 404);
     }
 
-    // Check if bank change needs confirmation
-    const bankChangeInfo = await userService.processPendingBankChange(user);
+    // Check if bank change needs confirmation with error handling
+    let bankChangeInfo = { needsConfirmation: false };
+    try {
+        bankChangeInfo = await userService.processPendingBankChange(user);
+    } catch (error) {
+        logger.error('Error processing pending bank change', { 
+            userId: user.id, 
+            error: error.message 
+        });
+        // Continue with default bankChangeInfo to prevent complete failure
+    }
 
     const userObj = user.toJSON();
     const hasTransactionPassword = !!userObj.transactionPassword;
@@ -168,47 +177,45 @@ exports.getWalletBalance = asyncHandler(async (req, res) => {
 exports.setBankAccount = asyncHandler(async (req, res) => {
     const { accountName, bank, accountNumber, phone } = req.body;
 
-    console.log('🏦 setBankAccount called:', {
-        userId: req.user.id,
-        accountName,
-        bank,
-        accountNumber: accountNumber ? `***${accountNumber.slice(-4)}` : null,
-        phone: phone ? `***${phone.slice(-4)}` : null
-    });
-
     // Validate required fields
     if (!accountName || !bank || !accountNumber || !phone) {
-        console.log('❌ Validation failed: Missing required fields');
         throw new AppError('All bank account fields are required', 400);
     }
 
     const user = await User.findByPk(req.user.id);
-    console.log('👤 User found:', {
-        id: user.id,
-        membershipLevel: user.membershipLevel,
-        hasBankAccount: !!(user.bankAccount && user.bankAccount.isSet)
-    });
 
     // Check if user is Intern - only Rank 1+ can set bank account
     if (user.membershipLevel === 'Intern') {
-        console.log('❌ Access denied: User is Intern level');
         throw new AppError('Please upgrade to Rank 1 or higher to set up bank account', 403);
     }
 
     // Check if another user already has this bank account
-    console.log('🔍 Checking for duplicate bank account...');
     const isDuplicate = await userService.isBankAccountDuplicate(accountNumber, bank, user.id);
 
     if (isDuplicate) {
-        console.log('❌ Duplicate bank account found');
         throw new AppError('This bank account is already registered to another user', 400);
     }
 
-    console.log('✅ No duplicate found, proceeding...');
-
     // If bank account is already set, handle as change request
     if (user.bankAccount && user.bankAccount.isSet) {
-        console.log('🔄 Existing bank account found, creating change request...');
+        // Check if the new data is the same as existing data
+        const existingAccount = user.bankAccount;
+        const isSameData = (
+            existingAccount.accountName === accountName &&
+            existingAccount.bank === bank &&
+            existingAccount.accountNumber === accountNumber &&
+            existingAccount.phone === phone
+        );
+        
+        if (isSameData) {
+            return res.status(200).json({
+                success: true,
+                message: 'No changes detected. Your bank account information is already up to date.',
+                noChanges: true,
+                bankAccount: user.bankAccount
+            });
+        }
+        
         user.pendingBankAccount = {
             accountName,
             bank,
@@ -221,9 +228,8 @@ exports.setBankAccount = asyncHandler(async (req, res) => {
         
         try {
             await user.save();
-            console.log('✅ Bank change request saved successfully');
         } catch (error) {
-            console.error('❌ Failed to save bank change request:', error);
+            logger.error('Failed to save bank change request', { userId: user.id, error: error.message });
             throw error;
         }
 
@@ -237,7 +243,6 @@ exports.setBankAccount = asyncHandler(async (req, res) => {
         });
     }
 
-    console.log('💾 Setting new bank account...');
     user.bankAccount = {
         accountName,
         bank,
@@ -248,14 +253,11 @@ exports.setBankAccount = asyncHandler(async (req, res) => {
 
     try {
         await user.save();
-        console.log('✅ Bank account saved successfully');
+        await user.reload();
     } catch (error) {
-        console.error('❌ Failed to save bank account:', error);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            sql: error.sql,
-            sqlMessage: error.sqlMessage
+        logger.error('Failed to save bank account', { 
+            userId: user.id, 
+            error: error.message 
         });
         throw new AppError('Failed to save bank account. Please try again.', 500);
     }
@@ -277,29 +279,37 @@ exports.confirmBankChange = asyncHandler(async (req, res) => {
         throw new AppError('Confirmation status is required', 400);
     }
 
-    const result = await userService.confirmBankChange(req.user.id, confirmed);
+    try {
+        const result = await userService.confirmBankChange(req.user.id, confirmed);
 
-    if (result.declined) {
-        return res.status(200).json({
+        if (result.declined) {
+            return res.status(200).json({
+                success: true,
+                message: 'Bank account change request has been declined',
+                declined: true
+            });
+        }
+
+        if (result.completed) {
+            return res.status(200).json({
+                success: true,
+                message: 'Bank account has been successfully updated!',
+                completed: true
+            });
+        }
+
+        res.status(200).json({
             success: true,
-            message: 'Bank account change request has been declined',
-            declined: true
+            message: `Confirmation ${result.confirmationCount} of 3 recorded. Please confirm again tomorrow.`,
+            confirmationCount: result.confirmationCount
         });
-    }
-
-    if (result.completed) {
-        return res.status(200).json({
-            success: true,
-            message: 'Bank account has been successfully updated!',
-            completed: true
+    } catch (error) {
+        logger.error('Bank account confirmation failed', { 
+            userId: req.user.id, 
+            error: error.message 
         });
+        throw error;
     }
-
-    res.status(200).json({
-        success: true,
-        message: `Confirmation ${result.confirmationCount} of 3 recorded. Please confirm again tomorrow.`,
-        confirmationCount: result.confirmationCount
-    });
 });
 
 // @desc    Cancel bank account change

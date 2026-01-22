@@ -100,17 +100,52 @@ User.init({
     },
     bankAccount: {
         type: DataTypes.JSON,
-        defaultValue: {
-            accountName: null,
-            bank: null,
-            accountNumber: null,
-            phone: null,
-            isSet: false
+        defaultValue: null,
+        get() {
+            const value = this.getDataValue('bankAccount');
+            // Handle cases where the value might be stored as string or null
+            if (!value) {
+                return {
+                    accountName: null,
+                    bank: null,
+                    accountNumber: null,
+                    phone: null,
+                    isSet: false
+                };
+            }
+            // If it's already an object, return it
+            if (typeof value === 'object') {
+                return value;
+            }
+            // If it's a string, try to parse it
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                console.error('Error parsing bankAccount JSON:', e);
+                return {
+                    accountName: null,
+                    bank: null,
+                    accountNumber: null,
+                    phone: null,
+                    isSet: false
+                };
+            }
         }
     },
     pendingBankAccount: {
         type: DataTypes.JSON,
-        defaultValue: null
+        defaultValue: null,
+        get() {
+            const value = this.getDataValue('pendingBankAccount');
+            if (!value) return null;
+            if (typeof value === 'object') return value;
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                console.error('Error parsing pendingBankAccount JSON:', e);
+                return null;
+            }
+        }
     },
     bankChangeRequestDate: {
         type: DataTypes.DATE,
@@ -122,7 +157,19 @@ User.init({
     },
     bankChangeConfirmations: {
         type: DataTypes.JSON,
-        defaultValue: []
+        defaultValue: [],
+        get() {
+            const value = this.getDataValue('bankChangeConfirmations');
+            if (!value) return [];
+            if (Array.isArray(value)) return value;
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('Error parsing bankChangeConfirmations JSON:', e);
+                return [];
+            }
+        }
     },
     referrerId: {
         type: DataTypes.INTEGER,
@@ -162,11 +209,10 @@ User.init({
     modelName: 'User',
     tableName: 'users',
     indexes: [
-        { fields: ['phone'] },
-        { fields: ['invitationCode'] },
-        { fields: ['referrerId'] },
-        { fields: ['membershipLevel'] },
-        { fields: ['role'] }
+        { fields: ['phone'] }, // Essential for login
+        { fields: ['invitationCode'] }, // Essential for referrals
+        { fields: ['referrerId'] } // Essential for referral queries
+        // Removed membershipLevel and role indexes to reduce total index count
     ],
     hooks: {
         beforeSave: async (user) => {

@@ -193,34 +193,40 @@ class UserService {
     async processPendingBankChange(user) {
         if (user.bankChangeStatus !== 'pending') return { needsConfirmation: false };
 
-        const confirmations = user.bankChangeConfirmations || [];
+        // Ensure confirmations is always an array
+        const confirmations = Array.isArray(user.bankChangeConfirmations) ? user.bankChangeConfirmations : [];
         const today = new Date().toDateString();
 
         // Check if user already confirmed today
         const confirmedToday = confirmations.some(conf => 
-            new Date(conf.date).toDateString() === today
+            conf && conf.date && new Date(conf.date).toDateString() === today
         );
 
         // Check if all 3 confirmations are complete
         if (confirmations.length >= 3) {
-            const isDuplicate = await this.isBankAccountDuplicate(
-                user.pendingBankAccount.accountNumber,
-                user.pendingBankAccount.bank,
-                user.id
-            );
+            try {
+                const isDuplicate = await this.isBankAccountDuplicate(
+                    user.pendingBankAccount.accountNumber,
+                    user.pendingBankAccount.bank,
+                    user.id
+                );
 
-            if (!isDuplicate) {
-                user.bankAccount = {
-                    ...user.pendingBankAccount,
-                    isSet: true
-                };
-                user.bankChangeStatus = 'none';
-                user.pendingBankAccount = null;
-                user.bankChangeRequestDate = null;
-                user.bankChangeConfirmations = [];
-                await user.save();
-                logger.info('Bank account change approved after 3 confirmations', { userId: user.id });
-                return { needsConfirmation: false, completed: true };
+                if (!isDuplicate) {
+                    user.bankAccount = {
+                        ...user.pendingBankAccount,
+                        isSet: true
+                    };
+                    user.bankChangeStatus = 'none';
+                    user.pendingBankAccount = null;
+                    user.bankChangeRequestDate = null;
+                    user.bankChangeConfirmations = [];
+                    await user.save();
+                    logger.info('Bank account change approved after 3 confirmations', { userId: user.id });
+                    return { needsConfirmation: false, completed: true };
+                }
+            } catch (error) {
+                logger.error('Error processing bank change completion:', error);
+                // Continue with normal flow if there's an error
             }
         }
 
@@ -243,12 +249,13 @@ class UserService {
             throw new AppError('No pending bank account change found', 404);
         }
 
-        const confirmations = user.bankChangeConfirmations || [];
+        // Ensure confirmations is always an array
+        const confirmations = Array.isArray(user.bankChangeConfirmations) ? user.bankChangeConfirmations : [];
         const today = new Date().toDateString();
 
         // Check if already confirmed today
         const confirmedToday = confirmations.some(conf => 
-            new Date(conf.date).toDateString() === today
+            conf && conf.date && new Date(conf.date).toDateString() === today
         );
 
         if (confirmedToday) {
@@ -276,27 +283,32 @@ class UserService {
 
         // If this is the 3rd confirmation, apply the change
         if (confirmations.length >= 3) {
-            const isDuplicate = await this.isBankAccountDuplicate(
-                user.pendingBankAccount.accountNumber,
-                user.pendingBankAccount.bank,
-                user.id
-            );
+            try {
+                const isDuplicate = await this.isBankAccountDuplicate(
+                    user.pendingBankAccount.accountNumber,
+                    user.pendingBankAccount.bank,
+                    user.id
+                );
 
-            if (isDuplicate) {
-                throw new AppError('This bank account is already registered to another user', 400);
+                if (isDuplicate) {
+                    throw new AppError('This bank account is already registered to another user', 400);
+                }
+
+                user.bankAccount = {
+                    ...user.pendingBankAccount,
+                    isSet: true
+                };
+                user.bankChangeStatus = 'none';
+                user.pendingBankAccount = null;
+                user.bankChangeRequestDate = null;
+                user.bankChangeConfirmations = [];
+                logger.info('Bank account change completed after 3 confirmations', { userId });
+                await user.save();
+                return { completed: true, confirmationCount: 3 };
+            } catch (error) {
+                logger.error('Error completing bank account change:', error);
+                throw error;
             }
-
-            user.bankAccount = {
-                ...user.pendingBankAccount,
-                isSet: true
-            };
-            user.bankChangeStatus = 'none';
-            user.pendingBankAccount = null;
-            user.bankChangeRequestDate = null;
-            user.bankChangeConfirmations = [];
-            logger.info('Bank account change completed after 3 confirmations', { userId });
-            await user.save();
-            return { completed: true, confirmationCount: 3 };
         }
 
         await user.save();
