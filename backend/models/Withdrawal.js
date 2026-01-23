@@ -21,7 +21,7 @@ Withdrawal.init({
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
         validate: {
-            isIn: [[100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000]]
+            isIn: [[750, 1600, 4500, 10000, 18700, 31500, 53200]]
         }
     },
     walletType: {
