@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { userAPI, depositAPI, bankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy, Upload, Image } from 'lucide-react';
+import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy, Upload, Image, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
+import TransactionStatusBadge from '../components/TransactionStatusBadge';
 import { formatNumber } from '../utils/formatNumber';
 import logo from '../assets/logo.png';
 
@@ -295,9 +296,18 @@ export default function Deposit() {
 
                         {/* Section 4: History */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <History size={18} className="text-zinc-500" />
-                                <h3 className="font-bold text-zinc-300 text-sm uppercase tracking-wider">Recent Activity</h3>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <History size={18} className="text-zinc-500" />
+                                    <h3 className="font-bold text-zinc-300 text-sm uppercase tracking-wider">Recent Activity</h3>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/transaction-status')}
+                                    className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-400 transition-colors"
+                                >
+                                    View All
+                                    <ExternalLink size={12} />
+                                </button>
                             </div>
 
                             {loadingHistory ? (
@@ -314,7 +324,7 @@ export default function Deposit() {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {history.map((item, index) => (
+                                    {history.slice(0, 3).map((item, index) => (
                                         <div key={item._id || `deposit-${index}`} className="bg-zinc-900 rounded-2xl p-4 shadow-sm border border-zinc-800 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className={`
@@ -332,18 +342,17 @@ export default function Deposit() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className={`
-                                                text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide
-                                                ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                                                    item.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                                                        'bg-violet-500/10 text-violet-500 border border-violet-500/20'}
-                                            `}>
-                                                {item.status === 'approved' ? 'Success' :
-                                                    item.status === 'rejected' ? 'Failed' :
-                                                        item.status === 'ft_submitted' ? 'Pending' : 'Unpaid'}
-                                            </div>
+                                            <TransactionStatusBadge status={item.status} size="xs" />
                                         </div>
                                     ))}
+                                    {history.length > 3 && (
+                                        <button
+                                            onClick={() => navigate('/transaction-status')}
+                                            className="w-full py-3 text-xs text-primary-500 hover:text-primary-400 transition-colors border border-dashed border-zinc-800 rounded-xl hover:border-primary-500/30"
+                                        >
+                                            View {history.length - 3} more transactions
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>

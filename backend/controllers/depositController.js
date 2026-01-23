@@ -160,7 +160,13 @@ exports.getAllDeposits = asyncHandler(async (req, res) => {
         include: [
             { model: User, as: 'userDetails', attributes: ['phone', 'membershipLevel'] },
             { model: User, as: 'approver', attributes: ['phone'] },
-            { model: BankAccount, as: 'paymentMethodDetails', attributes: ['bankName', 'accountNumber', 'accountHolderName'] }
+            { model: BankAccount, as: 'paymentMethodDetails', attributes: ['bankName', 'accountNumber', 'accountHolderName'] },
+            { 
+                model: require('../models').RankUpgradeRequest, 
+                as: 'rankUpgradeRequest', 
+                attributes: ['id', 'currentLevel', 'requestedLevel', 'status'],
+                required: false
+            }
         ],
         order: [['createdAt', 'DESC']]
     });

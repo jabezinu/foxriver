@@ -24,6 +24,11 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         throw new AppError('Membership level not found', 404);
     }
 
+    // Check if the target membership tier is hidden
+    if (newMembership.hidden) {
+        throw new AppError('This membership tier is coming soon. Please stay tuned for updates!', 400);
+    }
+
     if (newMembership.order <= currentMembership.order) {
         throw new AppError('Can only upgrade to a higher membership level', 400);
     }
@@ -215,11 +220,47 @@ exports.approveRankUpgradeRequest = asyncHandler(async (req, res) => {
     }
 
     await sequelize.transaction(async (t) => {
+        // Calculate rank upgrade bonus (dynamic percentage for Rank 2 and above)
+        let upgradeBonus = 0;
+        const getCurrentRankNumber = (level) => {
+            if (level === 'Intern') return 0;
+            const match = level.match(/Rank (\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        };
+
+        const targetRankNumber = getCurrentRankNumber(request.requestedLevel);
+        
+        // Apply dynamic bonus only from Rank 2 and above (not for Intern → Rank 1)
+        if (targetRankNumber >= 2) {
+            // Get dynamic bonus percentage from system settings
+            const { SystemSetting } = require('../models');
+            const settings = await SystemSetting.findOne();
+            const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
+            
+            upgradeBonus = parseFloat(request.deposit.amount) * (parseFloat(bonusPercent) / 100);
+            const user = request.userDetails;
+            user.incomeWallet = parseFloat(user.incomeWallet) + upgradeBonus;
+            console.log('Rank upgrade bonus applied:', {
+                userId: user.id,
+                targetRank: request.requestedLevel,
+                upgradeAmount: request.deposit.amount,
+                bonusPercent: bonusPercent,
+                bonusAmount: upgradeBonus
+            });
+        }
+
         // Update user's membership level
         const user = request.userDetails;
+        const oldMembershipLevel = user.membershipLevel;
         user.membershipLevel = request.requestedLevel;
         user.membershipActivatedAt = new Date();
         await user.save({ transaction: t });
+
+        // Invalidate cache for the user and their referral chain when membership changes
+        if (oldMembershipLevel === 'Intern' && request.requestedLevel !== 'Intern') {
+            const { invalidateReferralChainCache } = require('../utils/cacheInvalidation');
+            await invalidateReferralChainCache(user.id);
+        }
 
         // Update request status
         request.status = 'approved';

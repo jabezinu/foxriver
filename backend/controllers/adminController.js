@@ -128,6 +128,12 @@ exports.updateUser = asyncHandler(async (req, res) => {
                 await calculateAndCreateMembershipCommissions(user, membership);
             }
         }
+
+        // Invalidate cache when admin changes membership level
+        if (oldLevel === 'Intern' && membershipLevel !== 'Intern') {
+            const { invalidateReferralChainCache } = require('../utils/cacheInvalidation');
+            await invalidateReferralChainCache(user.id);
+        }
     }
 
     if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);

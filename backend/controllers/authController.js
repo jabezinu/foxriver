@@ -46,6 +46,12 @@ exports.register = asyncHandler(async (req, res) => {
         invitationCode: generateInvitationCode()
     });
 
+    // Invalidate referrer's cache if they have one
+    if (referrerId) {
+        const { invalidateReferralChainCache } = require('../utils/cacheInvalidation');
+        await invalidateReferralChainCache(user.id);
+    }
+
     // Generate token
     const token = generateToken(user.id);
 

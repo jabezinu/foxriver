@@ -328,6 +328,20 @@ export default function Mine() {
                 <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">Financial Management</h3>
                 <div className="space-y-3 mb-8">
                     <div
+                        onClick={() => navigate('/transaction-status')}
+                        className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-500 group-hover:scale-110 transition-transform border border-primary-500/20">
+                            <Clock size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-white text-sm">Transaction Status</p>
+                            <p className="text-xs text-zinc-500">Track all deposits & withdrawals</p>
+                        </div>
+                        <ChevronRight className="text-zinc-600" size={20} />
+                    </div>
+
+                    <div
                         onClick={() => navigate('/deposit')}
                         className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
                     >

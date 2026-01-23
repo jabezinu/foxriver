@@ -82,6 +82,7 @@ export default function TierList() {
                 {tiers.map((tier, index) => {
                     const isCurrent = user?.membershipLevel === tier.level;
                     const canUpgrade = isHigherLevel(tier.level);
+                    const isHidden = tier.hidden;
 
                     // Determine styling based on tier (just simple alteration for visual variety)
                     const isPremium = index >= 4;
@@ -91,20 +92,24 @@ export default function TierList() {
                             key={index}
                             className={`relative overflow-hidden transition-all duration-300 border-zinc-800 bg-zinc-900 ${isCurrent
                                 ? 'border-primary-500 shadow-lg shadow-primary-500/10 ring-1 ring-primary-500'
-                                : canUpgrade
+                                : canUpgrade && !isHidden
                                     ? 'hover:border-zinc-700 hover:shadow-card'
-                                    : 'opacity-60 grayscale-[0.8]'
+                                    : isHidden
+                                        ? 'border-amber-500/30 bg-amber-900/10'
+                                        : 'opacity-60 grayscale-[0.8]'
                                 }`}
                         >
                             {/* Background decoration */}
                             {isCurrent && <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-10 -mt-10 pointer-events-none blur-2xl" />}
+                            {isHidden && <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-10 -mt-10 pointer-events-none blur-2xl" />}
 
                             <div className="p-5 relative z-10">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shadow-lg ${isCurrent ? 'bg-gradient-to-br from-primary-400 to-violet-600 text-white shadow-primary-500/20' :
-                                            canUpgrade ? 'bg-gradient-to-br from-zinc-800 to-zinc-950 text-white border border-zinc-700' :
-                                                'bg-zinc-800 text-zinc-500'
+                                            canUpgrade && !isHidden ? 'bg-gradient-to-br from-zinc-800 to-zinc-950 text-white border border-zinc-700' :
+                                                isHidden ? 'bg-gradient-to-br from-amber-800 to-amber-950 text-amber-300 border border-amber-700' :
+                                                    'bg-zinc-800 text-zinc-500'
                                             }`}>
                                             {tier.level}
                                         </div>
@@ -119,6 +124,10 @@ export default function TierList() {
                                     {isCurrent ? (
                                         <span className="flex items-center gap-1 text-[10px] font-bold text-primary-400 uppercase bg-primary-500/10 px-2 py-1 rounded-lg border border-primary-500/20">
                                             <CheckCircle size={12} /> Active
+                                        </span>
+                                    ) : isHidden ? (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold text-amber-400 uppercase bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                                            <Star size={12} /> Coming Soon
                                         </span>
                                     ) : !canUpgrade ? (
                                         <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 uppercase bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700">
@@ -143,7 +152,7 @@ export default function TierList() {
                                     </div>
                                 </div>
 
-                                {canUpgrade ? (
+                                {canUpgrade && !isHidden ? (
                                     <Button
                                         onClick={handleUpgradeClick}
                                         className="w-full shadow-glow bg-primary-500 hover:bg-primary-600 text-black font-bold"
@@ -155,6 +164,11 @@ export default function TierList() {
                                     <div className="w-full py-3 bg-primary-500/10 text-primary-500 rounded-xl font-bold text-center border border-primary-500/20 text-xs flex items-center justify-center gap-2">
                                         <CheckCircle size={14} />
                                         Current Active Plan
+                                    </div>
+                                ) : isHidden ? (
+                                    <div className="w-full py-3 bg-amber-500/10 text-amber-400 rounded-xl font-bold text-center border border-amber-500/20 text-xs flex items-center justify-center gap-2">
+                                        <Star size={14} />
+                                        Coming Soon - Stay Tuned!
                                     </div>
                                 ) : (
                                     <Button

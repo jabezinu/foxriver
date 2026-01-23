@@ -26,51 +26,75 @@ exports.getDownline = asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.user.id);
     const userLevel = membershipOrder[user.membershipLevel];
 
-    // Helper to filter qualified users
-    const filterQualified = (referral) => {
+    // Helper to filter commission-eligible users (for commission calculations only)
+    const filterCommissionEligible = (referral) => {
         const referralLevel = membershipOrder[referral.membershipLevel];
         return referral.membershipLevel !== 'Intern' && (referralLevel <= userLevel);
     };
 
-    // A-level
+    // A-level (direct referrals) - show ALL users
     const allALevel = await User.findAll({
         where: { referrerId: req.user.id },
         attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'incomeWallet', 'personalWallet']
     });
-    const qualifiedALevel = allALevel.filter(filterQualified);
+    const commissionEligibleALevel = allALevel.filter(filterCommissionEligible);
 
-    // B-level
-    const qualifiedAIds = qualifiedALevel.map(u => u.id);
-    let allBLevel = [], qualifiedBLevel = [];
-    if (qualifiedAIds.length > 0) {
+    // B-level - show ALL users but calculate commissions only from eligible A-level users
+    const commissionEligibleAIds = commissionEligibleALevel.map(u => u.id);
+    const allAIds = allALevel.map(u => u.id);
+    let allBLevel = [], commissionEligibleBLevel = [];
+    if (allAIds.length > 0) {
         allBLevel = await User.findAll({
-            where: { referrerId: qualifiedAIds },
+            where: { referrerId: allAIds },
             attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'referrerId']
         });
-        qualifiedBLevel = allBLevel.filter(filterQualified);
+        // Only B-level users from commission-eligible A-level users can earn commissions
+        commissionEligibleBLevel = allBLevel.filter(u => 
+            commissionEligibleAIds.includes(u.referrerId) && filterCommissionEligible(u)
+        );
     }
 
-    // C-level
-    const qualifiedBIds = qualifiedBLevel.map(u => u.id);
-    let allCLevel = [], qualifiedCLevel = [];
-    if (qualifiedBIds.length > 0) {
+    // C-level - show ALL users but calculate commissions only from eligible B-level users
+    const commissionEligibleBIds = commissionEligibleBLevel.map(u => u.id);
+    const allBIds = allBLevel.map(u => u.id);
+    let allCLevel = [], commissionEligibleCLevel = [];
+    if (allBIds.length > 0) {
         allCLevel = await User.findAll({
-            where: { referrerId: qualifiedBIds },
+            where: { referrerId: allBIds },
             attributes: ['id', 'name', 'profilePhoto', 'phone', 'membershipLevel', 'createdAt', 'referrerId']
         });
-        qualifiedCLevel = allCLevel.filter(filterQualified);
+        // Only C-level users from commission-eligible B-level users can earn commissions
+        commissionEligibleCLevel = allCLevel.filter(u => 
+            commissionEligibleBIds.includes(u.referrerId) && filterCommissionEligible(u)
+        );
     }
 
     const downlineData = {
-        aLevel: { count: qualifiedALevel.length, totalCount: allALevel.length, users: qualifiedALevel, allUsers: allALevel },
-        bLevel: { count: qualifiedBLevel.length, totalCount: allBLevel.length, users: qualifiedBLevel, allUsers: allBLevel },
-        cLevel: { count: qualifiedCLevel.length, totalCount: allCLevel.length, users: qualifiedCLevel, allUsers: allCLevel },
-        total: qualifiedALevel.length + qualifiedBLevel.length + qualifiedCLevel.length,
+        // Display all users but track commission-eligible counts separately
+        aLevel: { 
+            count: commissionEligibleALevel.length, 
+            totalCount: allALevel.length, 
+            users: allALevel, // Show ALL A-level users
+            commissionEligibleUsers: commissionEligibleALevel 
+        },
+        bLevel: { 
+            count: commissionEligibleBLevel.length, 
+            totalCount: allBLevel.length, 
+            users: allBLevel, // Show ALL B-level users
+            commissionEligibleUsers: commissionEligibleBLevel 
+        },
+        cLevel: { 
+            count: commissionEligibleCLevel.length, 
+            totalCount: allCLevel.length, 
+            users: allCLevel, // Show ALL C-level users
+            commissionEligibleUsers: commissionEligibleCLevel 
+        },
+        total: commissionEligibleALevel.length + commissionEligibleBLevel.length + commissionEligibleCLevel.length,
         totalAll: allALevel.length + allBLevel.length + allCLevel.length
     };
 
-    // Cache for 2 minutes (120 seconds) for high traffic
-    cache.set(cacheKey, downlineData, 120);
+    // Cache for 30 seconds for more responsive updates
+    cache.set(cacheKey, downlineData, 30);
 
     res.status(200).json({
         success: true,
@@ -112,8 +136,8 @@ exports.getCommissions = asyncHandler(async (req, res) => {
 
     const responseData = { count: commissions.length, totals, commissions };
     
-    // Cache for 2 minutes (120 seconds) for high traffic
-    cache.set(cacheKey, responseData, 120);
+    // Cache for 30 seconds for more responsive updates
+    cache.set(cacheKey, responseData, 30);
 
     res.status(200).json({ success: true, ...responseData });
 });
@@ -137,8 +161,8 @@ exports.getMonthlySalary = asyncHandler(async (req, res) => {
     const salaryData = await calculateMonthlySalary(req.user.id);
     const responseData = { salary: salaryData.salary, breakdown: salaryData.breakdown };
     
-    // Cache for 2 minutes (120 seconds) for high traffic
-    cache.set(cacheKey, responseData, 120);
+    // Cache for 30 seconds for more responsive updates
+    cache.set(cacheKey, responseData, 30);
     
     res.status(200).json({ success: true, ...responseData });
 });

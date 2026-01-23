@@ -131,7 +131,12 @@ export default function Login() {
 
                     <div>
                         <label className="block text-sm font-medium text-zinc-300 mb-1.5 ml-1">{t('auth.verification')}</label>
-                        <div className="flex gap-3">
+                        <div className="space-y-3">
+                            <div className="flex justify-center">
+                                <div className="shrink-0 h-[50px] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
+                                    <CanvasCaptcha ref={captchaRef} onCaptchaChange={handleCaptchaChange} />
+                                </div>
+                            </div>
                             <input
                                 type="text"
                                 name="captcha"
@@ -141,9 +146,6 @@ export default function Login() {
                                 placeholder={t('auth.enterCode')}
                                 required
                             />
-                            <div className="shrink-0 h-[50px] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
-                                <CanvasCaptcha ref={captchaRef} onCaptchaChange={handleCaptchaChange} />
-                            </div>
                         </div>
                     </div>
 

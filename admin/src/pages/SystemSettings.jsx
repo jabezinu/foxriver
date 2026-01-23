@@ -6,6 +6,7 @@ import PageHeader from '../components/shared/PageHeader';
 import SalaryPanel from '../components/SalaryPanel';
 import ControlTogglePanel from '../components/ControlTogglePanel';
 import SystemInfoPanel from '../components/SystemInfoPanel';
+import BonusSettingsPanel from '../components/BonusSettingsPanel';
 
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
@@ -102,12 +103,18 @@ export default function SystemSettings() {
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ControlTogglePanel
-                    settings={settings}
-                    onToggleFrontend={toggleFrontend}
-                    onToggleTasks={toggleTasks}
-                    updating={updating}
-                />
+                <div className="space-y-8">
+                    <ControlTogglePanel
+                        settings={settings}
+                        onToggleFrontend={toggleFrontend}
+                        onToggleTasks={toggleTasks}
+                        updating={updating}
+                    />
+                    <BonusSettingsPanel 
+                        settings={settings} 
+                        onSettingsUpdate={setSettings}
+                    />
+                </div>
 
                 <div className="space-y-8">
                     <SalaryPanel

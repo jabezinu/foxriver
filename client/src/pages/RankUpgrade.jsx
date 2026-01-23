@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { membershipAPI, rankUpgradeAPI, bankAPI, depositAPI } from '../services/api';
+import { membershipAPI, rankUpgradeAPI, bankAPI, depositAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, CreditCard, Check, ChevronDown, Copy, Upload, Image } from 'lucide-react';
+import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, CreditCard, Check, ChevronDown, Copy, Image } from 'lucide-react';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
@@ -22,6 +22,7 @@ export default function RankUpgrade() {
     const [methods, setMethods] = useState([]);
     const [paymentMethod, setPaymentMethod] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [bonusPercent, setBonusPercent] = useState(15); // Dynamic bonus percentage
     
     // Deposit submission states
     const [step, setStep] = useState(1); // 1: Select tier, 2: FT submission
@@ -34,9 +35,10 @@ export default function RankUpgrade() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [tiersRes, banksRes] = await Promise.all([
+                const [tiersRes, banksRes, systemRes] = await Promise.all([
                     membershipAPI.getTiers(),
-                    bankAPI.getBanks()
+                    bankAPI.getBanks(),
+                    userAPI.getSystemSettings()
                 ]);
                 
                 setTiers(tiersRes.data.tiers);
@@ -48,6 +50,10 @@ export default function RankUpgrade() {
                     holder: bank.accountHolderName
                 }));
                 setMethods(bankMethods);
+                
+                // Set dynamic bonus percentage
+                const bonusPercentage = systemRes.data.settings?.rankUpgradeBonusPercent || 15;
+                setBonusPercent(bonusPercentage);
             } catch (error) {
                 toast.error('Failed to fetch data');
                 console.error(error);
@@ -66,6 +72,10 @@ export default function RankUpgrade() {
     };
 
     const handleUpgradeClick = (tier) => {
+        if (tier.hidden) {
+            toast.error('This tier is coming soon. Please stay tuned for updates!');
+            return;
+        }
         setSelectedTier(tier);
         setShowModal(true);
     };
@@ -165,15 +175,17 @@ export default function RankUpgrade() {
             {step === 1 ? (
                 <div className="px-4 py-6 space-y-4">
                     {/* Notice */}
-                    <div className="bg-amber-900/20 border border-amber-500/20 rounded-2xl p-4 mb-6">
+
+                    {/* Bonus Notice */}
+                    <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 mb-6">
                         <div className="flex items-start gap-3">
-                            <div className="bg-amber-500/10 p-2 rounded-lg">
-                                <Crown size={20} className="text-amber-500" />
+                            <div className="bg-emerald-500/10 p-2 rounded-lg">
+                                <Star size={20} className="text-emerald-500" />
                             </div>
                             <div>
-                                <h3 className="text-amber-400 font-bold text-sm mb-1">New Deposit Required</h3>
-                                <p className="text-amber-200/80 text-xs leading-relaxed">
-                                    All rank upgrades now require a new deposit. Your rank will be upgraded automatically once your deposit is approved.
+                                <h3 className="text-emerald-400 font-bold text-sm mb-1">Upgrade Bonus</h3>
+                                <p className="text-emerald-200/80 text-xs leading-relaxed">
+                                    Get {bonusPercent}% bonus on upgrades to Rank 2 and above, credited to your income wallet. No bonus for Rank 1 upgrades.
                                 </p>
                             </div>
                         </div>
@@ -182,26 +194,31 @@ export default function RankUpgrade() {
                     {tiers.map((tier, index) => {
                         const isCurrent = user?.membershipLevel === tier.level;
                         const canUpgrade = isHigherLevel(tier.level);
+                        const isHidden = tier.hidden;
 
                         return (
                             <Card
                                 key={index}
                                 className={`relative overflow-hidden transition-all duration-300 border-zinc-800 bg-zinc-900 ${isCurrent
                                     ? 'border-primary-500 shadow-lg shadow-primary-500/10 ring-1 ring-primary-500'
-                                    : canUpgrade
+                                    : canUpgrade && !isHidden
                                         ? 'hover:border-zinc-700 hover:shadow-card'
-                                        : 'opacity-60 grayscale-[0.8]'
+                                        : isHidden
+                                            ? 'border-amber-500/30 bg-amber-900/10'
+                                            : 'opacity-60 grayscale-[0.8]'
                                     }`}
                             >
                                 {/* Background decoration */}
                                 {isCurrent && <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-10 -mt-10 pointer-events-none blur-2xl" />}
+                                {isHidden && <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-10 -mt-10 pointer-events-none blur-2xl" />}
 
                                 <div className="p-5 relative z-10">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shadow-lg ${isCurrent ? 'bg-gradient-to-br from-primary-400 to-violet-600 text-white shadow-primary-500/20' :
-                                                canUpgrade ? 'bg-gradient-to-br from-zinc-800 to-zinc-950 text-white border border-zinc-700' :
-                                                    'bg-zinc-800 text-zinc-500'
+                                                canUpgrade && !isHidden ? 'bg-gradient-to-br from-zinc-800 to-zinc-950 text-white border border-zinc-700' :
+                                                    isHidden ? 'bg-gradient-to-br from-amber-800 to-amber-950 text-amber-300 border border-amber-700' :
+                                                        'bg-zinc-800 text-zinc-500'
                                                 }`}>
                                                 {tier.level}
                                             </div>
@@ -217,6 +234,10 @@ export default function RankUpgrade() {
                                             <span className="flex items-center gap-1 text-[10px] font-bold text-primary-400 uppercase bg-primary-500/10 px-2 py-1 rounded-lg border border-primary-500/20">
                                                 <CheckCircle size={12} /> Active
                                             </span>
+                                        ) : isHidden ? (
+                                            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-400 uppercase bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
+                                                <Star size={12} /> Coming Soon
+                                            </span>
                                         ) : !canUpgrade ? (
                                             <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 uppercase bg-zinc-800 px-2 py-1 rounded-lg border border-zinc-700">
                                                 <Lock size={12} /> Locked
@@ -225,7 +246,7 @@ export default function RankUpgrade() {
                                     </div>
 
                                     {/* Stats Grid */}
-                                    <div className="grid grid-cols-3 gap-2 mb-5">
+                                    <div className="grid grid-cols-3 gap-2 mb-4">
                                         <div className="bg-zinc-950 rounded-xl p-2 text-center border border-zinc-800">
                                             <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Daily Limit</p>
                                             <p className="font-black text-zinc-300 text-sm">{tier.dailyTasks} <span className="text-[9px] font-medium text-zinc-600">Tasks</span></p>
@@ -240,7 +261,57 @@ export default function RankUpgrade() {
                                         </div>
                                     </div>
 
-                                    {canUpgrade ? (
+                                    {/* Upgrade Bonus Info */}
+                                    {(() => {
+                                        const getCurrentRankNumber = (level) => {
+                                            if (level === 'Intern') return 0;
+                                            const match = level.match(/Rank (\d+)/);
+                                            return match ? parseInt(match[1]) : 0;
+                                        };
+                                        const targetRankNumber = getCurrentRankNumber(tier.level);
+                                        
+                                        if (canUpgrade && !isHidden && targetRankNumber >= 2) {
+                                            const bonusAmount = tier.price * (bonusPercent / 100);
+                                            return (
+                                                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-xl p-3 mb-4">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Star size={14} className="text-emerald-400" />
+                                                        <span className="text-emerald-400 font-bold text-xs">Upgrade Bonus</span>
+                                                    </div>
+                                                    <p className="text-emerald-300 text-xs">
+                                                        Get <span className="font-bold">+{formatNumber(bonusAmount)} ETB</span> bonus ({bonusPercent}%) in your income wallet
+                                                    </p>
+                                                </div>
+                                            );
+                                        } else if (canUpgrade && !isHidden && targetRankNumber === 1) {
+                                            return (
+                                                <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-3 mb-4">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Star size={14} className="text-zinc-500" />
+                                                        <span className="text-zinc-500 font-bold text-xs">No Bonus</span>
+                                                    </div>
+                                                    <p className="text-zinc-500 text-xs">
+                                                        Bonus starts from Rank 2 upgrades
+                                                    </p>
+                                                </div>
+                                            );
+                                        } else if (isHidden) {
+                                            return (
+                                                <div className="bg-amber-900/20 border border-amber-500/20 rounded-xl p-3 mb-4">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Star size={14} className="text-amber-400" />
+                                                        <span className="text-amber-400 font-bold text-xs">Coming Soon</span>
+                                                    </div>
+                                                    <p className="text-amber-300 text-xs">
+                                                        This tier will be available soon. Stay tuned for updates!
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
+                                    {canUpgrade && !isHidden ? (
                                         <Button
                                             onClick={() => handleUpgradeClick(tier)}
                                             className="w-full shadow-glow bg-primary-500 hover:bg-primary-600 text-black font-bold"
@@ -252,6 +323,11 @@ export default function RankUpgrade() {
                                         <div className="w-full py-3 bg-primary-500/10 text-primary-500 rounded-xl font-bold text-center border border-primary-500/20 text-xs flex items-center justify-center gap-2">
                                             <CheckCircle size={14} />
                                             Current Active Plan
+                                        </div>
+                                    ) : isHidden ? (
+                                        <div className="w-full py-3 bg-amber-500/10 text-amber-400 rounded-xl font-bold text-center border border-amber-500/20 text-xs flex items-center justify-center gap-2">
+                                            <Star size={14} />
+                                            Coming Soon - Stay Tuned!
                                         </div>
                                     ) : (
                                         <Button
@@ -399,9 +475,37 @@ export default function RankUpgrade() {
             >
                 {selectedTier && (
                     <div className="space-y-5">
-                        <div className="bg-zinc-950 text-white p-4 rounded-xl shadow-lg flex justify-between items-center border border-zinc-800">
-                            <span className="text-sm font-medium text-zinc-400">Deposit Required</span>
-                            <span className="text-xl font-black text-primary-500">{formatNumber(selectedTier.price)} ETB</span>
+                        <div className="bg-zinc-950 text-white p-4 rounded-xl shadow-lg border border-zinc-800 space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-zinc-400">Deposit Required</span>
+                                <span className="text-xl font-black text-primary-500">{formatNumber(selectedTier.price)} ETB</span>
+                            </div>
+                            
+                            {/* Show bonus information for Rank 2 and above */}
+                            {(() => {
+                                const getCurrentRankNumber = (level) => {
+                                    if (level === 'Intern') return 0;
+                                    const match = level.match(/Rank (\d+)/);
+                                    return match ? parseInt(match[1]) : 0;
+                                };
+                                const targetRankNumber = getCurrentRankNumber(selectedTier.level);
+                                
+                                if (targetRankNumber >= 2) {
+                                    const bonusAmount = selectedTier.price * (bonusPercent / 100);
+                                    return (
+                                        <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
+                                            <span className="text-sm font-medium text-emerald-400">Upgrade Bonus ({bonusPercent}%)</span>
+                                            <span className="text-lg font-bold text-emerald-400">+{formatNumber(bonusAmount)} ETB</span>
+                                        </div>
+                                    );
+                                } else {
+                                    return (
+                                        <div className="pt-2 border-t border-zinc-800">
+                                            <span className="text-xs text-zinc-500">No bonus for Rank 1 upgrade</span>
+                                        </div>
+                                    );
+                                }
+                            })()}
                         </div>
 
                         <div className="space-y-3">

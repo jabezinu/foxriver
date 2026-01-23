@@ -16,6 +16,7 @@ const MyInvestments = lazy(() => import('./pages/MyInvestments'));
 const Mine = lazy(() => import('./pages/Mine'));
 const Deposit = lazy(() => import('./pages/Deposit'));
 const Withdraw = lazy(() => import('./pages/Withdraw'));
+const TransactionStatus = lazy(() => import('./pages/TransactionStatus'));
 const Settings = lazy(() => import('./pages/Settings'));
 const CompanyNews = lazy(() => import('./pages/CompanyNews'));
 const QnA = lazy(() => import('./pages/QnA'));
@@ -180,6 +181,7 @@ function App() {
             <Route path="mine" element={<Mine />} />
             <Route path="deposit" element={<Deposit />} />
             <Route path="withdraw" element={<Withdraw />} />
+            <Route path="transaction-status" element={<TransactionStatus />} />
             <Route path="settings" element={<Settings />} />
             <Route path="news" element={<CompanyNews />} />
             <Route path="qna" element={<QnA />} />

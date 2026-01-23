@@ -1,15 +1,54 @@
-import { HiCheck, HiX, HiPhotograph, HiFingerPrint, HiOfficeBuilding, HiChip } from 'react-icons/hi';
+import { HiCheck, HiX, HiPhotograph, HiFingerPrint, HiOfficeBuilding, HiChip, HiTrendingUp, HiStar } from 'react-icons/hi';
 import { formatNumber } from '../utils/formatNumber';
 import Badge from './shared/Badge';
 import Card from './shared/Card';
+import { useState, useEffect } from 'react';
+import { adminSystemAPI } from '../services/api';
 
 export default function DepositItem({ deposit, onApprove, onReject, onViewScreenshot }) {
     const isPending = deposit.status === 'ft_submitted';
+    const isRankUpgrade = deposit.rankUpgradeRequest;
+    const [bonusPercent, setBonusPercent] = useState(15);
+    
+    useEffect(() => {
+        const fetchBonusPercent = async () => {
+            try {
+                const response = await adminSystemAPI.getSettings();
+                if (response.data.success) {
+                    setBonusPercent(response.data.data?.rankUpgradeBonusPercent || 15);
+                }
+            } catch (error) {
+                console.error('Failed to fetch bonus percentage:', error);
+            }
+        };
+        fetchBonusPercent();
+    }, []);
+    
+    // Calculate bonus for rank upgrades
+    const calculateBonus = () => {
+        if (!isRankUpgrade) return 0;
+        
+        const getCurrentRankNumber = (level) => {
+            if (level === 'Intern') return 0;
+            const match = level.match(/Rank (\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        };
+        
+        const targetRankNumber = getCurrentRankNumber(isRankUpgrade.requestedLevel);
+        return targetRankNumber >= 2 ? parseFloat(deposit.amount) * (bonusPercent / 100) : 0;
+    };
+    
+    const bonusAmount = calculateBonus();
 
     return (
         <Card noPadding className="group overflow-hidden relative">
             {isPending && (
                 <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
+            )}
+            
+            {/* Rank Upgrade Indicator */}
+            {isRankUpgrade && (
+                <div className="absolute top-0 right-0 w-1 h-full bg-purple-500"></div>
             )}
 
             <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-50">
@@ -18,11 +57,25 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                     <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
                         <HiChip className="text-8xl text-indigo-900" />
                     </div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 relative z-10">Capital Intake</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 relative z-10">
+                        {isRankUpgrade ? 'Rank Upgrade' : 'Capital Intake'}
+                    </p>
                     <p className="text-2xl font-black text-indigo-600 tracking-tighter relative z-10">
                         {formatNumber(deposit.amount)}
                         <span className="text-[10px] ml-1 text-indigo-400">ETB</span>
                     </p>
+                    
+                    {/* Bonus Display */}
+                    {bonusAmount > 0 && (
+                        <div className="mt-2 relative z-10">
+                            <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Bonus ({bonusPercent}%)</p>
+                            <p className="text-sm font-black text-emerald-600 tracking-tighter">
+                                +{formatNumber(bonusAmount)}
+                                <span className="text-[8px] ml-1 text-emerald-400">ETB</span>
+                            </p>
+                        </div>
+                    )}
+                    
                     <Badge variant={isPending ? 'yellow' : deposit.status === 'approved' ? 'green' : 'red'} className="mt-3 font-black text-[9px]">
                         {isPending ? 'Awaiting Clearance' : deposit.status === 'approved' ? 'Authenticated' : 'Invalidated'}
                     </Badge>
@@ -48,6 +101,36 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                             <p className="text-[11px] font-mono font-bold text-gray-700 tracking-tighter">{deposit.transactionFT || 'NULL_SIGNAL'}</p>
                         </div>
                     </div>
+                    
+                    {/* Rank Upgrade Info */}
+                    {isRankUpgrade && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                                <HiTrendingUp className="text-purple-600" />
+                                <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest">Rank Upgrade Request</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">From</span>
+                                    <span className="font-bold text-gray-700">{isRankUpgrade.currentLevel}</span>
+                                </div>
+                                <div>
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block">To</span>
+                                    <span className="font-bold text-purple-600">{isRankUpgrade.requestedLevel}</span>
+                                </div>
+                            </div>
+                            {bonusAmount > 0 && (
+                                <div className="mt-2 pt-2 border-t border-purple-200">
+                                    <div className="flex items-center gap-1">
+                                        <HiStar className="text-emerald-500 text-xs" />
+                                        <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">
+                                            {formatNumber(bonusAmount)} ETB bonus will be credited to income wallet
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2 border-t border-gray-50">
                         <DataField icon={<HiOfficeBuilding />} label="Financial Node" value={deposit.paymentMethodDetails?.bankName || 'Unknown Site'} />
@@ -77,7 +160,7 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                             <button
                                 onClick={() => onApprove(deposit.id || deposit._id)}
                                 className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-xl shadow-emerald-100/30 group/btn active:scale-95"
-                                title="Authorize Capital"
+                                title={isRankUpgrade ? `Authorize Rank Upgrade${bonusAmount > 0 ? ` (+${formatNumber(bonusAmount)} ETB bonus)` : ''}` : "Authorize Capital"}
                             >
                                 <HiCheck className="text-2xl" />
                             </button>

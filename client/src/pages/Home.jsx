@@ -15,6 +15,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import LanguageSelector from '../components/LanguageSelector';
 import BankChangeConfirmation from '../components/BankChangeConfirmation';
+import TransactionNotifications from '../components/TransactionNotifications';
 import { useUserStore } from '../store/userStore';
 
 const MenuItem = ({ item, navigate, isLarge = false }) => (
@@ -276,6 +277,11 @@ export default function Home() {
                         <MenuItem key={index + 8} item={item} navigate={navigate} isLarge={true} />
                     ))}
                 </div>
+            </div>
+
+            {/* Transaction Notifications */}
+            <div className="px-5">
+                <TransactionNotifications />
             </div>
 
             {/* News / Updates */}

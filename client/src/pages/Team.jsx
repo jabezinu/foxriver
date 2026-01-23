@@ -36,7 +36,7 @@ export default function Team() {
         fetchData();
     }, []);
 
-    const fetchData = async () => {
+    const fetchData = async (forceRefresh = false) => {
         try {
             // Add a small delay to prevent rapid successive calls
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -52,6 +52,10 @@ export default function Team() {
             setCommissions(commissionRes.data.commissions || []);
             setCommissionTotals(commissionRes.data.totals || { A: 0, B: 0, C: 0, total: 0 });
             setSalaryData(salaryRes.data || null);
+            
+            if (forceRefresh) {
+                toast.success('Team data refreshed');
+            }
         } catch (error) {
             // Check if it's a rate limit error
             if (error.response?.status === 429) {
@@ -112,9 +116,18 @@ export default function Team() {
                                 <span className="text-[10px] text-zinc-500">{u.phone.replace(/(\+\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 *** $4')}</span>
                             </div>
                         </div>
-                        <span className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-bold text-primary-500 uppercase tracking-wider shadow-sm">
-                            {u.membershipLevel}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 border rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                                u.membershipLevel === 'Intern' 
+                                    ? 'bg-zinc-800 text-zinc-400 border-zinc-700' 
+                                    : 'bg-zinc-900 border-zinc-800 text-primary-500'
+                            }`}>
+                                {u.membershipLevel}
+                            </span>
+                            {u.membershipLevel === 'Intern' && (
+                                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" title="No commission until upgraded"></div>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
@@ -131,7 +144,17 @@ export default function Team() {
                 >
                     <ChevronLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold text-white">My Team</h1>
+                <h1 className="text-xl font-bold text-white flex-1">My Team</h1>
+                <button
+                    onClick={() => fetchData(true)}
+                    disabled={loading}
+                    className="p-2 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
+                    title="Refresh team data"
+                >
+                    <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
             </div>
 
             <div className="px-4 py-6 space-y-6">
@@ -282,6 +305,8 @@ export default function Team() {
                         const isExpanded = expandedLevel === lvl;
                         const label = lvl === 'a' ? 'Direct Referrals' : lvl === 'b' ? '1st Indirect' : '2nd Indirect';
                         const percent = lvl === 'a' ? '10%' : lvl === 'b' ? '5%' : '2%';
+                        const commissionEligibleCount = levelData?.count || 0; // Commission-eligible users
+                        const totalCount = levelData?.totalCount || 0; // All users including Interns
 
                         return (
                             <Card key={lvl} className={`overflow-hidden transition-all duration-300 border-zinc-800 bg-zinc-900 ${isExpanded ? 'ring-1 ring-primary-500/30 shadow-glow' : ''}`}>
@@ -303,8 +328,18 @@ export default function Team() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
-                                            <p className="text-lg font-black text-white">{levelData?.count || 0}</p>
-                                            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">Members</p>
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-right">
+                                                    <p className="text-lg font-black text-white">{totalCount}</p>
+                                                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">Total</p>
+                                                </div>
+                                                {commissionEligibleCount !== totalCount && (
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-bold text-primary-400">({commissionEligibleCount})</p>
+                                                        <p className="text-[8px] font-bold text-primary-500 uppercase tracking-wide">Eligible</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                         {isExpanded ? <ChevronUp className="text-zinc-500" size={20} /> : <ChevronDown className="text-zinc-500" size={20} />}
                                     </div>
@@ -312,6 +347,13 @@ export default function Team() {
                                 {isExpanded && (
                                     <div className="px-4 pb-4 animate-slide-up">
                                         <div className="border-t border-zinc-800 pt-3">
+                                            {commissionEligibleCount !== totalCount && (
+                                                <div className="mb-3 p-2 bg-zinc-950/50 rounded-lg border border-zinc-800">
+                                                    <p className="text-[10px] text-zinc-400 font-medium">
+                                                        <span className="text-primary-400 font-bold">{commissionEligibleCount}</span> of <span className="text-white font-bold">{totalCount}</span> members are commission-eligible (Rank 1+)
+                                                    </p>
+                                                </div>
+                                            )}
                                             {renderUserList(levelData?.users)}
                                         </div>
                                     </div>

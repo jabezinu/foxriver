@@ -7,13 +7,8 @@ const { Op } = require('sequelize');
 // @route   GET /api/memberships/tiers
 // @access  Public
 exports.getTiers = asyncHandler(async (req, res) => {
+    // Return all memberships including hidden ones for client display
     const memberships = await Membership.findAll({
-        where: {
-            [Op.or]: [
-                { hidden: false },
-                { hidden: null }
-            ]
-        },
         order: [['order', 'ASC']]
     });
 
@@ -25,7 +20,8 @@ exports.getTiers = asyncHandler(async (req, res) => {
         dailyIncome: membership.getDailyIncome(),
         perVideoIncome: membership.getPerVideoIncome(),
         fourDayIncome: membership.getFourDayIncome(),
-        dailyTasks: 4
+        dailyTasks: 4,
+        hidden: membership.hidden || false // Include hidden status for client logic
     }));
 
     res.status(200).json({

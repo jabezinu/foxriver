@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Wallet, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Wallet, ShieldCheck, Eye, EyeOff, History, ExternalLink } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUserStore } from '../store/userStore';
 import { withdrawalAPI } from '../services/api';
@@ -8,6 +8,7 @@ import { formatNumber } from '../utils/formatNumber';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Loading from '../components/Loading';
+import TransactionStatusBadge from '../components/TransactionStatusBadge';
 
 export default function Withdraw() {
     const navigate = useNavigate();
@@ -25,6 +26,8 @@ export default function Withdraw() {
     const [transactionPassword, setTransactionPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     const amounts = [100, 200, 3600, 9900, 30000, 45000, 60000, 90000, 120000, 180000];
 
@@ -33,7 +36,21 @@ export default function Withdraw() {
             await fetchWallet();
             setLoading(false);
         };
+        
+        const fetchHistory = async () => {
+            setLoadingHistory(true);
+            try {
+                const res = await withdrawalAPI.getUserWithdrawals();
+                setHistory(res.data.withdrawals || []);
+            } catch (error) {
+                console.error('Failed to load withdrawal history', error);
+            } finally {
+                setLoadingHistory(false);
+            }
+        };
+        
         init();
+        fetchHistory();
     }, [fetchWallet]);
 
     // Derived values using store wallet
@@ -232,6 +249,57 @@ export default function Withdraw() {
                         ⚠️ Please note: Withdrawals are not processed on Sundays and public holidays.
                     </p>
                 </div>
+
+                {/* Recent Withdrawals */}
+                {!loadingHistory && history.length > 0 && (
+                    <div className="mt-8 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <History size={18} className="text-zinc-500" />
+                                <h3 className="font-bold text-zinc-300 text-sm uppercase tracking-wider">Recent Withdrawals</h3>
+                            </div>
+                            <button
+                                onClick={() => navigate('/transaction-status')}
+                                className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-400 transition-colors"
+                            >
+                                View All
+                                <ExternalLink size={12} />
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            {history.slice(0, 2).map((item, index) => (
+                                <div key={item._id || `withdrawal-${index}`} className="bg-zinc-900 rounded-2xl p-4 shadow-sm border border-zinc-800 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`
+                                            p-2.5 rounded-xl
+                                            ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                                                item.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                                                    'bg-amber-500/10 text-amber-500'}
+                                        `}>
+                                            <Wallet size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-white text-sm">{formatNumber(item.netAmount)} ETB</p>
+                                            <p className="text-[10px] text-zinc-500 font-medium">
+                                                {item.walletType} • {new Date(item.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <TransactionStatusBadge status={item.status} size="xs" />
+                                </div>
+                            ))}
+                            {history.length > 2 && (
+                                <button
+                                    onClick={() => navigate('/transaction-status')}
+                                    className="w-full py-3 text-xs text-primary-500 hover:text-primary-400 transition-colors border border-dashed border-zinc-800 rounded-xl hover:border-primary-500/30"
+                                >
+                                    View {history.length - 2} more transactions
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>
