@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminUserAPI } from '../services/api';
-import { HiSearch, HiIdentification, HiPencil, HiTrash, HiClipboardList } from 'react-icons/hi';
+import { HiSearch, HiIdentification, HiPencil, HiTrash, HiClipboardList, HiUsers } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading';
 import { getServerUrl } from '../config/api.config';
@@ -10,6 +10,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import UserHistoryModal from '../components/UserHistoryModal';
 import UserEditModal from '../components/UserEditModal';
 import GlobalRestrictionModal from '../components/GlobalRestrictionModal';
+import ReferenceTreeModal from '../components/ReferenceTreeModal';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/shared/Card';
 import Badge from '../components/shared/Badge';
@@ -22,6 +23,7 @@ export default function UserManagement() {
     const [filterLevel, setFilterLevel] = useState('');
     const [deleteId, setDeleteId] = useState(null);
     const [historyUser, setHistoryUser] = useState(null);
+    const [referenceTreeUserId, setReferenceTreeUserId] = useState(null);
 
     // Edit Modal State
     const [editingUser, setEditingUser] = useState(null);
@@ -152,6 +154,12 @@ export default function UserManagement() {
                 onSave={handleSaveEdit}
             />
 
+            <ReferenceTreeModal
+                isOpen={!!referenceTreeUserId}
+                userId={referenceTreeUserId}
+                onClose={() => setReferenceTreeUserId(null)}
+            />
+
             <GlobalRestrictionModal
                 isOpen={restrictModalOpen}
                 onClose={() => setRestrictModalOpen(false)}
@@ -279,6 +287,13 @@ export default function UserManagement() {
                                                     title="View History"
                                                 >
                                                     <HiClipboardList />
+                                                </button>
+                                                <button
+                                                    onClick={() => setReferenceTreeUserId(user.id)}
+                                                    className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                                                    title="Reference Tree"
+                                                >
+                                                    <HiUsers />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(user.id)}

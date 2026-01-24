@@ -457,3 +457,65 @@ exports.createAdmin = asyncHandler(async (req, res) => {
         admin: { id: admin.id, phone: admin.phone, role: admin.role, permissions: admin.permissions }
     });
 });
+
+// @desc    Get user reference tree up to C level
+// @route   GET /api/admin/users/:id/reference-tree
+// @access  Private/Admin
+exports.getUserReferenceTree = asyncHandler(async (req, res) => {
+    const userId = req.params.id;
+    
+    const user = await User.findByPk(userId, {
+        attributes: ['id', 'name', 'phone', 'membershipLevel', 'profilePhoto', 'createdAt']
+    });
+
+    if (!user) {
+        throw new AppError('User not found', 404);
+    }
+
+    // Helper function to build tree recursively
+    const buildReferenceTree = async (parentId, level = 0, maxLevel = 2) => {
+        if (level > maxLevel) return [];
+
+        const children = await User.findAll({
+            where: { referrerId: parentId },
+            attributes: ['id', 'name', 'phone', 'membershipLevel', 'profilePhoto', 'createdAt'],
+            order: [['createdAt', 'ASC']]
+        });
+
+        const childrenWithSubtree = await Promise.all(
+            children.map(async (child) => {
+                const subtree = await buildReferenceTree(child.id, level + 1, maxLevel);
+                return {
+                    ...child.toJSON(),
+                    level: level + 1,
+                    levelLabel: level === 0 ? 'A' : level === 1 ? 'B' : 'C',
+                    children: subtree,
+                    childrenCount: subtree.length,
+                    totalDescendants: subtree.reduce((sum, c) => sum + c.totalDescendants + 1, subtree.length)
+                };
+            })
+        );
+
+        return childrenWithSubtree;
+    };
+
+    // Build the tree starting from the user
+    const referenceTree = await buildReferenceTree(userId);
+    
+    // Calculate statistics
+    const stats = {
+        aLevel: referenceTree.length,
+        bLevel: referenceTree.reduce((sum, a) => sum + a.children.length, 0),
+        cLevel: referenceTree.reduce((sum, a) => 
+            sum + a.children.reduce((bSum, b) => bSum + b.children.length, 0), 0
+        )
+    };
+    stats.total = stats.aLevel + stats.bLevel + stats.cLevel;
+
+    res.status(200).json({
+        success: true,
+        user: user.toJSON(),
+        referenceTree,
+        stats
+    });
+});

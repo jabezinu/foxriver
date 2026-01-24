@@ -17,7 +17,8 @@ const {
     processUserSalary,
     getAllAdmins,
     updateAdminPermissions,
-    createAdmin
+    createAdmin,
+    getUserReferenceTree
 } = require('../controllers/adminController');
 const { protect, adminOnly, superAdminOnly, checkPermission } = require('../middlewares/auth');
 
@@ -25,6 +26,7 @@ router.get('/stats', protect, adminOnly, getStats);
 router.get('/users', protect, adminOnly, checkPermission('manage_users'), getAllUsers);
 router.put('/users/restrict-all', protect, adminOnly, checkPermission('manage_users'), restrictAllUsers);
 router.get('/users/:id', protect, adminOnly, checkPermission('manage_users'), getUserDetails);
+router.get('/users/:id/reference-tree', protect, adminOnly, checkPermission('manage_users'), getUserReferenceTree);
 router.put('/users/:id', protect, adminOnly, checkPermission('manage_users'), updateUser);
 router.delete('/users/:id', protect, adminOnly, checkPermission('manage_users'), deleteUser);
 router.get('/users/:id/deposits', protect, adminOnly, checkPermission('manage_users'), getUserDepositHistory);

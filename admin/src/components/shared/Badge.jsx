@@ -9,9 +9,15 @@ const variants = {
     gray: 'bg-gray-50 text-gray-500 border-gray-100',
 };
 
-export default function Badge({ children, variant = 'indigo', className = '' }) {
+const sizes = {
+    sm: 'px-2 py-0.5 text-[9px]',
+    md: 'px-2.5 py-0.5 text-[10px]',
+    lg: 'px-3 py-1 text-xs'
+};
+
+export default function Badge({ children, variant = 'indigo', size = 'md', className = '' }) {
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${variants[variant] || variants.indigo} ${className}`}>
+        <span className={`inline-flex items-center rounded-full font-bold uppercase border ${variants[variant] || variants.indigo} ${sizes[size] || sizes.md} ${className}`}>
             {children}
         </span>
     );

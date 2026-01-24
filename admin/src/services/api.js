@@ -43,6 +43,7 @@ export const adminStatsAPI = {
 export const adminUserAPI = {
     getAllUsers: (params) => axios.get(API_ENDPOINTS.ADMIN.USERS, { params }),
     getUserDetails: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}`),
+    getUserReferenceTree: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/reference-tree`),
     updateUser: (id, data) => axios.put(`${API_ENDPOINTS.ADMIN.USERS}/${id}`, data),
     deleteUser: (id) => axios.delete(`${API_ENDPOINTS.ADMIN.USERS}/${id}`),
     getUserDeposits: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/deposits`),
