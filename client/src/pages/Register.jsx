@@ -176,6 +176,8 @@ export default function Register() {
                             </div>
                             <input
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 name="captcha"
                                 value={formData.captcha}
                                 onChange={handleChange}

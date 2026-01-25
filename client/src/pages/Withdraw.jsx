@@ -216,6 +216,8 @@ export default function Withdraw() {
                     <div className="relative max-w-[200px] mx-auto">
                         <input
                             type={showPassword ? 'text' : 'password'}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={transactionPassword}
                             onChange={(e) => setTransactionPassword(e.target.value)}
                             placeholder="••••••"
@@ -246,7 +248,7 @@ export default function Withdraw() {
                 {/* Withdrawal Restrictions Notice */}
                 <div className="mt-6 bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
                     <p className="text-xs text-amber-200/80 text-center leading-relaxed">
-                        ⚠️ Please note: Withdrawals are not processed on Sundays and public holidays.
+                        📅 Withdrawal Schedule: Submit your withdrawal requests on Fridays and they will be processed on Saturdays for your convenience.
                     </p>
                 </div>
 

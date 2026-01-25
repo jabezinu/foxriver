@@ -386,6 +386,8 @@ export default function Settings() {
                             <label className="block text-xs font-bold text-zinc-500 mb-2 text-center uppercase">Current PIN</label>
                             <input
                                 type="password"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 maxLength={6}
                                 className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
                                 value={formData.oldPassword}
@@ -400,6 +402,8 @@ export default function Settings() {
                         </label>
                         <input
                             type="password"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             maxLength={6}
                             className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
                             value={formData.transactionPassword}

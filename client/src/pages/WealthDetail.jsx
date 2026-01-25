@@ -238,6 +238,7 @@ export default function WealthDetail() {
                         </div>
                         <input
                             type="number"
+                            inputMode="decimal"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder={`Min. ${fund.minimumDeposit}`}
@@ -292,6 +293,7 @@ export default function WealthDetail() {
                                 </div>
                                 <input
                                     type="number"
+                                    inputMode="decimal"
                                     value={fundingSource.incomeWallet}
                                     onChange={(e) => adjustFunding('income', e.target.value)}
                                     placeholder="0.00"
@@ -311,6 +313,7 @@ export default function WealthDetail() {
                                 </div>
                                 <input
                                     type="number"
+                                    inputMode="decimal"
                                     value={fundingSource.personalWallet}
                                     onChange={(e) => adjustFunding('personal', e.target.value)}
                                     placeholder="0.00"
