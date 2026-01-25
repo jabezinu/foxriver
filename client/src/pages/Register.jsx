@@ -201,7 +201,7 @@ export default function Register() {
                 </p>
 
                 <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">Notice / ማሳሰቢያ</p>
+                    <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">Notice</p>
                     <p className="text-xs text-zinc-500 leading-relaxed italic">
                         "the company have the right to Edit, Change and shut down the app at any time"
                     </p>
