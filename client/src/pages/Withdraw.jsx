@@ -183,6 +183,16 @@ export default function Withdraw() {
                                 {formatNumber(amount)}
                             </button>
                         ))}
+                        {/* Empty nodes */}
+                        {[...Array(5)].map((_, index) => (
+                            <button
+                                key={`empty-${index}`}
+                                disabled
+                                className="py-2.5 rounded-lg font-bold text-xs border border-zinc-800 bg-zinc-950/50 text-zinc-700 cursor-not-allowed"
+                            >
+                                -
+                            </button>
+                        ))}
                     </div>
                 </div>
 
