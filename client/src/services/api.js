@@ -180,4 +180,10 @@ export const systemAPI = {
     getSettings: () => axios.get('/system/settings'),
 };
 
+// Earnings endpoints
+export const earningsAPI = {
+    getSummary: () => axios.get('/earnings/summary'),
+    getHistory: (params) => axios.get('/earnings/history', { params }),
+};
+
 export default axios;

@@ -106,6 +106,7 @@ app.use('/api/slot-tiers', require('./routes/slotTier'));
 app.use('/api/system', require('./routes/system'));
 app.use('/api/courses', require('./routes/course'));
 app.use('/api/wealth', require('./routes/wealth'));
+app.use('/api/earnings', require('./routes/earnings'));
 
 // Health check route
 app.get('/api/health', (req, res) => {

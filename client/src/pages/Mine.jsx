@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle, Edit2, Camera, Trash2 } from 'lucide-react';
+import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle, Edit2, Camera, Trash2, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Card from '../components/ui/Card';
+import EarningsDashboard from '../components/EarningsDashboard';
+import EarningsSummary from '../components/EarningsSummary';
 import { formatNumber } from '../utils/formatNumber';
 import { useAuthStore } from '../store/authStore';
 import { useUserStore } from '../store/userStore';
@@ -16,16 +18,12 @@ import logo from '../assets/logo.png';
 
 export default function Mine() {
     const navigate = useNavigate();
-    // const { user } = useAuthStore(); // We can probably use profile from userStore now, or keep authStore for auth state. 
-    // Actually, userStore profile is detailed profile, authStore user might be lighter. Let's see. 
-    // The previous code used userAPI.getProfile() to set 'profile' state.
-    // So we should use userStore.profile.
-
     const { user: authUser } = useAuthStore();
     const { profile, wallet, fetchProfile, fetchWallet } = useUserStore();
 
     // Local state for UI interactions only
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showEarnings, setShowEarnings] = useState(false);
     const [profileName, setProfileName] = useState('');
     const [updating, setUpdating] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -297,6 +295,22 @@ export default function Mine() {
                         </div>
                     </Card>
                 )}
+
+                {/* Earnings Dashboard */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-zinc-400 px-1 uppercase tracking-wider">My Earnings</h3>
+                        <button
+                            onClick={() => setShowEarnings(!showEarnings)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-medium text-zinc-300 transition-colors"
+                        >
+                            <TrendingUp size={14} />
+                            {showEarnings ? 'Show Summary' : 'View Details'}
+                        </button>
+                    </div>
+                    
+                    {showEarnings ? <EarningsDashboard /> : <EarningsSummary />}
+                </div>
 
                 {/* Wallets */}
                 <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">My Assets</h3>
