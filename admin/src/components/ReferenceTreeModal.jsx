@@ -52,7 +52,7 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
         };
 
         return (
-            <div className="relative">
+            <div className="w-full">
                 <div 
                     className={`flex items-center gap-3 p-3 rounded-lg border-2 ${levelColors[level]} mb-2 transition-all hover:shadow-md`}
                     style={{ marginLeft: `${level * 20}px` }}
@@ -70,16 +70,16 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
                         </button>
                     )}
                     
-                    {!hasChildren && <div className="w-6" />}
+                    {!hasChildren && <div className="w-6 flex-shrink-0" />}
 
                     {user.profilePhoto ? (
                         <img
                             src={user.profilePhoto.startsWith('http') ? user.profilePhoto : `${getServerUrl()}${user.profilePhoto}`}
                             alt={user.name || 'User'}
-                            className="w-10 h-10 rounded-lg object-cover shadow-sm border border-white"
+                            className="w-10 h-10 rounded-lg object-cover shadow-sm border border-white flex-shrink-0"
                         />
                     ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md flex-shrink-0">
                             {user.name ? user.name.charAt(0).toUpperCase() : <HiIdentification className="text-lg" />}
                         </div>
                     )}
@@ -102,7 +102,7 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
                     </div>
 
                     {hasChildren && (
-                        <div className="flex items-center gap-1 text-xs font-bold">
+                        <div className="flex items-center gap-1 text-xs font-bold flex-shrink-0">
                             <HiUsers className="text-sm" />
                             <span>{children.length}</span>
                         </div>
@@ -148,15 +148,15 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 flex flex-col min-h-0">
                     {loading ? (
                         <div className="h-64">
                             <Loading />
                         </div>
                     ) : treeData ? (
-                        <div className="h-full flex flex-col">
+                        <>
                             {/* Stats */}
-                            <div className="p-6 bg-gray-50 border-b border-gray-200">
+                            <div className="flex-shrink-0 p-6 bg-gray-50 border-b border-gray-200">
                                 <div className="grid grid-cols-4 gap-4">
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-blue-600">{treeData.stats.aLevel}</div>
@@ -177,27 +177,29 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
                                 </div>
                             </div>
 
-                            {/* Tree */}
-                            <div className="flex-1 overflow-y-auto p-6">
-                                {treeData.referenceTree.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {/* Root User */}
-                                        <UserNode
-                                            user={treeData.user}
-                                            level={0}
-                                            nodeId="root"
-                                            children={treeData.referenceTree}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <HiUsers className="text-6xl text-gray-300 mx-auto mb-4" />
-                                        <h3 className="text-lg font-bold text-gray-600 mb-2">No Referrals Found</h3>
-                                        <p className="text-gray-500">This user hasn't referred anyone yet.</p>
-                                    </div>
-                                )}
+                            {/* Tree - Scrollable Area */}
+                            <div className="flex-1 overflow-y-auto min-h-0">
+                                <div className="p-6">
+                                    {treeData.referenceTree.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {/* Root User */}
+                                            <UserNode
+                                                user={treeData.user}
+                                                level={0}
+                                                nodeId="root"
+                                                children={treeData.referenceTree}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <HiUsers className="text-6xl text-gray-300 mx-auto mb-4" />
+                                            <h3 className="text-lg font-bold text-gray-600 mb-2">No Referrals Found</h3>
+                                            <p className="text-gray-500">This user hasn't referred anyone yet.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        </>
                     ) : (
                         <div className="flex items-center justify-center h-64">
                             <p className="text-gray-500">Failed to load reference tree</p>
