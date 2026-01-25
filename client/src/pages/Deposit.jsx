@@ -36,6 +36,7 @@ export default function Deposit() {
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [amounts, setAmounts] = useState([]);
+    const [restrictedAmounts, setRestrictedAmounts] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +56,11 @@ export default function Deposit() {
                 }));
                 setMethods(bankMethods);
                 setAmounts(amountsRes.data.allowedAmounts);
+                
+                // Set restricted amounts if user context is available
+                if (amountsRes.data.userContext && amountsRes.data.userContext.restrictedAmounts) {
+                    setRestrictedAmounts(amountsRes.data.userContext.restrictedAmounts);
+                }
             } catch (error) {
                 toast.error('Failed to load data');
                 console.error(error);
@@ -79,10 +85,24 @@ export default function Deposit() {
         fetchHistory();
     }, [fetchWallet]);
 
+    // Clear selected amount if it becomes restricted
+    useEffect(() => {
+        if (selectedAmount && restrictedAmounts.includes(selectedAmount)) {
+            setSelectedAmount(null);
+            toast.info('Previously selected amount is no longer available due to membership restrictions');
+        }
+    }, [restrictedAmounts, selectedAmount]);
+
 
     const handleCreateDeposit = async () => {
         if (!selectedAmount || !paymentMethod) {
             toast.error('Please select amount and payment method');
+            return;
+        }
+
+        // Check if selected amount is restricted
+        if (restrictedAmounts.includes(selectedAmount)) {
+            toast.error('This amount is restricted based on your current membership level');
             return;
         }
 
@@ -194,23 +214,48 @@ export default function Deposit() {
                             </div>
 
                             <div className="grid grid-cols-3 gap-3">
-                                {amounts.map((amount) => (
-                                    <button
-                                        key={amount}
-                                        onClick={() => setSelectedAmount(amount)}
-                                        className={`
-                                            py-3 px-1 rounded-xl font-bold text-sm transition-all duration-200 
-                                            border flex items-center justify-center relative overflow-hidden
-                                            ${selectedAmount === amount
-                                                ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
-                                                : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-900'
-                                            }
-                                        `}
-                                    >
-                                        {formatNumber(amount)}
-                                    </button>
-                                ))}
+                                {amounts.map((amount) => {
+                                    const isRestricted = restrictedAmounts.includes(amount);
+                                    const isSelected = selectedAmount === amount;
+                                    
+                                    return (
+                                        <button
+                                            key={amount}
+                                            onClick={() => {
+                                                if (!isRestricted) {
+                                                    setSelectedAmount(amount);
+                                                } else {
+                                                    toast.error('This amount is restricted based on your current membership level');
+                                                }
+                                            }}
+                                            disabled={isRestricted}
+                                            className={`
+                                                py-3 px-1 rounded-xl font-bold text-sm transition-all duration-200 
+                                                border flex items-center justify-center relative overflow-hidden
+                                                ${isSelected && !isRestricted
+                                                    ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
+                                                    : isRestricted
+                                                        ? 'border-red-800 bg-red-950/50 text-red-400 cursor-not-allowed opacity-60'
+                                                        : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-900'
+                                                }
+                                            `}
+                                        >
+                                            <span className={isRestricted ? 'opacity-50' : ''}>
+                                                {formatNumber(amount)}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
+                            
+                            {restrictedAmounts.length > 0 && (
+                                <div className="mt-3 p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl">
+                                    <p className="text-xs text-amber-400 text-center">
+                                        <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                                        Some amounts are restricted based on your current membership level and rank progression rules
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Section 3: Payment Method Dropdown */}

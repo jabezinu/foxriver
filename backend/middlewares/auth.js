@@ -108,3 +108,32 @@ exports.checkInternEarningRestriction = (req, res, next) => {
     }
     next();
 };
+
+// Optional protect - adds user to req if authenticated, but doesn't require authentication
+exports.optionalProtect = async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+        return next(); // Continue without user
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findByPk(decoded.id, {
+            attributes: { exclude: ['password', 'transactionPassword'] }
+        });
+
+        if (req.user) {
+            // Convert to plain object for easier access
+            req.user = req.user.toJSON();
+        }
+    } catch (error) {
+        // Ignore token errors and continue without user
+    }
+
+    next();
+};

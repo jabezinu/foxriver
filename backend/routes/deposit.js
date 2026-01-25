@@ -9,11 +9,11 @@ const {
     rejectDeposit,
     getAllowedDepositAmounts
 } = require('../controllers/depositController');
-const { protect, adminOnly, checkPermission } = require('../middlewares/auth');
+const { protect, adminOnly, checkPermission, optionalProtect } = require('../middlewares/auth');
 
 const upload = require('../middlewares/upload');
 
-router.get('/allowed-amounts', getAllowedDepositAmounts);
+router.get('/allowed-amounts', optionalProtect, getAllowedDepositAmounts);
 router.post('/create', protect, createDeposit);
 router.post('/submit-ft', protect, upload.single('screenshot'), submitTransactionFT);
 router.get('/user', protect, getUserDeposits);
