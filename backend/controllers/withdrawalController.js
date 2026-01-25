@@ -16,6 +16,16 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
         throw new AppError(`Withdrawal restricted until ${restrictedDate}`, 403);
     }
 
+    // Check day-based restrictions
+    if (req.user.withdrawalRestrictedDays && Array.isArray(req.user.withdrawalRestrictedDays)) {
+        const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+        if (req.user.withdrawalRestrictedDays.includes(today)) {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const restrictedDayNames = req.user.withdrawalRestrictedDays.map(day => dayNames[day]).join(', ');
+            throw new AppError(`Withdrawals are restricted on: ${restrictedDayNames}`, 403);
+        }
+    }
+
     // Check if user already made a withdrawal request today
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);

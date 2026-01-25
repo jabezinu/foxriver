@@ -110,7 +110,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res) => {
-    const { membershipLevel, incomeWallet, personalWallet, tasksWallet, withdrawalRestrictedUntil, approveBankChange, password, transactionPassword } = req.body;
+    const { membershipLevel, incomeWallet, personalWallet, tasksWallet, withdrawalRestrictedUntil, withdrawalRestrictedDays, approveBankChange, password, transactionPassword } = req.body;
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
@@ -142,6 +142,10 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
     if (withdrawalRestrictedUntil !== undefined) {
         user.withdrawalRestrictedUntil = withdrawalRestrictedUntil === '' ? null : withdrawalRestrictedUntil;
+    }
+
+    if (withdrawalRestrictedDays !== undefined) {
+        user.withdrawalRestrictedDays = withdrawalRestrictedDays;
     }
 
     // Handle password updates
@@ -194,12 +198,23 @@ exports.updateUser = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/restrict-all
 // @access  Private/Admin
 exports.restrictAllUsers = asyncHandler(async (req, res) => {
-    const { date } = req.body;
-    await adminService.restrictAllUsers(date);
+    const { date, restrictedDays } = req.body;
+    await adminService.restrictAllUsers(date, restrictedDays);
+
+    let message = '';
+    if (date) {
+        message = 'Withdrawal restriction applied to all users until ' + new Date(date).toLocaleDateString();
+    } else if (restrictedDays && restrictedDays.length > 0) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const restrictedDayNames = restrictedDays.map(day => dayNames[day]).join(', ');
+        message = `Withdrawal restrictions applied to all users on: ${restrictedDayNames}`;
+    } else {
+        message = 'Withdrawal restrictions lifted for all users';
+    }
 
     res.status(200).json({
         success: true,
-        message: date ? 'Withdrawal restriction applied to all users' : 'Withdrawal restrictions lifted for all users'
+        message
     });
 });
 
@@ -456,6 +471,36 @@ exports.createAdmin = asyncHandler(async (req, res) => {
         success: true,
         message: 'Admin created successfully',
         admin: { id: admin.id, phone: admin.phone, role: admin.role, permissions: admin.permissions }
+    });
+});
+
+// @desc    Get current global restrictions
+// @route   GET /api/admin/users/restrictions
+// @access  Private/Admin
+exports.getCurrentRestrictions = asyncHandler(async (req, res) => {
+    // Get a sample user to check current global restrictions
+    const sampleUser = await User.findOne({
+        where: { role: 'user' },
+        attributes: ['withdrawalRestrictedUntil', 'withdrawalRestrictedDays'],
+        raw: true
+    });
+
+    if (!sampleUser) {
+        return res.status(200).json({
+            success: true,
+            restrictions: {
+                dateRestriction: null,
+                dayRestrictions: null
+            }
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        restrictions: {
+            dateRestriction: sampleUser.withdrawalRestrictedUntil,
+            dayRestrictions: sampleUser.withdrawalRestrictedDays
+        }
     });
 });
 

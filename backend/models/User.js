@@ -196,6 +196,23 @@ User.init({
         type: DataTypes.DATE,
         allowNull: true
     },
+    withdrawalRestrictedDays: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null,
+        get() {
+            const value = this.getDataValue('withdrawalRestrictedDays');
+            if (!value) return null;
+            if (Array.isArray(value)) return value;
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : null;
+            } catch (e) {
+                console.error('Error parsing withdrawalRestrictedDays JSON:', e);
+                return null;
+            }
+        }
+    },
     lastSalaryDate: {
         type: DataTypes.DATE,
         allowNull: true

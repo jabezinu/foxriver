@@ -32,6 +32,7 @@ export default function UserManagement() {
         incomeWallet: '',
         personalWallet: '',
         withdrawalRestrictedUntil: '',
+        withdrawalRestrictedDays: [],
         password: '',
         transactionPassword: ''
     });
@@ -40,6 +41,8 @@ export default function UserManagement() {
     const [restrictModalOpen, setRestrictModalOpen] = useState(false);
     const [restrictDate, setRestrictDate] = useState('');
     const [isLiftRestriction, setIsLiftRestriction] = useState(false);
+    const [restrictedDays, setRestrictedDays] = useState([]);
+    const [restrictionType, setRestrictionType] = useState('date');
 
     useEffect(() => {
         fetchUsers();
@@ -73,6 +76,7 @@ export default function UserManagement() {
             incomeWallet: user.incomeWallet,
             personalWallet: user.personalWallet,
             withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : '',
+            withdrawalRestrictedDays: user.withdrawalRestrictedDays || [],
             password: '',
             transactionPassword: ''
         });
@@ -108,20 +112,46 @@ export default function UserManagement() {
 
     const handleRestrictAll = async (e) => {
         e.preventDefault();
-        if (!isLiftRestriction && !restrictDate) return toast.error('Please select a date');
+        if (!isLiftRestriction && restrictionType === 'date' && !restrictDate) {
+            return toast.error('Please select a date');
+        }
+        if (!isLiftRestriction && restrictionType === 'days' && (!restrictedDays || restrictedDays.length === 0)) {
+            return toast.error('Please select at least one day');
+        }
 
-        const message = isLiftRestriction
-            ? 'Are you sure you want to LIFT withdrawal restrictions for ALL users?'
-            : 'Are you sure you want to restrict withdrawals for ALL users until this date?';
+        let message = '';
+        if (isLiftRestriction) {
+            message = 'Are you sure you want to LIFT withdrawal restrictions for ALL users?';
+        } else if (restrictionType === 'date') {
+            message = 'Are you sure you want to restrict withdrawals for ALL users until this date?';
+        } else {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const restrictedDayNames = restrictedDays.map(day => dayNames[day]).join(', ');
+            message = `Are you sure you want to restrict withdrawals for ALL users on: ${restrictedDayNames}?`;
+        }
 
         if (!confirm(message)) return;
 
         try {
-            await adminUserAPI.restrictAllUsers({ date: isLiftRestriction ? null : restrictDate });
+            const payload = {};
+            if (isLiftRestriction) {
+                payload.date = null;
+                payload.restrictedDays = null;
+            } else if (restrictionType === 'date') {
+                payload.date = restrictDate;
+                payload.restrictedDays = null;
+            } else {
+                payload.date = null;
+                payload.restrictedDays = restrictedDays;
+            }
+
+            await adminUserAPI.restrictAllUsers(payload);
             toast.success(isLiftRestriction ? 'Restrictions lifted for all users' : 'Restriction applied to all users');
             setRestrictModalOpen(false);
             setRestrictDate('');
+            setRestrictedDays([]);
             setIsLiftRestriction(false);
+            setRestrictionType('date');
             fetchUsers();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Operation failed');
@@ -168,6 +198,10 @@ export default function UserManagement() {
                 setDate={setRestrictDate}
                 lift={isLiftRestriction}
                 setLift={setIsLiftRestriction}
+                restrictedDays={restrictedDays}
+                setRestrictedDays={setRestrictedDays}
+                restrictionType={restrictionType}
+                setRestrictionType={setRestrictionType}
             />
 
             <PageHeader

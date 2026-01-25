@@ -140,7 +140,7 @@ class UserService {
      */
     async canWithdraw(userId) {
         const user = await User.findByPk(userId, {
-            attributes: ['withdrawalRestrictedUntil'],
+            attributes: ['withdrawalRestrictedUntil', 'withdrawalRestrictedDays'],
             raw: true
         });
 
@@ -148,9 +148,20 @@ class UserService {
             throw new AppError('User not found', 404);
         }
 
+        // Check date-based restriction (legacy)
         if (user.withdrawalRestrictedUntil && new Date() < new Date(user.withdrawalRestrictedUntil)) {
             const restrictedUntil = new Date(user.withdrawalRestrictedUntil).toLocaleDateString();
             throw new AppError(`Withdrawal restricted until ${restrictedUntil}`, 403);
+        }
+
+        // Check day-based restrictions (new system)
+        if (user.withdrawalRestrictedDays && Array.isArray(user.withdrawalRestrictedDays)) {
+            const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+            if (user.withdrawalRestrictedDays.includes(today)) {
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const restrictedDayNames = user.withdrawalRestrictedDays.map(day => dayNames[day]).join(', ');
+                throw new AppError(`Withdrawals are restricted on: ${restrictedDayNames}`, 403);
+            }
         }
 
         return true;

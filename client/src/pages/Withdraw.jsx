@@ -13,7 +13,7 @@ import TransactionStatusBadge from '../components/TransactionStatusBadge';
 export default function Withdraw() {
     const navigate = useNavigate();
     // Use store data
-    const { wallet, fetchWallet } = useUserStore();
+    const { wallet, profile, fetchWallet, fetchProfile } = useUserStore();
 
     const [loading, setLoading] = useState(true);
     // wallets state is replaced by store wallet
@@ -31,9 +31,57 @@ export default function Withdraw() {
 
     const amounts = [750, 1600, 4500, 10000, 18700, 31500, 53200];
 
+    // Check if withdrawals are currently restricted
+    const getWithdrawalRestrictionInfo = () => {
+        if (!profile) return { isRestricted: false, message: '' };
+
+        const now = new Date();
+        
+        // Check date-based restriction (legacy)
+        if (profile.withdrawalRestrictedUntil) {
+            const restrictedUntil = new Date(profile.withdrawalRestrictedUntil);
+            if (now < restrictedUntil) {
+                return {
+                    isRestricted: true,
+                    message: `Withdrawals are restricted until ${restrictedUntil.toLocaleDateString()}`
+                };
+            }
+        }
+
+        // Check day-based restrictions (new system)
+        if (profile.withdrawalRestrictedDays && Array.isArray(profile.withdrawalRestrictedDays)) {
+            const today = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            if (profile.withdrawalRestrictedDays.includes(today)) {
+                // Calculate allowed days (days not in restricted list)
+                const allowedDays = [];
+                for (let i = 0; i < 7; i++) {
+                    if (!profile.withdrawalRestrictedDays.includes(i)) {
+                        allowedDays.push(dayNames[i]);
+                    }
+                }
+                
+                const allowedDaysText = allowedDays.length > 0 
+                    ? allowedDays.join(', ')
+                    : 'No days available';
+                
+                return {
+                    isRestricted: true,
+                    message: `Withdrawals are only allowed on: ${allowedDaysText}`
+                };
+            }
+        }
+
+        return { isRestricted: false, message: '' };
+    };
+
+    const restrictionInfo = getWithdrawalRestrictionInfo();
+
     useEffect(() => {
         const init = async () => {
             await fetchWallet();
+            await fetchProfile(); // Also fetch profile to get restriction info
             setLoading(false);
         };
         
@@ -51,7 +99,7 @@ export default function Withdraw() {
         
         init();
         fetchHistory();
-    }, [fetchWallet]);
+    }, [fetchWallet, fetchProfile]);
 
     // Derived values using store wallet
     // Renaming usages of 'wallets' to 'wallet' in the rest of the file via this replacer? 
@@ -261,19 +309,41 @@ export default function Withdraw() {
                 <Button
                     onClick={handleWithdraw}
                     loading={submitting}
-                    disabled={submitting}
+                    disabled={submitting || restrictionInfo.isRestricted}
                     size="lg"
                     className="w-full shadow-glow"
                 >
-                    Submit Request
+                    {restrictionInfo.isRestricted ? 'Withdrawals Restricted' : 'Submit Request'}
                 </Button>
 
                 {/* Withdrawal Restrictions Notice */}
-                <div className="mt-6 bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
-                    <p className="text-xs text-amber-200/80 text-center leading-relaxed">
-                        📅 Withdrawal Schedule: Submit your withdrawal requests on Fridays and they will be processed on Saturdays for your convenience.
-                    </p>
-                </div>
+                {restrictionInfo.isRestricted ? (
+                    <div className="mt-6 bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+                        <p className="text-xs text-red-200/80 text-center leading-relaxed">
+                            🚫 {restrictionInfo.message}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="mt-6 space-y-3">
+                        {/* Show allowed days if there are day-based restrictions */}
+                        {profile?.withdrawalRestrictedDays && profile.withdrawalRestrictedDays.length > 0 && (
+                            <div className="bg-green-500/10 rounded-xl p-4 border border-green-500/20">
+                                <p className="text-xs text-green-200/80 text-center leading-relaxed">
+                                    ✅ {(() => {
+                                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                        const allowedDays = [];
+                                        for (let i = 0; i < 7; i++) {
+                                            if (!profile.withdrawalRestrictedDays.includes(i)) {
+                                                allowedDays.push(dayNames[i]);
+                                            }
+                                        }
+                                        return `Withdrawals are allowed on: ${allowedDays.join(', ')}`;
+                                    })()}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Recent Withdrawals */}
                 {!loadingHistory && history.length > 0 && (

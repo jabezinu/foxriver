@@ -49,6 +49,7 @@ export const adminUserAPI = {
     getUserDeposits: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/deposits`),
     getUserWithdrawals: (id) => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/${id}/withdrawals`),
     restrictAllUsers: (data) => axios.put(`${API_ENDPOINTS.ADMIN.USERS}/restrict-all`, data),
+    getCurrentRestrictions: () => axios.get(`${API_ENDPOINTS.ADMIN.USERS}/restrictions`),
 };
 
 export const adminDepositAPI = {

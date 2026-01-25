@@ -76,9 +76,19 @@ class AdminService {
     /**
      * Restrict withdrawal for all users
      */
-    async restrictAllUsers(date) {
+    async restrictAllUsers(date, restrictedDays = null) {
+        const updateData = {};
+        
+        if (date !== undefined) {
+            updateData.withdrawalRestrictedUntil = date || null;
+        }
+        
+        if (restrictedDays !== undefined) {
+            updateData.withdrawalRestrictedDays = restrictedDays;
+        }
+
         await User.update(
-            { withdrawalRestrictedUntil: date || null },
+            updateData,
             { where: { role: 'user' } }
         );
         return true;
