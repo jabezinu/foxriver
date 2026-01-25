@@ -9,6 +9,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
 import Loading from '../components/Loading';
+import logo from '../assets/logo.png';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Login() {
             <Card className="w-full max-w-md z-10 p-8 shadow-2xl border-none bg-zinc-900/90 backdrop-blur-xl">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 shadow-glow mb-4">
-                        <span className="text-3xl font-black text-white tracking-tighter">F</span>
+                        <img src={logo} alt="Novis Logo" className="w-12 h-12 object-contain" />
                     </div>
                     <h2 className="text-2xl font-bold text-white">{t('auth.welcomeBack')}</h2>
                     <p className="text-zinc-500 text-sm mt-1">{t('auth.signInSubtitle')}</p>
