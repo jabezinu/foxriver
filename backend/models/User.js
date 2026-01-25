@@ -94,6 +94,10 @@ User.init({
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0
     },
+    tasksWallet: {
+        type: DataTypes.DECIMAL(15, 2),
+        defaultValue: 0
+    },
     transactionPassword: {
         type: DataTypes.STRING,
         allowNull: true

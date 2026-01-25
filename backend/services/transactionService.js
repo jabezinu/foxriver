@@ -169,7 +169,8 @@ class TransactionService {
         }
 
         // Deduct from user's balance
-        const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' : 'personalWallet';
+        const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' : 
+                           withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
 
         if (parseFloat(user[walletField]) < parseFloat(withdrawal.amount)) {
             throw new AppError('Insufficient balance in user wallet', 400);

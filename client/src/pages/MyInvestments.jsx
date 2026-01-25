@@ -195,7 +195,7 @@ export default function MyInvestments() {
                                 {/* Funding Source */}
                                 <div className="mt-3 pt-3 border-t border-zinc-800">
                                     <p className="text-xs text-zinc-500 mb-2">Funded from:</p>
-                                    <div className="flex gap-2 text-xs">
+                                    <div className="flex gap-2 text-xs flex-wrap">
                                         {investment.fundingSource.incomeWallet > 0 && (
                                             <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 rounded">
                                                 Income: ETB {investment.fundingSource.incomeWallet.toFixed(2)}
@@ -204,6 +204,11 @@ export default function MyInvestments() {
                                         {investment.fundingSource.personalWallet > 0 && (
                                             <span className="px-2 py-1 bg-orange-500/10 text-orange-400 rounded">
                                                 Personal: ETB {investment.fundingSource.personalWallet.toFixed(2)}
+                                            </span>
+                                        )}
+                                        {investment.fundingSource.tasksWallet > 0 && (
+                                            <span className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded">
+                                                Tasks: ETB {investment.fundingSource.tasksWallet.toFixed(2)}
                                             </span>
                                         )}
                                     </div>

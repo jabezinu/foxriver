@@ -19,7 +19,8 @@ export default function WealthDetail() {
     const [showFundingModal, setShowFundingModal] = useState(false);
     const [fundingSource, setFundingSource] = useState({
         incomeWallet: 0,
-        personalWallet: 0
+        personalWallet: 0,
+        tasksWallet: 0
     });
     const [transactionPassword, setTransactionPassword] = useState('');
     const [investing, setInvesting] = useState(false);
@@ -79,7 +80,7 @@ export default function WealthDetail() {
             return;
         }
         
-        const totalAvailable = user.incomeWallet + user.personalWallet;
+        const totalAvailable = user.incomeWallet + user.personalWallet + user.tasksWallet;
         if (investAmount > totalAvailable) {
             alert('Insufficient balance');
             return;
@@ -90,10 +91,13 @@ export default function WealthDetail() {
         const fromIncome = Math.min(remaining, user.incomeWallet);
         remaining -= fromIncome;
         const fromPersonal = Math.min(remaining, user.personalWallet);
+        remaining -= fromPersonal;
+        const fromTasks = Math.min(remaining, user.tasksWallet);
         
         setFundingSource({
             incomeWallet: fromIncome,
-            personalWallet: fromPersonal
+            personalWallet: fromPersonal,
+            tasksWallet: fromTasks
         });
         
         setShowFundingModal(true);
@@ -132,19 +136,34 @@ export default function WealthDetail() {
             newValue = Math.min(newValue, user.incomeWallet);
             const remaining = investAmount - newValue;
             const personalAmount = Math.min(remaining, user.personalWallet);
+            const tasksAmount = Math.min(remaining - personalAmount, user.tasksWallet);
             
             setFundingSource({
                 incomeWallet: newValue,
-                personalWallet: personalAmount
+                personalWallet: personalAmount,
+                tasksWallet: tasksAmount
             });
-        } else {
+        } else if (wallet === 'personal') {
             newValue = Math.min(newValue, user.personalWallet);
             const remaining = investAmount - newValue;
             const incomeAmount = Math.min(remaining, user.incomeWallet);
+            const tasksAmount = Math.min(remaining - incomeAmount, user.tasksWallet);
             
             setFundingSource({
                 incomeWallet: incomeAmount,
-                personalWallet: newValue
+                personalWallet: newValue,
+                tasksWallet: tasksAmount
+            });
+        } else if (wallet === 'tasks') {
+            newValue = Math.min(newValue, user.tasksWallet);
+            const remaining = investAmount - newValue;
+            const incomeAmount = Math.min(remaining, user.incomeWallet);
+            const personalAmount = Math.min(remaining - incomeAmount, user.personalWallet);
+            
+            setFundingSource({
+                incomeWallet: incomeAmount,
+                personalWallet: personalAmount,
+                tasksWallet: newValue
             });
         }
     };
@@ -321,19 +340,39 @@ export default function WealthDetail() {
                                 />
                             </div>
 
+                            {/* Tasks Wallet */}
+                            <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="text-sm font-semibold text-white">
+                                        Tasks Wallet
+                                    </label>
+                                    <span className="text-xs text-zinc-400 bg-zinc-800 px-3 py-1 rounded-full">
+                                        Available: {user.tasksWallet.toFixed(2)} ETB
+                                    </span>
+                                </div>
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    value={fundingSource.tasksWallet}
+                                    onChange={(e) => adjustFunding('tasks', e.target.value)}
+                                    placeholder="0.00"
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3.5 text-white text-lg font-semibold focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                />
+                            </div>
+
                             {/* Summary Card */}
                             <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 rounded-2xl p-5 border border-indigo-500/20">
                                 <div className="flex justify-between items-center mb-3">
                                     <span className="text-sm text-zinc-300">Total Selected</span>
                                     <span className="text-2xl font-bold text-white">
-                                        {(fundingSource.incomeWallet + fundingSource.personalWallet).toFixed(2)} ETB
+                                        {(fundingSource.incomeWallet + fundingSource.personalWallet + fundingSource.tasksWallet).toFixed(2)} ETB
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center pt-3 border-t border-zinc-700/50">
                                     <span className="text-sm text-zinc-300">Required Amount</span>
                                     <span className="text-lg font-bold text-orange-400">{amount} ETB</span>
                                 </div>
-                                {(fundingSource.incomeWallet + fundingSource.personalWallet) !== parseFloat(amount) && (
+                                {(fundingSource.incomeWallet + fundingSource.personalWallet + fundingSource.tasksWallet) !== parseFloat(amount) && (
                                     <div className="mt-3 pt-3 border-t border-zinc-700/50">
                                         <p className="text-xs text-red-400 text-center">
                                             ⚠️ Total must equal required amount
@@ -373,7 +412,7 @@ export default function WealthDetail() {
                                 onClick={handleConfirmInvestment}
                                 disabled={
                                     investing ||
-                                    (fundingSource.incomeWallet + fundingSource.personalWallet) !== parseFloat(amount) ||
+                                    (fundingSource.incomeWallet + fundingSource.personalWallet + fundingSource.tasksWallet) !== parseFloat(amount) ||
                                     !transactionPassword
                                 }
                                 className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-orange-500/20"

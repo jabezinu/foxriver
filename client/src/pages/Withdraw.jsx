@@ -115,15 +115,18 @@ export default function Withdraw() {
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* Wallet Balances Summary */}
                 <div className="bg-zinc-900 rounded-2xl p-5 shadow-sm mb-6 border border-zinc-800">
-                    <div className="flex justify-between items-stretch">
-                        <div className="flex-1">
-                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Income Balance</p>
-                            <p className="text-xl font-bold text-white">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center">
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Income</p>
+                            <p className="text-lg font-bold text-white">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
-                        <div className="w-px bg-zinc-800 mx-4"></div>
-                        <div className="flex-1 text-right">
-                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Personal Balance</p>
-                            <p className="text-xl font-bold text-white">{formatNumber(wallets.personalWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
+                        <div className="text-center border-l border-r border-zinc-800">
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Personal</p>
+                            <p className="text-lg font-bold text-white">{formatNumber(wallets.personalWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Tasks</p>
+                            <p className="text-lg font-bold text-white">{formatNumber(wallets.tasksWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
                     </div>
                 </div>
@@ -131,26 +134,36 @@ export default function Withdraw() {
                 {/* Wallet Selector */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold text-zinc-400 mb-3 ml-1 uppercase tracking-wider text-[10px]">Withdraw From</label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                         <button
                             onClick={() => setWalletType('income')}
-                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'income'
+                            className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'income'
                                 ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
                                 : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
                                 }`}
                         >
-                            <Wallet size={24} strokeWidth={walletType === 'income' ? 2 : 1.5} />
-                            <span className="text-xs font-bold uppercase">Income Wallet</span>
+                            <Wallet size={20} strokeWidth={walletType === 'income' ? 2 : 1.5} />
+                            <span className="text-xs font-bold uppercase">Income</span>
                         </button>
                         <button
                             onClick={() => setWalletType('personal')}
-                            className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'personal'
+                            className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'personal'
                                 ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
                                 : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
                                 }`}
                         >
-                            <Wallet size={24} strokeWidth={walletType === 'personal' ? 2 : 1.5} />
-                            <span className="text-xs font-bold uppercase">Personal Wallet</span>
+                            <Wallet size={20} strokeWidth={walletType === 'personal' ? 2 : 1.5} />
+                            <span className="text-xs font-bold uppercase">Personal</span>
+                        </button>
+                        <button
+                            onClick={() => setWalletType('tasks')}
+                            className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'tasks'
+                                ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
+                                : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+                                }`}
+                        >
+                            <Wallet size={20} strokeWidth={walletType === 'tasks' ? 2 : 1.5} />
+                            <span className="text-xs font-bold uppercase">Tasks</span>
                         </button>
                     </div>
                 </div>

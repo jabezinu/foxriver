@@ -10,6 +10,7 @@ const SpinWheel = () => {
     const [spinning, setSpinning] = useState(false);
     const [personalBalance, setPersonalBalance] = useState(0);
     const [incomeBalance, setIncomeBalance] = useState(0);
+    const [tasksBalance, setTasksBalance] = useState(0);
     const [history, setHistory] = useState([]);
     const [stats, setStats] = useState(null);
     const [showResult, setShowResult] = useState(false);
@@ -52,6 +53,7 @@ const SpinWheel = () => {
             const response = await spinAPI.getBalance();
             setPersonalBalance(response.data.wallet.personalWallet);
             setIncomeBalance(response.data.wallet.incomeWallet);
+            setTasksBalance(response.data.wallet.tasksWallet);
         } catch (error) {
             console.error('Error fetching balance:', error);
         }
@@ -72,7 +74,7 @@ const SpinWheel = () => {
     };
 
     const handleTierSelect = (tier) => {
-        if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount) {
+        if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount && tasksBalance < tier.betAmount) {
             toast.error(`Insufficient balance! You need ${tier.betAmount} ETB to play this tier.`);
             return;
         }
@@ -83,7 +85,8 @@ const SpinWheel = () => {
     };
 
     const handleWalletSelect = (wallet) => {
-        const balance = wallet === 'personal' ? personalBalance : incomeBalance;
+        const balance = wallet === 'personal' ? personalBalance : 
+                       wallet === 'income' ? incomeBalance : tasksBalance;
 
         if (balance < selectedTier.betAmount) {
             toast.error(`Insufficient ${wallet} balance! You need ${selectedTier.betAmount} ETB to play.`);
@@ -434,6 +437,26 @@ const SpinWheel = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-white font-bold text-xl">{incomeBalance.toFixed(2)}</p>
+                                        <p className="text-zinc-400 text-xs">ETB</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => handleWalletSelect('tasks')}
+                                disabled={!selectedTier || tasksBalance < selectedTier.betAmount}
+                                className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${!selectedTier || tasksBalance < selectedTier.betAmount
+                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                        : 'bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20'
+                                    }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="text-left">
+                                        <p className="text-white font-bold">Tasks Balance</p>
+                                        <p className="text-purple-400 text-xs mt-0.5">Use tasks wallet</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-white font-bold text-xl">{tasksBalance.toFixed(2)}</p>
                                         <p className="text-zinc-400 text-xs">ETB</p>
                                     </div>
                                 </div>

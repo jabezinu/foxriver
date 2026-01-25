@@ -116,7 +116,8 @@ exports.login = asyncHandler(async (req, res) => {
             membershipLevel: user.membershipLevel,
             invitationCode: user.invitationCode,
             incomeWallet: user.incomeWallet,
-            personalWallet: user.personalWallet
+            personalWallet: user.personalWallet,
+            tasksWallet: user.tasksWallet
         }
     });
 });

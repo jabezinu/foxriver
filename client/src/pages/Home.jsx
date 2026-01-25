@@ -186,7 +186,7 @@ export default function Home() {
         },
     ];
 
-    if (isInitialLoad && wallet.incomeWallet === 0 && wallet.personalWallet === 0) return <Loading />;
+    if (isInitialLoad && wallet.incomeWallet === 0 && wallet.personalWallet === 0 && wallet.tasksWallet === 0) return <Loading />;
 
     return (
         <div className="min-h-screen pb-6">
@@ -229,17 +229,21 @@ export default function Home() {
                             <EyeToggle />
                         </div>
                         <h2 className="text-4xl font-black mb-8 tracking-tight text-white drop-shadow-sm">
-                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">{t('common.currency')}</span>
+                            {formatNumber(wallet.incomeWallet + wallet.personalWallet + wallet.tasksWallet)} <span className="text-lg font-bold opacity-80">{t('common.currency')}</span>
                         </h2>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">{t('home.incomeWallet')}</p>
-                                <p className="font-bold text-lg text-white">{formatNumber(wallet.incomeWallet)}</p>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/10 hover:bg-white/30 transition-colors">
+                                <p className="text-[9px] font-bold text-white/70 mb-1 uppercase">{t('home.incomeWallet')}</p>
+                                <p className="font-bold text-sm text-white">{formatNumber(wallet.incomeWallet)}</p>
                             </div>
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[10px] font-bold text-white/70 mb-1 uppercase">{t('home.personalWallet')}</p>
-                                <p className="font-bold text-lg text-white">{formatNumber(wallet.personalWallet)}</p>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/10 hover:bg-white/30 transition-colors">
+                                <p className="text-[9px] font-bold text-white/70 mb-1 uppercase">{t('home.personalWallet')}</p>
+                                <p className="font-bold text-sm text-white">{formatNumber(wallet.personalWallet)}</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/10 hover:bg-white/30 transition-colors">
+                                <p className="text-[9px] font-bold text-white/70 mb-1 uppercase">Tasks Wallet</p>
+                                <p className="font-bold text-sm text-white">{formatNumber(wallet.tasksWallet)}</p>
                             </div>
                         </div>
                     </div>
