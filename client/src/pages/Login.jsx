@@ -164,11 +164,19 @@ export default function Login() {
                     </Link>
                 </p>
 
-                <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">Notice</p>
-                    <p className="text-xs text-zinc-500 leading-relaxed italic">
-                        "the company have the right to Edit, Change and shut down the app at any time"
-                    </p>
+                <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center space-y-3">
+                    <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">App Validity Period</p>
+                        <p className="text-xs text-primary-400 font-semibold">
+                            January 05, 2026 - January 05, 2027
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">Notice</p>
+                        <p className="text-xs text-zinc-500 leading-relaxed italic">
+                            "the company have the right to Edit, Change and shut down the app at any time"
+                        </p>
+                    </div>
                 </div>
             </Card>
         </div>

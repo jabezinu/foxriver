@@ -408,6 +408,16 @@ export default function Mine() {
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-600 rounded-full blur-2xl opacity-10 -ml-10 -mb-10" />
                 </div>
 
+                {/* App Validity Information */}
+                <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center space-y-3">
+                    <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">App Validity Period</p>
+                        <p className="text-xs text-primary-400 font-semibold">
+                            January 05, 2026 - January 05, 2027
+                        </p>
+                    </div>
+                </div>
+
             </div>
 
             {/* Profile Edit Modal */}
