@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { adminDepositAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { HiDownload } from 'react-icons/hi';
 import ConfirmModal from '../components/ConfirmModal';
 import PromptModal from '../components/PromptModal';
 import PageHeader from '../components/shared/PageHeader';
 import DepositItem from '../components/DepositItem';
 import ScreenshotModal from '../components/ScreenshotModal';
+import ExportModal from '../components/ExportModal';
+import { exportToCSV } from '../utils/exportUtils';
 
 export default function DepositRequests() {
     const [deposits, setDeposits] = useState([]);
@@ -14,6 +17,8 @@ export default function DepositRequests() {
     const [approveId, setApproveId] = useState(null);
     const [rejectId, setRejectId] = useState(null);
     const [viewScreenshot, setViewScreenshot] = useState(null);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => { fetchDeposits(); }, [filterStatus]);
 
@@ -23,6 +28,67 @@ export default function DepositRequests() {
             const res = await adminDepositAPI.getDeposits({ status: filterStatus });
             setDeposits(res.data.deposits);
         } catch (error) { toast.error('Ledger Offline'); } finally { setLoading(false); }
+    };
+
+    const fetchTotalCount = async () => {
+        try {
+            const res = await adminDepositAPI.getDeposits({});
+            setTotalCount(res.data.deposits.length);
+        } catch (error) { console.error('Failed to fetch total count'); }
+    };
+
+    const handleOpenExport = () => {
+        fetchTotalCount();
+        setIsExportModalOpen(true);
+    };
+
+    const DEPOSIT_COLUMNS = [
+        'Date & Time', 'Order ID', 'User Phone', 'Amount (ETB)', 'Status',
+        'Deposit Type', 'Bank Reference (FT)', 'Admin Bank', 'Target Account',
+        'Admin Notes', 'Processed By', 'Processed At'
+    ];
+
+    const handleGenerateExport = async (selectedColumns, scope) => {
+        let dataToExport = deposits;
+
+        if (scope === 'all') {
+            const loadToast = toast.loading('Synchronizing full financial ledger...');
+            try {
+                const res = await adminDepositAPI.getDeposits({});
+                dataToExport = res.data.deposits;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync full ledger', { id: loadToast });
+                return;
+            }
+        }
+
+        const exportData = dataToExport.map(dep => {
+            const fullRecord = {
+                'Date & Time': new Date(dep.createdAt).toLocaleString(),
+                'Order ID': dep.orderId,
+                'User Phone': dep.userDetails?.phone || 'N/A',
+                'Amount (ETB)': dep.amount,
+                'Status': dep.status.charAt(0).toUpperCase() + dep.status.slice(1).replace('_', ' '),
+                'Deposit Type': dep.rankUpgradeRequest ? 'Rank Upgrade' : 'Capital Intake',
+                'Bank Reference (FT)': dep.transactionFT || '',
+                'Admin Bank': dep.paymentMethodDetails?.bankName || '',
+                'Target Account': dep.paymentMethodDetails?.accountNumber || '',
+                'Admin Notes': dep.adminNotes || '',
+                'Processed By': dep.approver?.phone || '',
+                'Processed At': dep.approvedAt ? new Date(dep.approvedAt).toLocaleString() : ''
+            };
+
+            const filteredRecord = {};
+            selectedColumns.forEach(col => {
+                filteredRecord[col] = fullRecord[col];
+            });
+            return filteredRecord;
+        });
+
+        const fileName = scope === 'all' ? 'Deposits_Full_Ledger' : `Deposits_${filterStatus}`;
+        exportToCSV(exportData, selectedColumns, fileName);
+        toast.success('Professional Ledger Exported');
     };
 
     const confirmApprove = async () => {
@@ -67,15 +133,34 @@ export default function DepositRequests() {
             <ScreenshotModal
                 isOpen={!!viewScreenshot} src={viewScreenshot} onClose={() => setViewScreenshot(null)}
             />
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onExport={handleGenerateExport}
+                columns={DEPOSIT_COLUMNS}
+                dataCount={deposits.length}
+                totalCount={totalCount}
+                type="Deposits"
+                currentFilter={filterStatus === 'ft_submitted' ? 'Pending' : filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+            />
 
             <PageHeader
                 title="Financial Intake Ledger"
                 subtitle="Authenticate incoming capital signals and verify transactional integrity across the network."
                 extra={
-                    <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
-                        <FilterBtn active={filterStatus === 'ft_submitted'} color="yellow" onClick={() => setFilterStatus('ft_submitted')} label="Pending" />
-                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
-                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleOpenExport}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+                        >
+                            <HiDownload className="text-sm" />
+                            Export Ledger
+                        </button>
+                        <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
+                            <FilterBtn active={filterStatus === 'ft_submitted'} color="yellow" onClick={() => setFilterStatus('ft_submitted')} label="Pending" />
+                            <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
+                            <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
+                        </div>
                     </div>
                 }
             />

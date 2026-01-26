@@ -15,9 +15,6 @@ export default function BottomNav() {
 
     return (
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50 px-4 pb-4 pt-2 bg-zinc-950/80 backdrop-blur-lg border-t border-zinc-800">
-            <div className="text-center mt-1">
-                <p className="text-zinc-600 text-[9px]">© 2026</p>
-            </div>
             <div className="flex justify-around items-center">
                 {navItems.map((item) => (
                     <NavLink

@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { adminWithdrawalAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { HiDownload } from 'react-icons/hi';
 import ConfirmModal from '../components/ConfirmModal';
 import PromptModal from '../components/PromptModal';
 import PageHeader from '../components/shared/PageHeader';
 import WithdrawalItem from '../components/WithdrawalItem';
+import ExportModal from '../components/ExportModal';
+import { exportToCSV } from '../utils/exportUtils';
 
 export default function WithdrawalRequests() {
     const [withdrawals, setWithdrawals] = useState([]);
@@ -12,6 +15,8 @@ export default function WithdrawalRequests() {
     const [filterStatus, setFilterStatus] = useState('pending');
     const [approveId, setApproveId] = useState(null);
     const [rejectId, setRejectId] = useState(null);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => { fetchWithdrawals(); }, [filterStatus]);
 
@@ -22,6 +27,73 @@ export default function WithdrawalRequests() {
             setWithdrawals(res.data.withdrawals);
         } catch (error) { toast.error('Signal Loss: Registry inaccessible'); }
         finally { setLoading(false); }
+    };
+
+    const fetchTotalCount = async () => {
+        try {
+            const res = await adminWithdrawalAPI.getWithdrawals({});
+            setTotalCount(res.data.withdrawals.length);
+        } catch (error) { console.error('Failed to fetch total count'); }
+    };
+
+    const handleOpenExport = () => {
+        fetchTotalCount();
+        setIsExportModalOpen(true);
+    };
+
+    const WITHDRAWAL_COLUMNS = [
+        'Date & Time', 'Withdrawal ID', 'User Name', 'User Phone', 'Wallet Source',
+        'Gross Amount', 'Tax (10%)', 'Net Payout', 'Status', 'User Bank',
+        'Account Name', 'Account Number', 'Admin Notes', 'Disbursed By', 'Disbursed At'
+    ];
+
+    const handleGenerateExport = async (selectedColumns, scope) => {
+        let dataToExport = withdrawals;
+
+        if (scope === 'all') {
+            const loadToast = toast.loading('Synchronizing full payout matrix...');
+            try {
+                const res = await adminWithdrawalAPI.getWithdrawals({});
+                dataToExport = res.data.withdrawals;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync full matrix', { id: loadToast });
+                return;
+            }
+        }
+
+        const exportData = dataToExport.map(wit => {
+            const user = wit.userDetails || wit.user;
+            const bank = user?.bankAccount || {};
+
+            const fullRecord = {
+                'Date & Time': new Date(wit.createdAt).toLocaleString(),
+                'Withdrawal ID': wit.id || wit._id,
+                'User Name': user?.name || 'Unknown',
+                'User Phone': user?.phone || 'N/A',
+                'Wallet Source': wit.walletType,
+                'Gross Amount': wit.amount,
+                'Tax (10%)': wit.taxAmount,
+                'Net Payout': wit.netAmount,
+                'Status': wit.status.charAt(0).toUpperCase() + wit.status.slice(1),
+                'User Bank': bank.bank || '',
+                'Account Name': bank.accountName || '',
+                'Account Number': bank.accountNumber || '',
+                'Admin Notes': wit.adminNotes || '',
+                'Disbursed By': wit.approver?.phone || '',
+                'Disbursed At': wit.approvedAt ? new Date(wit.approvedAt).toLocaleString() : ''
+            };
+
+            const filteredRecord = {};
+            selectedColumns.forEach(col => {
+                filteredRecord[col] = fullRecord[col];
+            });
+            return filteredRecord;
+        });
+
+        const fileName = scope === 'all' ? 'Withdrawals_Full_Ledger' : `Withdrawals_${filterStatus}`;
+        exportToCSV(exportData, selectedColumns, fileName);
+        toast.success('Professional Payout Matrix Exported');
     };
 
     const confirmApprove = async () => {
@@ -65,15 +137,34 @@ export default function WithdrawalRequests() {
                 placeholder="e.g. Account Credentials Identity Mismatch"
                 confirmText="Invalidate Request"
             />
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onExport={handleGenerateExport}
+                columns={WITHDRAWAL_COLUMNS}
+                dataCount={withdrawals.length}
+                totalCount={totalCount}
+                type="Withdrawals"
+                currentFilter={filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+            />
 
             <PageHeader
                 title="Payout Operation Matrix"
                 subtitle="Review pending disbursement signals and authorize capital liquidation to personnel bank nodes."
                 extra={
-                    <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
-                        <FilterBtn active={filterStatus === 'pending'} color="purple" onClick={() => setFilterStatus('pending')} label="Pending" />
-                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
-                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleOpenExport}
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 active:scale-95"
+                        >
+                            <HiDownload className="text-sm" />
+                            Export Data
+                        </button>
+                        <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
+                            <FilterBtn active={filterStatus === 'pending'} color="purple" onClick={() => setFilterStatus('pending')} label="Pending" />
+                            <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
+                            <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
+                        </div>
                     </div>
                 }
             />
