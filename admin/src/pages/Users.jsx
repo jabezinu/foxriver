@@ -31,6 +31,7 @@ export default function UserManagement() {
         membershipLevel: '',
         incomeWallet: '',
         personalWallet: '',
+        tasksWallet: '',
         withdrawalRestrictedUntil: '',
         withdrawalRestrictedDays: [],
         password: '',
@@ -75,6 +76,7 @@ export default function UserManagement() {
             membershipLevel: user.membershipLevel,
             incomeWallet: user.incomeWallet,
             personalWallet: user.personalWallet,
+            tasksWallet: user.tasksWallet,
             withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : '',
             withdrawalRestrictedDays: user.withdrawalRestrictedDays || [],
             password: '',
@@ -258,6 +260,7 @@ export default function UserManagement() {
                                     <th className="table-header">Tier</th>
                                     <th className="table-header">Income Wallet</th>
                                     <th className="table-header">Personal Wallet</th>
+                                    <th className="table-header">Task Wallet</th>
                                     <th className="table-header">Monthly Salary</th>
                                     <th className="table-header text-center">Actions</th>
                                 </tr>
@@ -300,6 +303,7 @@ export default function UserManagement() {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-bold text-green-600">{formatNumber(user.incomeWallet)} ETB</td>
                                         <td className="px-6 py-4 text-sm font-bold text-blue-600">{formatNumber(user.personalWallet)} ETB</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-orange-600">{formatNumber(user.tasksWallet)} ETB</td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-purple-600">{formatNumber(user.monthlySalary || 0)} ETB</span>
