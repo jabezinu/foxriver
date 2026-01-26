@@ -165,3 +165,15 @@ exports.rejectWithdrawal = asyncHandler(async (req, res) => {
         withdrawal
     });
 });
+// @desc    Undo withdrawal (admin)
+// @route   PUT /api/withdrawals/:id/undo
+// @access  Private/Admin
+exports.undoWithdrawal = asyncHandler(async (req, res) => {
+    const withdrawal = await transactionService.undoWithdrawal(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Withdrawal status reset to pending',
+        withdrawal
+    });
+});

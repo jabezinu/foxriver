@@ -4,7 +4,7 @@ import { formatNumber } from '../utils/formatNumber';
 import Badge from './shared/Badge';
 import Card from './shared/Card';
 
-export default function WithdrawalItem({ withdrawal, onApprove, onReject }) {
+export default function WithdrawalItem({ withdrawal, onApprove, onReject, onUndo }) {
     const isPending = withdrawal.status === 'pending';
     const user = withdrawal.userDetails || withdrawal.user; // Support both field names
 
@@ -115,11 +115,19 @@ export default function WithdrawalItem({ withdrawal, onApprove, onReject }) {
                             </button>
                         </>
                     ) : (
-                        <div className="flex flex-col items-center gap-2 opacity-30">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 ${withdrawal.status === 'approved' ? 'border-emerald-500 text-emerald-500' : 'border-rose-500 text-rose-500'}`}>
-                                {withdrawal.status === 'approved' ? <HiCheck /> : <HiX />}
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="flex flex-col items-center gap-2 opacity-30">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 ${withdrawal.status === 'approved' ? 'border-emerald-500 text-emerald-500' : 'border-rose-500 text-rose-500'}`}>
+                                    {withdrawal.status === 'approved' ? <HiCheck /> : <HiX />}
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em]">Archived</span>
                             </div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Archived</span>
+                            <button
+                                onClick={() => onUndo(withdrawal.id || withdrawal._id)}
+                                className="px-6 py-2.5 bg-amber-50 text-amber-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 hover:text-white transition-all active:scale-95 shadow-xl shadow-amber-100/30"
+                            >
+                                Undo Decision
+                            </button>
                         </div>
                     )}
                 </div>

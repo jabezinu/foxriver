@@ -5,7 +5,7 @@ export default function TransactionStatusBadge({ status, size = 'sm', showIcon =
         switch (status) {
             case 'approved':
                 return {
-                    text: 'Completed',
+                    text: 'Approved',
                     icon: CheckCircle,
                     className: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
                 };
@@ -17,13 +17,13 @@ export default function TransactionStatusBadge({ status, size = 'sm', showIcon =
                 };
             case 'ft_submitted':
                 return {
-                    text: 'Under Review',
+                    text: 'Pending',
                     icon: Clock,
                     className: 'text-violet-500 bg-violet-500/10 border-violet-500/20'
                 };
             case 'pending':
                 return {
-                    text: 'Pending Payment',
+                    text: 'Pending',
                     icon: AlertCircle,
                     className: 'text-amber-500 bg-amber-500/10 border-amber-500/20'
                 };
@@ -38,7 +38,7 @@ export default function TransactionStatusBadge({ status, size = 'sm', showIcon =
 
     const config = getStatusConfig(status);
     const Icon = config.icon;
-    
+
     const sizeClasses = {
         xs: 'text-[10px] px-2 py-0.5',
         sm: 'text-xs px-2.5 py-1',

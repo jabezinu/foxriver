@@ -7,6 +7,7 @@ const {
     getAllDeposits,
     approveDeposit,
     rejectDeposit,
+    undoDeposit,
     getAllowedDepositAmounts
 } = require('../controllers/depositController');
 const { protect, adminOnly, checkPermission, optionalProtect } = require('../middlewares/auth');
@@ -20,5 +21,6 @@ router.get('/user', protect, getUserDeposits);
 router.get('/all', protect, adminOnly, checkPermission('manage_deposits'), getAllDeposits);
 router.put('/:id/approve', protect, adminOnly, checkPermission('manage_deposits'), approveDeposit);
 router.put('/:id/reject', protect, adminOnly, checkPermission('manage_deposits'), rejectDeposit);
+router.put('/:id/undo', protect, adminOnly, checkPermission('manage_deposits'), undoDeposit);
 
 module.exports = router;

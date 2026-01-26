@@ -5,11 +5,13 @@ import Card from './shared/Card';
 import { useState, useEffect } from 'react';
 import { adminSystemAPI } from '../services/api';
 
-export default function DepositItem({ deposit, onApprove, onReject, onViewScreenshot }) {
+export default function DepositItem({ deposit, onApprove, onReject, onViewScreenshot, onUndo }) {
     const isPending = deposit.status === 'ft_submitted';
+    const isApproved = deposit.status === 'approved';
+    const isRejected = deposit.status === 'rejected';
     const isRankUpgrade = deposit.rankUpgradeRequest;
     const [bonusPercent, setBonusPercent] = useState(15);
-    
+
     useEffect(() => {
         const fetchBonusPercent = async () => {
             try {
@@ -23,21 +25,21 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
         };
         fetchBonusPercent();
     }, []);
-    
+
     // Calculate bonus for rank upgrades
     const calculateBonus = () => {
         if (!isRankUpgrade) return 0;
-        
+
         const getCurrentRankNumber = (level) => {
             if (level === 'Intern') return 0;
             const match = level.match(/Rank (\d+)/);
             return match ? parseInt(match[1]) : 0;
         };
-        
+
         const targetRankNumber = getCurrentRankNumber(isRankUpgrade.requestedLevel);
         return targetRankNumber >= 2 ? parseFloat(deposit.amount) * (bonusPercent / 100) : 0;
     };
-    
+
     const bonusAmount = calculateBonus();
 
     return (
@@ -45,7 +47,7 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
             {isPending && (
                 <div className="absolute top-0 left-0 w-1 h-full bg-yellow-400"></div>
             )}
-            
+
             {/* Rank Upgrade Indicator */}
             {isRankUpgrade && (
                 <div className="absolute top-0 right-0 w-1 h-full bg-purple-500"></div>
@@ -64,7 +66,7 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                         {formatNumber(deposit.amount)}
                         <span className="text-[10px] ml-1 text-indigo-400">ETB</span>
                     </p>
-                    
+
                     {/* Bonus Display */}
                     {bonusAmount > 0 && (
                         <div className="mt-2 relative z-10">
@@ -75,7 +77,7 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                             </p>
                         </div>
                     )}
-                    
+
                     <Badge variant={isPending ? 'yellow' : deposit.status === 'approved' ? 'green' : 'red'} className="mt-3 font-black text-[9px]">
                         {isPending ? 'Awaiting Clearance' : deposit.status === 'approved' ? 'Authenticated' : 'Invalidated'}
                     </Badge>
@@ -101,7 +103,7 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                             <p className="text-[11px] font-mono font-bold text-gray-700 tracking-tighter">{deposit.transactionFT || 'NULL_SIGNAL'}</p>
                         </div>
                     </div>
-                    
+
                     {/* Rank Upgrade Info */}
                     {isRankUpgrade && (
                         <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
@@ -173,11 +175,19 @@ export default function DepositItem({ deposit, onApprove, onReject, onViewScreen
                             </button>
                         </>
                     ) : (
-                        <div className="flex flex-col items-center gap-1 text-center opacity-40">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Processed</span>
-                            <div className={`p-2 rounded-full ${deposit.status === 'approved' ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
-                                {deposit.status === 'approved' ? <HiCheck /> : <HiX />}
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="flex flex-col items-center gap-1 text-center opacity-40">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Processed</span>
+                                <div className={`p-2 rounded-full ${deposit.status === 'approved' ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
+                                    {deposit.status === 'approved' ? <HiCheck /> : <HiX />}
+                                </div>
                             </div>
+                            <button
+                                onClick={() => onUndo(deposit.id || deposit._id)}
+                                className="px-4 py-2 bg-amber-50 text-amber-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 hover:text-white transition-all active:scale-95 shadow-lg shadow-amber-100/30"
+                            >
+                                Undo
+                            </button>
                         </div>
                     )}
                 </div>

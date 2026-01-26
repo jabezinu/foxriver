@@ -41,6 +41,14 @@ export default function DepositRequests() {
         } catch (error) { toast.error('Command Failed'); } finally { setRejectId(null); }
     };
 
+    const handleUndo = async (id) => {
+        try {
+            await adminDepositAPI.undo(id);
+            toast.success('Signal Reset: Transaction returned to intake pool');
+            fetchDeposits();
+        } catch (error) { toast.error('Undo Protocol Failed'); }
+    };
+
     return (
         <div className="animate-fadeIn">
             <ConfirmModal
@@ -66,8 +74,8 @@ export default function DepositRequests() {
                 extra={
                     <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
                         <FilterBtn active={filterStatus === 'ft_submitted'} color="yellow" onClick={() => setFilterStatus('ft_submitted')} label="Pending" />
-                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Liquidated" />
-                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Purged" />
+                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
+                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
                     </div>
                 }
             />
@@ -81,11 +89,12 @@ export default function DepositRequests() {
                 <div className="space-y-6">
                     {deposits.map(dep => (
                         <DepositItem
-                            key={dep._id}
+                            key={dep._id || dep.id}
                             deposit={dep}
                             onApprove={setApproveId}
                             onReject={setRejectId}
                             onViewScreenshot={setViewScreenshot}
+                            onUndo={handleUndo}
                         />
                     ))}
                     {deposits.length === 0 && (

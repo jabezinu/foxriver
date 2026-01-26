@@ -42,6 +42,14 @@ export default function WithdrawalRequests() {
         finally { setRejectId(null); }
     };
 
+    const handleUndo = async (id) => {
+        try {
+            await adminWithdrawalAPI.undo(id);
+            toast.success('Payout Reset: Signal returned to pending matrix');
+            fetchWithdrawals();
+        } catch (error) { toast.error('Undo Protocol Failure'); }
+    };
+
     return (
         <div className="animate-fadeIn">
             <ConfirmModal
@@ -64,8 +72,8 @@ export default function WithdrawalRequests() {
                 extra={
                     <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner border border-gray-200">
                         <FilterBtn active={filterStatus === 'pending'} color="purple" onClick={() => setFilterStatus('pending')} label="Pending" />
-                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Disbursed" />
-                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Dismissed" />
+                        <FilterBtn active={filterStatus === 'approved'} color="emerald" onClick={() => setFilterStatus('approved')} label="Approved" />
+                        <FilterBtn active={filterStatus === 'rejected'} color="rose" onClick={() => setFilterStatus('rejected')} label="Rejected" />
                     </div>
                 }
             />
@@ -83,6 +91,7 @@ export default function WithdrawalRequests() {
                             withdrawal={wit}
                             onApprove={setApproveId}
                             onReject={setRejectId}
+                            onUndo={handleUndo}
                         />
                     ))}
                     {withdrawals.length === 0 && (

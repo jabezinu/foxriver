@@ -17,13 +17,13 @@ export default function TransactionStatus() {
 
     const fetchTransactions = async (showRefreshIndicator = false) => {
         if (showRefreshIndicator) setRefreshing(true);
-        
+
         try {
             const [depositsRes, withdrawalsRes] = await Promise.all([
                 depositAPI.getUserDeposits(),
                 withdrawalAPI.getUserWithdrawals()
             ]);
-            
+
             setDeposits(depositsRes.data.deposits || []);
             setWithdrawals(withdrawalsRes.data.withdrawals || []);
         } catch (error) {
@@ -57,11 +57,11 @@ export default function TransactionStatus() {
     const getStatusText = (status) => {
         switch (status) {
             case 'approved':
-                return 'Completed';
+                return 'Approved';
             case 'rejected':
                 return 'Rejected';
             case 'ft_submitted':
-                return 'Under Review';
+                return 'Pending';
             case 'pending':
                 return 'Pending';
             default:
@@ -87,18 +87,18 @@ export default function TransactionStatus() {
     const getProgressSteps = (transaction, type) => {
         if (type === 'deposit') {
             return [
-                { 
-                    label: 'Request Created', 
-                    completed: true, 
-                    timestamp: transaction.createdAt 
+                {
+                    label: 'Request Created',
+                    completed: true,
+                    timestamp: transaction.createdAt
                 },
-                { 
-                    label: 'Payment Submitted', 
+                {
+                    label: 'Payment Submitted',
                     completed: ['ft_submitted', 'approved', 'rejected'].includes(transaction.status),
                     timestamp: transaction.status !== 'pending' ? transaction.updatedAt : null
                 },
-                { 
-                    label: transaction.status === 'rejected' ? 'Rejected' : 'Approved & Credited', 
+                {
+                    label: transaction.status === 'rejected' ? 'Disproved' : 'Approved',
                     completed: ['approved', 'rejected'].includes(transaction.status),
                     timestamp: transaction.approvedAt || (transaction.status === 'rejected' ? transaction.updatedAt : null),
                     isRejected: transaction.status === 'rejected'
@@ -106,13 +106,13 @@ export default function TransactionStatus() {
             ];
         } else {
             return [
-                { 
-                    label: 'Request Submitted', 
-                    completed: true, 
-                    timestamp: transaction.createdAt 
+                {
+                    label: 'Request Submitted',
+                    completed: true,
+                    timestamp: transaction.createdAt
                 },
-                { 
-                    label: transaction.status === 'rejected' ? 'Rejected' : 'Approved & Processed', 
+                {
+                    label: transaction.status === 'rejected' ? 'Disproved' : 'Approved',
                     completed: ['approved', 'rejected'].includes(transaction.status),
                     timestamp: transaction.approvedAt || (transaction.status === 'rejected' ? transaction.updatedAt : null),
                     isRejected: transaction.status === 'rejected'
@@ -192,9 +192,9 @@ export default function TransactionStatus() {
                         <div key={index} className="flex items-center gap-3">
                             <div className={`
                                 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                                ${step.completed 
-                                    ? step.isRejected 
-                                        ? 'bg-red-500 text-white' 
+                                ${step.completed
+                                    ? step.isRejected
+                                        ? 'bg-red-500 text-white'
                                         : 'bg-emerald-500 text-white'
                                     : 'bg-zinc-700 text-zinc-400'
                                 }
@@ -202,13 +202,12 @@ export default function TransactionStatus() {
                                 {step.completed ? (step.isRejected ? '✕' : '✓') : index + 1}
                             </div>
                             <div className="flex-1">
-                                <p className={`text-sm font-medium ${
-                                    step.completed 
-                                        ? step.isRejected 
-                                            ? 'text-red-400' 
-                                            : 'text-emerald-400'
-                                        : 'text-zinc-500'
-                                }`}>
+                                <p className={`text-sm font-medium ${step.completed
+                                    ? step.isRejected
+                                        ? 'text-red-400'
+                                        : 'text-emerald-400'
+                                    : 'text-zinc-500'
+                                    }`}>
                                     {step.label}
                                 </p>
                                 {step.timestamp && (
@@ -264,21 +263,19 @@ export default function TransactionStatus() {
                     <div className="grid grid-cols-2 gap-1">
                         <button
                             onClick={() => setActiveTab('deposits')}
-                            className={`py-3 px-4 rounded-xl font-bold text-sm transition-all ${
-                                activeTab === 'deposits'
-                                    ? 'bg-primary-500 text-white shadow-glow'
-                                    : 'text-zinc-400 hover:text-white'
-                            }`}
+                            className={`py-3 px-4 rounded-xl font-bold text-sm transition-all ${activeTab === 'deposits'
+                                ? 'bg-primary-500 text-white shadow-glow'
+                                : 'text-zinc-400 hover:text-white'
+                                }`}
                         >
                             Deposits ({deposits.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('withdrawals')}
-                            className={`py-3 px-4 rounded-xl font-bold text-sm transition-all ${
-                                activeTab === 'withdrawals'
-                                    ? 'bg-primary-500 text-white shadow-glow'
-                                    : 'text-zinc-400 hover:text-white'
-                            }`}
+                            className={`py-3 px-4 rounded-xl font-bold text-sm transition-all ${activeTab === 'withdrawals'
+                                ? 'bg-primary-500 text-white shadow-glow'
+                                : 'text-zinc-400 hover:text-white'
+                                }`}
                         >
                             Withdrawals ({withdrawals.length})
                         </button>

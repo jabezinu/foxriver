@@ -56,12 +56,14 @@ export const adminDepositAPI = {
     getDeposits: (params) => axios.get(`${API_ENDPOINTS.DEPOSITS}/all`, { params }),
     approve: (id, data) => axios.put(`${API_ENDPOINTS.DEPOSITS}/${id}/approve`, data),
     reject: (id, data) => axios.put(`${API_ENDPOINTS.DEPOSITS}/${id}/reject`, data),
+    undo: (id) => axios.put(`${API_ENDPOINTS.DEPOSITS}/${id}/undo`),
 };
 
 export const adminWithdrawalAPI = {
     getWithdrawals: (params) => axios.get(`${API_ENDPOINTS.WITHDRAWALS}/all`, { params }),
     approve: (id, data) => axios.put(`${API_ENDPOINTS.WITHDRAWALS}/${id}/approve`, data),
     reject: (id, data) => axios.put(`${API_ENDPOINTS.WITHDRAWALS}/${id}/reject`, data),
+    undo: (id) => axios.put(`${API_ENDPOINTS.WITHDRAWALS}/${id}/undo`),
 };
 
 
