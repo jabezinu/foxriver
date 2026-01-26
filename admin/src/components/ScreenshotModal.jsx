@@ -30,11 +30,11 @@ export default function ScreenshotModal({ isOpen, src, onClose }) {
                     </button>
                 </div>
 
-                <div className="bg-gray-50 flex items-center justify-center min-h-[50vh] max-h-[85vh] overflow-auto p-4 custom-scrollbar">
+                <div className="bg-gray-50 flex items-center justify-center h-[70vh] overflow-hidden p-4">
                     <img
                         src={src}
                         alt="Transaction Evidence"
-                        className="max-w-full rounded-xl object-contain shadow-sm border border-gray-100"
+                        className="max-w-full max-h-full rounded-xl object-contain shadow-sm border border-gray-100 animate-zoomIn"
                     />
                 </div>
 
