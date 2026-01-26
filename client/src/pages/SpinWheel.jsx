@@ -21,6 +21,7 @@ const SpinWheel = () => {
     const [selectedTier, setSelectedTier] = useState(null);
     const [selectedWallet, setSelectedWallet] = useState(null);
     const [tiers, setTiers] = useState([]);
+    const [monthlyWinners, setMonthlyWinners] = useState([]);
 
     // Slot machine symbols
     const symbols = [
@@ -35,7 +36,19 @@ const SpinWheel = () => {
         fetchBalance();
         fetchHistory();
         fetchTiers();
+        fetchMonthlyWinners();
     }, []);
+
+    const fetchMonthlyWinners = async () => {
+        try {
+            const response = await spinAPI.getMonthlyWinners();
+            if (response.data.success) {
+                setMonthlyWinners(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching monthly winners:', error);
+        }
+    };
 
     const fetchTiers = async () => {
         try {
@@ -85,8 +98,8 @@ const SpinWheel = () => {
     };
 
     const handleWalletSelect = (wallet) => {
-        const balance = wallet === 'personal' ? personalBalance : 
-                       wallet === 'income' ? incomeBalance : tasksBalance;
+        const balance = wallet === 'personal' ? personalBalance :
+            wallet === 'income' ? incomeBalance : tasksBalance;
 
         if (balance < selectedTier.betAmount) {
             toast.error(`Insufficient ${wallet} balance! You need ${selectedTier.betAmount} ETB to play.`);
@@ -236,15 +249,15 @@ const SpinWheel = () => {
                         onClick={handlePlayClick}
                         disabled={spinning || tiers.length === 0}
                         className={`w-full py-4 rounded-xl text-lg font-bold transition-all transform active:scale-95 flex items-center justify-center gap-2 ${spinning || tiers.length === 0
-                                ? 'bg-zinc-700 cursor-not-allowed text-zinc-400'
-                                : 'bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:shadow-lg hover:shadow-pink-500/50 text-white'
+                            ? 'bg-zinc-700 cursor-not-allowed text-zinc-400'
+                            : 'bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:shadow-lg hover:shadow-pink-500/50 text-white'
                             }`}
                     >
                         {spinning ? (
                             <>
-                                <img 
-                                    src={logo} 
-                                    alt="Spinning" 
+                                <img
+                                    src={logo}
+                                    alt="Spinning"
                                     className="w-5 h-5 object-contain animate-pulse"
                                 />
                                 SPINNING...
@@ -274,65 +287,57 @@ const SpinWheel = () => {
                     )}
                 </div>
 
-                {/* Stats */}
-                {stats && (
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                        <div className="flex items-center gap-2 mb-4">
-                            <TrendingUp size={20} className="text-primary-500" />
-                            <h3 className="text-lg font-bold text-white">Your Stats</h3>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-                                <p className="text-xs text-zinc-400 mb-1">Total Plays</p>
-                                <p className="text-2xl font-bold text-white">{stats.totalSpins}</p>
-                            </div>
-                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-                                <p className="text-xs text-zinc-400 mb-1">Jackpots</p>
-                                <p className="text-2xl font-bold text-emerald-400">{stats.wins}</p>
-                            </div>
-                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-                                <p className="text-xs text-zinc-400 mb-1">Total Paid</p>
-                                <p className="text-xl font-bold text-red-400">{stats.totalPaid} ETB</p>
-                            </div>
-                            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
-                                <p className="text-xs text-zinc-400 mb-1">Total Won</p>
-                                <p className="text-xl font-bold text-yellow-400">{stats.totalWon} ETB</p>
-                            </div>
-                        </div>
+                {/* Monthly Winners */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 overflow-hidden">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Trophy size={20} className="text-yellow-400" />
+                        <h3 className="text-lg font-bold text-white">Monthly Winners</h3>
                     </div>
-                )}
 
-                {/* Recent History */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                    <h3 className="text-lg font-bold text-white mb-4">Recent Plays</h3>
-                    <div className="space-y-2 max-h-80 overflow-y-auto">
-                        {history.length === 0 ? (
-                            <p className="text-zinc-500 text-center py-8 text-sm">No plays yet. Start spinning!</p>
-                        ) : (
-                            history.map((spin) => (
-                                <div
-                                    key={spin._id}
-                                    className="bg-zinc-950 rounded-xl p-3 flex justify-between items-center border border-zinc-800"
-                                >
-                                    <div>
-                                        <p className={`font-semibold text-sm ${spin.result.includes('Win') ? 'text-yellow-400' : 'text-zinc-400'
-                                            }`}>
-                                            {spin.result.includes('Win') ? '🎰 JACKPOT!' : '❌ No Match'}
-                                        </p>
-                                        <p className="text-xs text-zinc-500 mt-0.5">
-                                            {new Date(spin.createdAt).toLocaleString()}
-                                        </p>
+                    <div className="relative h-40 overflow-hidden">
+                        <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-zinc-900 to-transparent z-10"></div>
+                        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-zinc-900 to-transparent z-10"></div>
+
+                        <div className="space-y-2 animate-scroll-up">
+                            {monthlyWinners.length === 0 ? (
+                                <p className="text-zinc-500 text-center py-8 text-sm">No winners this month yet!</p>
+                            ) : (
+                                [...monthlyWinners, ...monthlyWinners].map((winner, index) => (
+                                    <div
+                                        key={`${winner.id}-${index}`}
+                                        className="bg-zinc-950/50 rounded-xl p-3 flex justify-between items-center border border-zinc-800/50"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-yellow-400/10 flex items-center justify-center">
+                                                <Trophy size={14} className="text-yellow-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-zinc-200">{winner.phone}</p>
+                                                <p className="text-[10px] text-zinc-500">{new Date(winner.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-bold text-emerald-400">+{winner.amountWon} ETB</p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className={`font-bold ${spin.amountWon > 0 ? 'text-emerald-400' : 'text-red-400'
-                                            }`}>
-                                            {spin.amountWon > 0 ? `+${spin.amountWon}` : `-${spin.amountPaid}`} ETB
-                                        </p>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
+
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
+                        @keyframes scroll-up {
+                            0% { transform: translateY(0); }
+                            100% { transform: translateY(-50%); }
+                        }
+                        .animate-scroll-up {
+                            animation: scroll-up 20s linear infinite;
+                        }
+                        .animate-scroll-up:hover {
+                            animation-play-state: paused;
+                        }
+                    `}} />
                 </div>
             </div>
 
@@ -352,8 +357,8 @@ const SpinWheel = () => {
                                     onClick={() => handleTierSelect(tier)}
                                     disabled={personalBalance < tier.betAmount && incomeBalance < tier.betAmount}
                                     className={`p-5 rounded-2xl transition-all transform active:scale-95 text-left border-2 ${personalBalance < tier.betAmount && incomeBalance < tier.betAmount
-                                            ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
-                                            : 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500/30 hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20'
+                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                        : 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-500/30 hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/20'
                                         }`}
                                 >
 
@@ -406,8 +411,8 @@ const SpinWheel = () => {
                                 onClick={() => handleWalletSelect('personal')}
                                 disabled={!selectedTier || personalBalance < selectedTier.betAmount}
                                 className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${!selectedTier || personalBalance < selectedTier.betAmount
-                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
-                                        : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20'
+                                    ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                    : 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20'
                                     }`}
                             >
                                 <div className="flex items-center justify-between">
@@ -426,8 +431,8 @@ const SpinWheel = () => {
                                 onClick={() => handleWalletSelect('income')}
                                 disabled={!selectedTier || incomeBalance < selectedTier.betAmount}
                                 className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${!selectedTier || incomeBalance < selectedTier.betAmount
-                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
-                                        : 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
+                                    ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                    : 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
                                     }`}
                             >
                                 <div className="flex items-center justify-between">
@@ -446,8 +451,8 @@ const SpinWheel = () => {
                                 onClick={() => handleWalletSelect('tasks')}
                                 disabled={!selectedTier || tasksBalance < selectedTier.betAmount}
                                 className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${!selectedTier || tasksBalance < selectedTier.betAmount
-                                        ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
-                                        : 'bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20'
+                                    ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
+                                    : 'bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20'
                                     }`}
                             >
                                 <div className="flex items-center justify-between">

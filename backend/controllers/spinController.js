@@ -21,8 +21,8 @@ exports.spinWheel = asyncHandler(async (req, res) => {
     const winProbability = parseFloat(tier.winProbability) / 100;
 
     const user = await User.findByPk(req.user.id);
-    const walletField = walletType === 'income' ? 'incomeWallet' : 
-                       walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+    const walletField = walletType === 'income' ? 'incomeWallet' :
+        walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
 
     if (parseFloat(user[walletField]) < spinCost) {
         throw new AppError(`Insufficient ${walletType} balance. Need ${spinCost} ETB.`, 400);
@@ -153,5 +153,44 @@ exports.getAllSpinResults = asyncHandler(async (req, res) => {
             pagination: { page, limit, total, pages: Math.ceil(total / limit) },
             stats: stats || { totalSpins: 0, totalPaid: 0, totalWon: 0, wins: 0 }
         }
+    });
+});
+// @desc    Get monthly winners
+// @route   GET /api/spin/monthly-winners
+// @access  Public
+exports.getMonthlyWinners = asyncHandler(async (req, res) => {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const winners = await SpinResult.findAll({
+        where: {
+            amountWon: { [Op.gt]: 0 },
+            createdAt: { [Op.gte]: startOfMonth }
+        },
+        include: [
+            { model: User, as: 'player', attributes: ['phone'] }
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: 50
+    });
+
+    const maskedWinners = winners.map(winner => {
+        const phone = winner.player?.phone || 'Unknown';
+        const maskedPhone = phone.length > 7
+            ? `${phone.substring(0, 3)}****${phone.substring(phone.length - 4)}`
+            : phone;
+
+        return {
+            id: winner.id,
+            phone: maskedPhone,
+            amountWon: winner.amountWon,
+            createdAt: winner.createdAt
+        };
+    });
+
+    res.status(200).json({
+        success: true,
+        data: maskedWinners
     });
 });
