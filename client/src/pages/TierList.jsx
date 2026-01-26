@@ -58,22 +58,22 @@ export default function TierList() {
 
             <div className="px-4 py-6 space-y-4">
                 {/* Important Notice */}
-                <div className="bg-amber-900/20 border border-amber-500/20 rounded-2xl p-4 mb-6">
+                <div className="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-4 mb-6">
                     <div className="flex items-start gap-3">
-                        <div className="bg-amber-500/10 p-2 rounded-lg">
-                            <AlertTriangle size={20} className="text-amber-500" />
+                        <div className="bg-blue-500/10 p-2 rounded-lg">
+                            <AlertTriangle size={20} className="text-blue-500" />
                         </div>
                         <div>
-                            <h3 className="text-amber-400 font-bold text-sm mb-1">New Upgrade Process</h3>
-                            <p className="text-amber-200/80 text-xs leading-relaxed mb-2">
-                                All rank upgrades now require a new deposit. You can no longer upgrade using existing wallet funds.
+                            <h3 className="text-blue-400 font-bold text-sm mb-1">Wallet-Based Upgrades</h3>
+                            <p className="text-blue-200/80 text-xs leading-relaxed mb-2">
+                                Rank upgrades are now paid directly from your Personal Wallet. Instant upgrade with no waiting time!
                             </p>
                             <Button
                                 onClick={handleUpgradeClick}
                                 size="sm"
-                                className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
+                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold"
                             >
-                                Go to New Upgrade Process
+                                Upgrade with Personal Wallet
                             </Button>
                         </div>
                     </div>

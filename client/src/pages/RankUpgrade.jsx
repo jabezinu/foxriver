@@ -1,59 +1,47 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { membershipAPI, rankUpgradeAPI, bankAPI, depositAPI, userAPI } from '../services/api';
+import { membershipAPI, rankUpgradeAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, CreditCard, Check, ChevronDown, Copy, Image } from 'lucide-react';
+import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, Wallet, Check, ChevronDown } from 'lucide-react';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 import Modal from '../components/Modal';
 
 export default function RankUpgrade() {
     const navigate = useNavigate();
-    const { user } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedTier, setSelectedTier] = useState(null);
     const [confirmLoading, setConfirmLoading] = useState(false);
-    const [methods, setMethods] = useState([]);
-    const [paymentMethod, setPaymentMethod] = useState('');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [bonusPercent, setBonusPercent] = useState(15); // Dynamic bonus percentage
-    
-    // Deposit submission states
-    const [step, setStep] = useState(1); // 1: Select tier, 2: FT submission
-    const [currentRequest, setCurrentRequest] = useState(null);
-    const [ftNumber, setFtNumber] = useState('');
-    const [screenshot, setScreenshot] = useState(null);
-    const [screenshotPreview, setScreenshotPreview] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
+    const [walletBalances, setWalletBalances] = useState({
+        personalWallet: 0,
+        incomeWallet: 0,
+        tasksWallet: 0
+    });
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [tiersRes, banksRes, systemRes] = await Promise.all([
+                const [tiersRes, systemRes, walletRes] = await Promise.all([
                     membershipAPI.getTiers(),
-                    bankAPI.getBanks(),
-                    userAPI.getSystemSettings()
+                    userAPI.getSystemSettings(),
+                    userAPI.getWallet()
                 ]);
-                
+
                 setTiers(tiersRes.data.tiers);
-                
-                const bankMethods = banksRes.data.data.map(bank => ({
-                    id: bank._id || bank.id,
-                    name: bank.bankName,
-                    account: bank.accountNumber,
-                    holder: bank.accountHolderName
-                }));
-                setMethods(bankMethods);
-                
+
                 // Set dynamic bonus percentage
                 const bonusPercentage = systemRes.data.settings?.rankUpgradeBonusPercent || 15;
                 setBonusPercent(bonusPercentage);
+
+                // Set wallet balances
+                setWalletBalances(walletRes.data.wallet);
             } catch (error) {
                 toast.error('Failed to fetch data');
                 console.error(error);
@@ -76,13 +64,26 @@ export default function RankUpgrade() {
             toast.error('This tier is coming soon. Please stay tuned for updates!');
             return;
         }
+
+        // Check balance and show toast if insufficient
+        if (walletBalances.personalWallet < tier.price) {
+            toast.error(`Insufficient Balance. You need ${formatNumber(tier.price)} ETB but have ${formatNumber(walletBalances.personalWallet)} ETB`);
+            return;
+        }
+
         setSelectedTier(tier);
         setShowModal(true);
     };
 
     const handleConfirmUpgrade = async () => {
-        if (!selectedTier || !paymentMethod) {
-            toast.error('Please select payment method');
+        if (!selectedTier) {
+            toast.error('Please select a tier');
+            return;
+        }
+
+        // Check if user has sufficient balance in Personal Wallet
+        if (walletBalances.personalWallet < selectedTier.price) {
+            toast.error(`Insufficient Personal Wallet balance. You need ${formatNumber(selectedTier.price)} ETB but have ${formatNumber(walletBalances.personalWallet)} ETB`);
             return;
         }
 
@@ -91,70 +92,32 @@ export default function RankUpgrade() {
             const res = await rankUpgradeAPI.createRequest({
                 newLevel: selectedTier.level,
                 amount: selectedTier.price,
-                paymentMethod
+                walletType: 'personal' // Only Personal Wallet is allowed
             });
 
             if (res.data.success) {
-                setCurrentRequest(res.data.rankUpgradeRequest);
+                // Update user data and wallet balances
+                updateUser({
+                    ...user,
+                    membershipLevel: selectedTier.level,
+                    personalWallet: res.data.newWalletBalances.personalWallet,
+                    incomeWallet: res.data.newWalletBalances.incomeWallet,
+                    tasksWallet: res.data.newWalletBalances.tasksWallet
+                });
+
+                setWalletBalances(res.data.newWalletBalances);
                 setShowModal(false);
-                setStep(2);
-                toast.success('Rank upgrade request created! Please complete the deposit.');
+
+                toast.success(res.data.message);
+
+                // Navigate back to home or tier list
+                navigate('/tier-list');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to create upgrade request');
+            toast.error(error.response?.data?.message || 'Failed to upgrade rank');
         } finally {
             setConfirmLoading(false);
         }
-    };
-
-    const handleSubmitFT = async () => {
-        if (!ftNumber) {
-            toast.error('Please enter transaction ID');
-            return;
-        }
-
-        if (!screenshot) {
-            toast.error('Please upload transaction screenshot');
-            return;
-        }
-
-        setSubmitting(true);
-        try {
-            const formData = new FormData();
-            formData.append('depositId', currentRequest.depositId);
-            formData.append('transactionFT', ftNumber);
-            formData.append('screenshot', screenshot);
-
-            await depositAPI.submitFT(formData);
-            toast.success('Deposit submitted! Your rank will be upgraded once approved.');
-            navigate('/');
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to submit deposit');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleScreenshotChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5000000) {
-                toast.error('File size must be less than 5MB');
-                return;
-            }
-            setScreenshot(file);
-            setScreenshotPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const getSelectedMethodName = () => {
-        const method = methods.find(m => m.id === paymentMethod);
-        return method ? method.name : 'Select Payment Method';
-    };
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-        toast.success('Copied to clipboard');
     };
 
     if (loading) return <Loading />;
@@ -172,25 +135,37 @@ export default function RankUpgrade() {
                 <h1 className="text-xl font-bold text-white">Rank Upgrade</h1>
             </div>
 
-            {step === 1 ? (
-                <div className="px-4 py-6 space-y-4">
-                    {/* Notice */}
-
-                    {/* Bonus Notice */}
-                    <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 mb-6">
-                        <div className="flex items-start gap-3">
-                            <div className="bg-emerald-500/10 p-2 rounded-lg">
-                                <Star size={20} className="text-emerald-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-emerald-400 font-bold text-sm mb-1">Upgrade Bonus</h3>
-                                <p className="text-emerald-200/80 text-xs leading-relaxed">
-                                    Get {bonusPercent}% bonus on upgrades to Rank 2 and above, credited to your income wallet. No bonus for Rank 1 upgrades.
-                                </p>
-                            </div>
+            <div className="px-4 py-6 space-y-4">
+                {/* Wallet Balance Notice */}
+                <div className="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-blue-500/10 p-2 rounded-lg">
+                            <Wallet size={20} className="text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-blue-400 font-bold text-sm mb-1">Personal Wallet Payment</h3>
+                            <p className="text-blue-200/80 text-xs leading-relaxed mb-2">
+                                Rank upgrades are paid from your Personal Wallet. Current balance: <span className="font-bold text-blue-300">{formatNumber(walletBalances.personalWallet)} ETB</span>
+                            </p>
                         </div>
                     </div>
+                </div>
 
+                {/* Bonus Notice */}
+                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-emerald-500/10 p-2 rounded-lg">
+                            <Star size={20} className="text-emerald-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-emerald-400 font-bold text-sm mb-1">Upgrade Bonus</h3>
+                            <p className="text-emerald-200/80 text-xs leading-relaxed">
+                                Get {bonusPercent}% bonus on upgrades to Rank 2 and above, credited to your income wallet. No bonus for Rank 1 upgrades.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
                     {tiers.map((tier, index) => {
                         const isCurrent = user?.membershipLevel === tier.level;
                         const canUpgrade = isHigherLevel(tier.level);
@@ -269,7 +244,7 @@ export default function RankUpgrade() {
                                             return match ? parseInt(match[1]) : 0;
                                         };
                                         const targetRankNumber = getCurrentRankNumber(tier.level);
-                                        
+
                                         if (canUpgrade && !isHidden && targetRankNumber >= 2) {
                                             const bonusAmount = tier.price * (bonusPercent / 100);
                                             return (
@@ -314,10 +289,12 @@ export default function RankUpgrade() {
                                     {canUpgrade && !isHidden ? (
                                         <Button
                                             onClick={() => handleUpgradeClick(tier)}
-                                            className="w-full shadow-glow bg-primary-500 hover:bg-primary-600 text-black font-bold"
+                                            className={`w-full shadow-glow ${walletBalances.personalWallet < tier.price
+                                                ? 'bg-zinc-800 text-zinc-100 opacity-90'
+                                                : 'bg-primary-500 hover:bg-primary-600 text-black'} font-bold`}
                                         >
-                                            <Zap size={16} className="mr-2 fill-black text-black" />
-                                            Upgrade with Deposit
+                                            <Zap size={16} className={`mr-2 ${walletBalances.personalWallet < tier.price ? 'text-primary-400 fill-primary-400/20' : 'fill-black text-black'}`} />
+                                            Upgrade with Personal Wallet
                                         </Button>
                                     ) : isCurrent ? (
                                         <div className="w-full py-3 bg-primary-500/10 text-primary-500 rounded-xl font-bold text-center border border-primary-500/20 text-xs flex items-center justify-center gap-2">
@@ -343,129 +320,7 @@ export default function RankUpgrade() {
                         );
                     })}
                 </div>
-            ) : (
-                <div className="max-w-md mx-auto px-4 py-6 animate-slide-up">
-                    <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-3xl p-6 mb-6 text-center">
-                        <div className="bg-zinc-900 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow-glow text-emerald-500 border border-emerald-500/30">
-                            <Check size={28} strokeWidth={3} />
-                        </div>
-                        <h3 className="text-lg font-bold text-white mb-1">Upgrade Request Created</h3>
-                        <p className="text-emerald-400 text-sm leading-relaxed max-w-xs mx-auto">
-                            Deposit exactly <span className="font-bold bg-zinc-900 border border-emerald-500/30 px-1.5 py-0.5 rounded text-emerald-500">{formatNumber(selectedTier?.price)} ETB</span> to upgrade to {selectedTier?.level}
-                        </p>
-                    </div>
-
-                    <div className="bg-zinc-900 rounded-3xl p-6 shadow-sm mb-6 border border-zinc-800">
-                        <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4 pb-2 border-b border-zinc-800">
-                            Bank Details
-                        </h4>
-                        <div className="space-y-5">
-                            <div className="flex justify-between items-center group">
-                                <div>
-                                    <p className="text-xs text-zinc-500 mb-0.5">Bank Name</p>
-                                    <p className="font-bold text-white">{methods.find(m => m.id === paymentMethod)?.name}</p>
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-center bg-zinc-950 p-3 rounded-xl border border-zinc-800">
-                                <div className="overflow-hidden">
-                                    <p className="text-xs text-zinc-500 mb-0.5">Account Number</p>
-                                    <p className="font-mono font-bold text-primary-500 text-lg tracking-tight truncate">
-                                        {methods.find(m => m.id === paymentMethod)?.account}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => copyToClipboard(methods.find(m => m.id === paymentMethod)?.account)}
-                                    className="p-2 text-primary-500 hover:bg-zinc-800 rounded-lg transition-colors"
-                                >
-                                    <Copy size={20} />
-                                </button>
-                            </div>
-                            <div>
-                                <p className="text-xs text-zinc-500 mb-0.5">Account Holder</p>
-                                <p className="font-bold text-white">{methods.find(m => m.id === paymentMethod)?.holder}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-8">
-                        <Card className="p-5 border-zinc-800 shadow-sm bg-zinc-900">
-                            <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Enter Transaction ID</label>
-                            <Input
-                                value={ftNumber}
-                                onChange={(e) => setFtNumber(e.target.value.toUpperCase())}
-                                placeholder="Enter transaction ID"
-                                className="text-center font-mono tracking-widest text-lg py-3 uppercase placeholder:normal-case placeholder:tracking-normal"
-                            />
-                            <p className="text-[10px] text-zinc-500 mt-2 text-center">
-                                Enter the transaction reference number from your bank app.
-                            </p>
-                        </Card>
-                    </div>
-
-                    <div className="mb-8">
-                        <Card className="p-5 border-zinc-800 shadow-sm bg-zinc-900">
-                            <label className="block text-sm font-bold text-zinc-300 mb-3 text-center">Upload Transaction Screenshot</label>
-
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleScreenshotChange}
-                                className="hidden"
-                                id="screenshot-upload"
-                            />
-
-                            {screenshotPreview ? (
-                                <div className="relative">
-                                    <img
-                                        src={screenshotPreview}
-                                        alt="Transaction screenshot"
-                                        className="w-full rounded-xl border-2 border-zinc-800 mb-3"
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            setScreenshot(null);
-                                            setScreenshotPreview(null);
-                                        }}
-                                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ) : (
-                                <label
-                                    htmlFor="screenshot-upload"
-                                    className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-700 rounded-xl p-8 cursor-pointer hover:border-primary-500 transition-colors"
-                                >
-                                    <Image size={40} className="text-zinc-600 mb-2" />
-                                    <span className="text-sm font-bold text-zinc-400">Click to upload screenshot</span>
-                                    <span className="text-xs text-zinc-600 mt-1">PNG, JPG, GIF up to 5MB</span>
-                                </label>
-                            )}
-
-                            <p className="text-[10px] text-zinc-500 mt-2 text-center">
-                                Upload a clear screenshot of your transaction confirmation.
-                            </p>
-                        </Card>
-                    </div>
-
-                    <Button
-                        onClick={handleSubmitFT}
-                        loading={submitting}
-                        disabled={submitting}
-                        size="lg"
-                        className="w-full mb-3 shadow-glow"
-                    >
-                        Submit Deposit
-                    </Button>
-
-                    <button
-                        onClick={() => setStep(1)}
-                        className="w-full py-3 text-zinc-500 font-bold text-sm hover:text-white transition-colors"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            )}
+            </div>
 
             {/* Upgrade Modal */}
             <Modal
@@ -477,10 +332,10 @@ export default function RankUpgrade() {
                     <div className="space-y-5">
                         <div className="bg-zinc-950 text-white p-4 rounded-xl shadow-lg border border-zinc-800 space-y-3">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-zinc-400">Deposit Required</span>
+                                <span className="text-sm font-medium text-zinc-400">Payment Required</span>
                                 <span className="text-xl font-black text-primary-500">{formatNumber(selectedTier.price)} ETB</span>
                             </div>
-                            
+
                             {/* Show bonus information for Rank 2 and above */}
                             {(() => {
                                 const getCurrentRankNumber = (level) => {
@@ -489,7 +344,7 @@ export default function RankUpgrade() {
                                     return match ? parseInt(match[1]) : 0;
                                 };
                                 const targetRankNumber = getCurrentRankNumber(selectedTier.level);
-                                
+
                                 if (targetRankNumber >= 2) {
                                     const bonusAmount = selectedTier.price * (bonusPercent / 100);
                                     return (
@@ -508,80 +363,37 @@ export default function RankUpgrade() {
                             })()}
                         </div>
 
+                        {/* Wallet Selection */}
                         <div className="space-y-3">
-                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wide ml-1">Payment Method</label>
+                            <label className="text-xs font-bold text-zinc-500 uppercase tracking-wide ml-1">Payment Wallet</label>
 
-                            <div className="relative z-20">
-                                <button
-                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className={`
-                                        w-full bg-zinc-900 border rounded-xl px-4 py-3.5 flex items-center justify-between 
-                                        transition-all duration-200 shadow-sm
-                                        ${isDropdownOpen ? 'border-primary-500 ring-1 ring-primary-500/30' : 'border-zinc-800 hover:border-zinc-700'}
-                                    `}
-                                >
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg transition-colors ${paymentMethod ? 'bg-primary-500/10 text-primary-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                            <CreditCard size={20} />
+                                        <div className="bg-blue-500/10 p-2 rounded-lg">
+                                            <Wallet size={20} className="text-blue-500" />
                                         </div>
-                                        <div className="text-left">
-                                            <span className={`block font-semibold text-sm ${paymentMethod ? 'text-white' : 'text-zinc-500'}`}>
-                                                {getSelectedMethodName()}
-                                            </span>
+                                        <div>
+                                            <span className="block font-semibold text-sm text-white">Personal Wallet</span>
+                                            <span className="text-xs text-zinc-400">Available: {formatNumber(walletBalances.personalWallet)} ETB</span>
                                         </div>
                                     </div>
-                                    <ChevronDown
-                                        className={`text-zinc-500 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                                        size={20}
-                                    />
-                                </button>
-
-                                {isDropdownOpen && (
-                                    <>
-                                        <div
-                                            className="fixed inset-0 z-10"
-                                            onClick={() => setIsDropdownOpen(false)}
-                                        />
-                                        <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl z-20 overflow-hidden animate-slide-up p-1.5">
-                                            {methods.map((method) => (
-                                                <button
-                                                    key={method.id}
-                                                    onClick={() => {
-                                                        setPaymentMethod(method.id);
-                                                        setIsDropdownOpen(false);
-                                                    }}
-                                                    className={`
-                                                        w-full p-3 flex items-center justify-between transition-all rounded-xl mb-1 last:mb-0
-                                                        ${paymentMethod === method.id
-                                                            ? 'bg-primary-500/10 text-primary-500'
-                                                            : 'hover:bg-zinc-800 text-zinc-300'
-                                                        }
-                                                    `}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-2 rounded-lg ${paymentMethod === method.id ? 'bg-zinc-900 text-primary-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                                            <CreditCard size={18} />
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <span className="font-semibold text-sm block">
-                                                                {method.name}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    {paymentMethod === method.id && (
-                                                        <Check size={16} className="text-primary-500" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
+                                    <div className="bg-blue-500/10 p-1.5 rounded-lg">
+                                        <Check size={16} className="text-blue-500" />
+                                    </div>
+                                </div>
                             </div>
+
+                            <p className="text-xs text-zinc-500 ml-1">
+                                Only Personal Wallet can be used for rank upgrades
+                            </p>
                         </div>
 
-                        <div className="bg-amber-900/20 border border-amber-500/20 rounded-xl p-4">
-                            <p className="text-amber-200 text-xs leading-relaxed">
-                                <strong>Important:</strong> Your rank will be upgraded automatically once your deposit is approved by our admin team. This process typically takes a few hours.
+
+
+                        <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-4">
+                            <p className="text-blue-200 text-xs leading-relaxed">
+                                <strong>Instant Upgrade:</strong> Your rank will be upgraded immediately after payment confirmation. The amount will be deducted from your Personal Wallet.
                             </p>
                         </div>
 
@@ -596,10 +408,10 @@ export default function RankUpgrade() {
                             <Button
                                 onClick={handleConfirmUpgrade}
                                 loading={confirmLoading}
-                                disabled={confirmLoading || !paymentMethod}
-                                className="flex-[2] shadow-glow"
+                                disabled={confirmLoading || walletBalances.personalWallet < selectedTier.price}
+                                className={`flex-[2] shadow-glow ${walletBalances.personalWallet < selectedTier.price ? 'opacity-80 bg-zinc-800 text-zinc-100' : ''}`}
                             >
-                                Create Upgrade Request
+                                Confirm Upgrade
                             </Button>
                         </div>
                     </div>

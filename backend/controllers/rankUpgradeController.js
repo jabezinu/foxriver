@@ -4,14 +4,19 @@ const { asyncHandler, AppError } = require('../middlewares/errorHandler');
 const { generateOrderId } = require('../utils/validators');
 const { Op } = require('sequelize');
 
-// @desc    Create rank upgrade request with deposit
+// @desc    Create rank upgrade request with wallet payment
 // @route   POST /api/rank-upgrades/request
 // @access  Private
 exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
-    const { newLevel, amount, paymentMethod } = req.body;
+    const { newLevel, amount, walletType } = req.body;
 
-    if (!newLevel || !amount || !paymentMethod) {
-        throw new AppError('New level, amount, and payment method are required', 400);
+    if (!newLevel || !amount || !walletType) {
+        throw new AppError('New level, amount, and wallet type are required', 400);
+    }
+
+    // Only allow Personal Wallet for rank upgrades
+    if (walletType !== 'personal') {
+        throw new AppError('Rank upgrades can only be paid from Personal Wallet', 400);
     }
 
     const user = await User.findByPk(req.user.id);
@@ -39,9 +44,9 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         throw new AppError(progressionCheck.reason, 400);
     }
 
-    // Verify the deposit amount matches the membership price
-    if (parseFloat(amount) !== parseFloat(newMembership.price)) {
-        throw new AppError(`Deposit amount must be exactly ${newMembership.price} ETB for ${newLevel}`, 400);
+    // Check if user has sufficient balance in Personal Wallet
+    if (parseFloat(user.personalWallet) < parseFloat(amount)) {
+        throw new AppError(`Insufficient Personal Wallet balance. You need ${amount} ETB but have ${user.personalWallet} ETB`, 400);
     }
 
     // Check if user has any pending rank upgrade requests
@@ -56,27 +61,69 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         throw new AppError('You already have a pending rank upgrade request', 400);
     }
 
-    // Create the deposit first (for rank upgrade - will not be credited to wallet)
-    const deposit = await Deposit.create({
-        user: req.user.id,
-        amount,
-        paymentMethod,
-        orderId: generateOrderId()
-    });
+    // Process the rank upgrade immediately using wallet funds
+    await sequelize.transaction(async (t) => {
+        // Deduct amount from Personal Wallet
+        user.personalWallet = parseFloat(user.personalWallet) - parseFloat(amount);
 
-    // Create the rank upgrade request
-    const rankUpgradeRequest = await RankUpgradeRequest.create({
-        user: req.user.id,
-        currentLevel: user.membershipLevel,
-        requestedLevel: newLevel,
-        depositId: deposit.id
-    });
+        // Calculate rank upgrade bonus (dynamic percentage for Rank 2 and above)
+        let upgradeBonus = 0;
+        const getCurrentRankNumber = (level) => {
+            if (level === 'Intern') return 0;
+            const match = level.match(/Rank (\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        };
 
-    res.status(201).json({
-        success: true,
-        message: 'Rank upgrade request created. Please complete the deposit to proceed.',
-        rankUpgradeRequest,
-        deposit
+        const targetRankNumber = getCurrentRankNumber(newLevel);
+        
+        // Apply dynamic bonus only from Rank 2 and above (not for Intern → Rank 1)
+        if (targetRankNumber >= 2) {
+            // Get dynamic bonus percentage from system settings
+            const { SystemSetting } = require('../models');
+            const settings = await SystemSetting.findOne();
+            const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
+            
+            upgradeBonus = parseFloat(amount) * (parseFloat(bonusPercent) / 100);
+            user.incomeWallet = parseFloat(user.incomeWallet) + upgradeBonus;
+        }
+
+        // Update user's membership level
+        const oldMembershipLevel = user.membershipLevel;
+        user.membershipLevel = newLevel;
+        user.membershipActivatedAt = new Date();
+        await user.save({ transaction: t });
+
+        // Invalidate cache for the user and their referral chain when membership changes
+        if (oldMembershipLevel === 'Intern' && newLevel !== 'Intern') {
+            const { invalidateReferralChainCache } = require('../utils/cacheInvalidation');
+            await invalidateReferralChainCache(user.id);
+        }
+
+        // Create the rank upgrade request record for tracking
+        const rankUpgradeRequest = await RankUpgradeRequest.create({
+            user: req.user.id,
+            currentLevel: oldMembershipLevel,
+            requestedLevel: newLevel,
+            depositId: null, // No deposit needed for wallet payment
+            status: 'approved', // Immediately approved since payment is from wallet
+            approvedBy: req.user.id, // Self-approved via wallet payment
+            approvedAt: new Date()
+        }, { transaction: t });
+
+        // Calculate and create membership commissions
+        await calculateAndCreateMembershipCommissions(user, newMembership, { transaction: t });
+
+        res.status(201).json({
+            success: true,
+            message: `Rank upgraded to ${newLevel} successfully! ${upgradeBonus > 0 ? `Bonus of ${upgradeBonus} ETB added to Income Wallet.` : ''}`,
+            rankUpgradeRequest,
+            newWalletBalances: {
+                personalWallet: parseFloat(user.personalWallet),
+                incomeWallet: parseFloat(user.incomeWallet),
+                tasksWallet: parseFloat(user.tasksWallet)
+            },
+            upgradeBonus
+        });
     });
 });
 

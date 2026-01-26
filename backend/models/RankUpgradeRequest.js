@@ -27,7 +27,7 @@ RankUpgradeRequest.init({
     },
     depositId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Made optional for wallet payments
         references: {
             model: 'deposits',
             key: 'id'

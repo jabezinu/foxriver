@@ -56,7 +56,7 @@ export default function AppRules() {
                 },
                 {
                     subtitle: 'Upgrading',
-                    text: 'You can upgrade to any higher membership level at any time using your Income Wallet or Personal Wallet. Some rank ranges may require sequential progression - check with support for current restrictions.'
+                    text: 'You can upgrade to any higher membership level at any time using your Personal Wallet. Upgrades are processed instantly with no waiting time. Some rank ranges may require sequential progression - check with support for current restrictions.'
                 }
             ]
         },
