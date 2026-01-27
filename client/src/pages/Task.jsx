@@ -128,13 +128,13 @@ export default function Task() {
             {/* Intern Restriction Warning */}
             {internRestriction && (
                 <Card className={`p-4 mb-6 border-2 ${internRestriction.canEarn
-                        ? 'bg-amber-900/20 border-amber-600/50'
-                        : 'bg-red-900/20 border-red-600/50'
+                    ? 'bg-amber-900/20 border-amber-600/50'
+                    : 'bg-red-900/20 border-red-600/50'
                     }`}>
                     <div className="flex items-start gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${internRestriction.canEarn
-                                ? 'bg-amber-500/20 text-amber-400'
-                                : 'bg-red-500/20 text-red-400'
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-red-500/20 text-red-400'
                             }`}>
                             <Clock size={16} />
                         </div>
@@ -161,7 +161,7 @@ export default function Task() {
             )}
 
             {/* Header Info */}
-            <Card className="p-5 flex justify-between items-center bg-zinc-900 border-zinc-800 shadow-lg shadow-black/20 mb-8">
+            {/* <Card className="p-5 flex justify-between items-center bg-zinc-900 border-zinc-800 shadow-lg shadow-black/20 mb-8">
                 <div>
                     <div className="flex items-center gap-1.5 mb-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"></span>
@@ -176,7 +176,7 @@ export default function Task() {
                         <span>{formatNumber(dailyStats.perVideoIncome)} ETB</span>
                     </div>
                 </div>
-            </Card>
+            </Card> */}
 
             {/* Earnings Progress Card */}
             <Card className="p-5 bg-gradient-to-r from-emerald-900/20 to-primary-900/20 border-emerald-800/30 shadow-lg shadow-black/20 mb-6">
@@ -240,15 +240,15 @@ export default function Task() {
                 ) : (
                     tasks.map((task) => (
                         <Card key={task._id} className={`p-4 flex items-center gap-4 transition-all border-zinc-800 group ${internRestriction && !internRestriction.canEarn
-                                ? 'bg-zinc-900/50 opacity-60'
-                                : 'hover:bg-zinc-800/80 bg-zinc-900'
+                            ? 'bg-zinc-900/50 opacity-60'
+                            : 'hover:bg-zinc-800/80 bg-zinc-900'
                             }`}>
                             <div className="relative">
                                 <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted
-                                        ? 'bg-zinc-950 text-zinc-600 border border-zinc-800'
-                                        : internRestriction && !internRestriction.canEarn
-                                            ? 'bg-zinc-950/50 text-zinc-700 border border-zinc-800'
-                                            : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
+                                    ? 'bg-zinc-950 text-zinc-600 border border-zinc-800'
+                                    : internRestriction && !internRestriction.canEarn
+                                        ? 'bg-zinc-950/50 text-zinc-700 border border-zinc-800'
+                                        : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
                                     }`}>
                                     <Video size={32} strokeWidth={1.5} className={
                                         internRestriction && !internRestriction.canEarn
@@ -263,15 +263,15 @@ export default function Task() {
 
                             <div className="flex-1 min-w-0">
                                 <p className={`font-bold text-sm leading-tight mb-2 truncate transition-colors ${internRestriction && !internRestriction.canEarn
-                                        ? 'text-zinc-500'
-                                        : 'text-zinc-200 group-hover:text-primary-400'
+                                    ? 'text-zinc-500'
+                                    : 'text-zinc-200 group-hover:text-primary-400'
                                     }`}>
                                     {task.title}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${internRestriction && !internRestriction.canEarn
-                                            ? 'bg-zinc-950/50 text-zinc-600 border-zinc-800'
-                                            : 'bg-zinc-950 text-zinc-400 border-zinc-800'
+                                        ? 'bg-zinc-950/50 text-zinc-600 border-zinc-800'
+                                        : 'bg-zinc-950 text-zinc-400 border-zinc-800'
                                         }`}>
                                         <span>
                                             {internRestriction && !internRestriction.canEarn
@@ -307,9 +307,9 @@ export default function Task() {
                                 ) : (
                                     <Button
                                         onClick={() => handleViewVideo(task)}
-                                        className="h-10 w-10 p-0 rounded-full flex items-center justify-center shadow-glow border-none bg-primary-500 hover:bg-primary-600 text-black"
+                                        className="h-10 px-4 rounded-full flex items-center justify-center gap-2 shadow-glow border-none bg-primary-500 hover:bg-primary-600 text-black group-hover:scale-105 transition-transform"
                                     >
-                                        <Play size={18} fill="currentColor" className="ml-0.5" />
+                                        <Play size={16} fill="currentColor" className="ml-0.5" />
                                     </Button>
                                 )}
                             </div>
