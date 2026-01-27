@@ -100,7 +100,7 @@ export default function PlaylistManager({ playlists, videoCount, url, setUrl, on
                     </div>
                 </Card>
 
-                <div className="p-6 bg-indigo-900 rounded-3xl border border-indigo-800 shadow-2xl relative overflow-hidden group">
+                {/* <div className="p-6 bg-indigo-900 rounded-3xl border border-indigo-800 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
                     <div className="flex items-start gap-4 relative z-10">
                         <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 border border-indigo-500/30">
@@ -118,7 +118,7 @@ export default function PlaylistManager({ playlists, videoCount, url, setUrl, on
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );
