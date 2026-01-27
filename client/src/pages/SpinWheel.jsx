@@ -200,7 +200,7 @@ const SpinWheel = () => {
 
             <div className="px-5 py-6 space-y-6">
                 {/* Balance Cards */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-4">
                         <p className="text-xs text-emerald-400 mb-1 font-semibold">Personal Balance</p>
                         <p className="text-2xl font-bold text-white">{personalBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
@@ -208,6 +208,10 @@ const SpinWheel = () => {
                     <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-2xl p-4">
                         <p className="text-xs text-blue-400 mb-1 font-semibold">Income Balance</p>
                         <p className="text-2xl font-bold text-white">{incomeBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-4">
+                        <p className="text-xs text-purple-400 mb-1 font-semibold">Tasks Balance</p>
+                        <p className="text-2xl font-bold text-white">{tasksBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
                     </div>
                 </div>
 
