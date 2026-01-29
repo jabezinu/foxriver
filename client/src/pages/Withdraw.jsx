@@ -73,6 +73,24 @@ export default function Withdraw() {
             }
         }
 
+        // Check for weekly withdrawal limit (new requirement)
+        if (history && history.length > 0) {
+            const latestWithdrawal = history[0];
+            const lastWithdrawalDate = new Date(latestWithdrawal.createdAt);
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            if (lastWithdrawalDate > sevenDaysAgo) {
+                const nextPossibleDate = new Date(lastWithdrawalDate);
+                nextPossibleDate.setDate(nextPossibleDate.getDate() + 7);
+                
+                return {
+                    isRestricted: true,
+                    message: `Next withdrawal available after ${nextPossibleDate.toLocaleDateString()} ${nextPossibleDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                };
+            }
+        }
+
         return { isRestricted: false, message: '' };
     };
 

@@ -26,24 +26,21 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
         }
     }
 
-    // Check if user already made a withdrawal request today
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    // Check if user already made a withdrawal request in the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const todayWithdrawal = await Withdrawal.findOne({
+    const recentWithdrawal = await Withdrawal.findOne({
         where: {
             user: req.user.id,
             createdAt: {
-                [Op.between]: [startOfDay, endOfDay]
+                [Op.gte]: sevenDaysAgo
             }
         }
     });
 
-    if (todayWithdrawal) {
-        throw new AppError('You can only make one withdrawal request per day. Please try again tomorrow.', 400);
+    if (recentWithdrawal) {
+        throw new AppError('You can only make one withdrawal request per week. Please try again later.', 400);
     }
 
     // Validate amount
