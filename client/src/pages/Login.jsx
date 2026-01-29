@@ -168,7 +168,7 @@ export default function Login() {
                     <div className="space-y-1">
                         <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-medium">App Validity Period</p>
                         <p className="text-xs text-primary-400 font-semibold">
-                            January 05, 2026 - January 05, 2027
+                            January 15, 2026 - January 14, 2027
                         </p>
                     </div>
                     <div className="space-y-1">

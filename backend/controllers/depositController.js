@@ -256,8 +256,18 @@ exports.getUserDeposits = asyncHandler(async (req, res) => {
 // @route   GET /api/deposits/all
 // @access  Private/Admin
 exports.getAllDeposits = asyncHandler(async (req, res) => {
-    const { status } = req.query;
+    const { status, startDate, endDate } = req.query;
     const filter = status ? { status } : {};
+
+    if (startDate || endDate) {
+        filter.createdAt = {};
+        if (startDate) {
+            filter.createdAt[Op.gte] = new Date(startDate);
+        }
+        if (endDate) {
+            filter.createdAt[Op.lte] = new Date(endDate);
+        }
+    }
 
     const deposits = await Deposit.findAll({
         where: filter,

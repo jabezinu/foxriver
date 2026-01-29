@@ -47,7 +47,7 @@ export default function WithdrawalRequests() {
         'Account Name', 'Account Number', 'Admin Notes', 'Disbursed By', 'Disbursed At'
     ];
 
-    const handleGenerateExport = async (selectedColumns, scope) => {
+    const handleGenerateExport = async (selectedColumns, scope, customDate) => {
         let dataToExport = withdrawals;
 
         if (scope === 'all') {
@@ -58,6 +58,32 @@ export default function WithdrawalRequests() {
                 toast.dismiss(loadToast);
             } catch (error) {
                 toast.error('Failed to sync full matrix', { id: loadToast });
+                return;
+            }
+        } else if (scope === 'today') {
+            const loadToast = toast.loading('Synchronizing daily payout matrix...');
+            try {
+                const today = new Date();
+                const startDate = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                const endDate = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
+                dataToExport = res.data.withdrawals;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync daily matrix', { id: loadToast });
+                return;
+            }
+        } else if (scope === 'custom' && customDate) {
+            const loadToast = toast.loading(`Synchronizing payout matrix for ${customDate}...`);
+            try {
+                const date = new Date(customDate);
+                const startDate = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const endDate = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
+                dataToExport = res.data.withdrawals;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync custom matrix', { id: loadToast });
                 return;
             }
         }
@@ -91,7 +117,7 @@ export default function WithdrawalRequests() {
             return filteredRecord;
         });
 
-        const fileName = scope === 'all' ? 'Withdrawals_Full_Ledger' : `Withdrawals_${filterStatus}`;
+        const fileName = scope === 'all' ? 'Withdrawals_Full_Ledger' : (scope === 'today' ? 'Withdrawals_Daily_Report' : (scope === 'custom' ? `Withdrawals_Report_${customDate}` : `Withdrawals_${filterStatus}`));
         exportToCSV(exportData, selectedColumns, fileName);
         toast.success('Professional Payout Matrix Exported');
     };
@@ -146,6 +172,13 @@ export default function WithdrawalRequests() {
                 totalCount={totalCount}
                 type="Withdrawals"
                 currentFilter={filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+                onDateCheck={async (date) => {
+                    const d = new Date(date);
+                    const startDate = new Date(d.setHours(0, 0, 0, 0)).toISOString();
+                    const endDate = new Date(d.setHours(23, 59, 59, 999)).toISOString();
+                    const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
+                    return res.data.withdrawals.length;
+                }}
             />
 
             <PageHeader

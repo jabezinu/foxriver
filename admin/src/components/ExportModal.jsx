@@ -20,18 +20,42 @@ const PRESETS = {
     }
 };
 
-export default function ExportModal({ isOpen, onClose, onExport, columns, dataCount, totalCount, type, currentFilter }) {
+export default function ExportModal({ isOpen, onClose, onExport, columns, dataCount, totalCount, type, currentFilter, onDateCheck }) {
     const [selectedColumns, setSelectedColumns] = useState([]);
     const [activePreset, setActivePreset] = useState('full');
-    const [exportScope, setExportScope] = useState('single'); // 'single' or 'all'
+    const [exportScope, setExportScope] = useState('single'); // 'single', 'custom', or 'all'
+    const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
+    const [customDateCount, setCustomDateCount] = useState(null);
+    const [checkingCount, setCheckingCount] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setSelectedColumns(columns);
             setActivePreset('full');
             setExportScope('single');
+            checkDate(customDate);
         }
     }, [isOpen, columns]);
+
+    const checkDate = async (date) => {
+        if (!onDateCheck) return;
+        setCheckingCount(true);
+        try {
+            const count = await onDateCheck(date);
+            setCustomDateCount(count);
+        } catch (error) {
+            console.error(error);
+            setCustomDateCount('?');
+        } finally {
+            setCheckingCount(false);
+        }
+    };
+
+    const handleDateChange = (e) => {
+        const date = e.target.value;
+        setCustomDate(date);
+        checkDate(date);
+    };
 
     const toggleColumn = (col) => {
         setActivePreset('custom');
@@ -51,11 +75,11 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
     };
 
     const handleExport = () => {
-        onExport(selectedColumns, exportScope);
+        onExport(selectedColumns, exportScope, customDate);
         onClose();
     };
 
-    const displayCount = exportScope === 'all' ? totalCount : dataCount;
+    const displayCount = exportScope === 'all' ? totalCount : (exportScope === 'custom' ? (customDateCount ?? 0) : dataCount);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Export ${type} Data`}>
@@ -72,15 +96,49 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
                         Current ({currentFilter})
                     </button>
                     <button
+                        onClick={() => setExportScope('today')}
+                        className={`hidden`}
+                    >
+                        Today
+                    </button>
+                    <button
+                        onClick={() => setExportScope('custom')}
+                        className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${exportScope === 'custom'
+                            ? 'bg-white text-indigo-600 shadow-sm'
+                            : 'text-gray-400 hover:text-gray-600'
+                            }`}
+                    >
+                        Custom
+                    </button>
+                    <button
                         onClick={() => setExportScope('all')}
                         className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${exportScope === 'all'
                             ? 'bg-white text-indigo-600 shadow-sm'
                             : 'text-gray-400 hover:text-gray-600'
                             }`}
                     >
-                        All Statuses
+                        All
                     </button>
                 </div>
+
+                {/* Date Picker for Custom Scope */}
+                {exportScope === 'custom' && (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 animate-fadeIn">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Choose Target Date</label>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                                {checkingCount ? 'Checking...' : `${customDateCount ?? 0} Total Records (All Statuses)`}
+                            </span>
+                        </div>
+                        <input
+                            type="date"
+                            value={customDate}
+                            onChange={handleDateChange}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        />
+                    </div>
+                )}
 
                 {/* Info Section */}
                 <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center gap-4">

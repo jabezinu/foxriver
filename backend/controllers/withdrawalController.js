@@ -111,8 +111,18 @@ exports.getUserWithdrawals = asyncHandler(async (req, res) => {
 // @route   GET /api/withdrawals/all
 // @access  Private/Admin
 exports.getAllWithdrawals = asyncHandler(async (req, res) => {
-    const { status } = req.query;
+    const { status, startDate, endDate } = req.query;
     const where = status ? { status } : {};
+
+    if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) {
+            where.createdAt[Op.gte] = new Date(startDate);
+        }
+        if (endDate) {
+            where.createdAt[Op.lte] = new Date(endDate);
+        }
+    }
 
     const withdrawals = await Withdrawal.findAll({
         where,

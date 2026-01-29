@@ -48,7 +48,7 @@ export default function DepositRequests() {
         'Admin Notes', 'Processed By', 'Processed At'
     ];
 
-    const handleGenerateExport = async (selectedColumns, scope) => {
+    const handleGenerateExport = async (selectedColumns, scope, customDate) => {
         let dataToExport = deposits;
 
         if (scope === 'all') {
@@ -59,6 +59,32 @@ export default function DepositRequests() {
                 toast.dismiss(loadToast);
             } catch (error) {
                 toast.error('Failed to sync full ledger', { id: loadToast });
+                return;
+            }
+        } else if (scope === 'today') {
+            const loadToast = toast.loading('Synchronizing daily financial ledger...');
+            try {
+                const today = new Date();
+                const startDate = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                const endDate = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminDepositAPI.getDeposits({ startDate, endDate });
+                dataToExport = res.data.deposits;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync daily ledger', { id: loadToast });
+                return;
+            }
+        } else if (scope === 'custom' && customDate) {
+            const loadToast = toast.loading(`Synchronizing ledger for ${customDate}...`);
+            try {
+                const date = new Date(customDate);
+                const startDate = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const endDate = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminDepositAPI.getDeposits({ startDate, endDate });
+                dataToExport = res.data.deposits;
+                toast.dismiss(loadToast);
+            } catch (error) {
+                toast.error('Failed to sync custom ledger', { id: loadToast });
                 return;
             }
         }
@@ -86,7 +112,7 @@ export default function DepositRequests() {
             return filteredRecord;
         });
 
-        const fileName = scope === 'all' ? 'Deposits_Full_Ledger' : `Deposits_${filterStatus}`;
+        const fileName = scope === 'all' ? 'Deposits_Full_Ledger' : (scope === 'today' ? 'Deposits_Daily_Report' : (scope === 'custom' ? `Deposits_Report_${customDate}` : `Deposits_${filterStatus}`));
         exportToCSV(exportData, selectedColumns, fileName);
         toast.success('Professional Ledger Exported');
     };
@@ -142,6 +168,13 @@ export default function DepositRequests() {
                 totalCount={totalCount}
                 type="Deposits"
                 currentFilter={filterStatus === 'ft_submitted' ? 'Pending' : filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+                onDateCheck={async (date) => {
+                    const d = new Date(date);
+                    const startDate = new Date(d.setHours(0, 0, 0, 0)).toISOString();
+                    const endDate = new Date(d.setHours(23, 59, 59, 999)).toISOString();
+                    const res = await adminDepositAPI.getDeposits({ startDate, endDate });
+                    return res.data.deposits.length;
+                }}
             />
 
             <PageHeader
