@@ -184,7 +184,7 @@ User.init({
         }
     },
     invitationCode: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING(20),
         unique: true,
         allowNull: true
     },
@@ -242,7 +242,7 @@ User.init({
                 const salt = await bcrypt.genSalt(10);
                 user.password = await bcrypt.hash(user.password, salt);
             }
-            
+
             // Hash transaction password if modified
             if (user.changed('transactionPassword') && user.transactionPassword) {
                 // Validate 6 digits before hashing

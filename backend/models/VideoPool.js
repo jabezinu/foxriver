@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class VideoPool extends Model {}
+class VideoPool extends Model { }
 
 VideoPool.init({
     id: {
@@ -10,7 +10,7 @@ VideoPool.init({
         autoIncrement: true
     },
     videoId: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(50),
         allowNull: false,
         unique: true
     },

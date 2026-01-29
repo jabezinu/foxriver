@@ -45,7 +45,7 @@ Withdrawal.init({
         defaultValue: 'pending'
     },
     adminNotes: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(255),
         allowNull: true
     },
     approvedBy: {

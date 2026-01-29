@@ -30,10 +30,10 @@ Deposit.init({
                         price: { [require('sequelize').Op.gt]: 0 } // Exclude free memberships (Intern)
                     }
                 });
-                
+
                 // Extract prices and convert to numbers - ONLY membership prices
                 const allowedAmounts = memberships.map(m => parseFloat(m.price)).sort((a, b) => a - b);
-                
+
                 const numValue = parseFloat(value);
                 if (!allowedAmounts.includes(numValue)) {
                     throw new Error(`Amount must be one of the membership tier prices: ${allowedAmounts.join(', ')}`);
@@ -50,7 +50,7 @@ Deposit.init({
         }
     },
     transactionFT: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(100),
         allowNull: true
     },
     transactionScreenshot: {
@@ -58,7 +58,7 @@ Deposit.init({
         allowNull: true
     },
     orderId: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(50),
         allowNull: false,
         unique: true
     },
@@ -67,7 +67,7 @@ Deposit.init({
         defaultValue: 'pending'
     },
     adminNotes: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(255),
         allowNull: true
     },
     approvedBy: {

@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class WealthFund extends Model {}
+class WealthFund extends Model { }
 
 WealthFund.init({
     id: {
@@ -43,7 +43,7 @@ WealthFund.init({
         }
     },
     description: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(500),
         allowNull: false
     },
     isActive: {

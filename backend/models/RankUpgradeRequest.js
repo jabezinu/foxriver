@@ -18,11 +18,11 @@ RankUpgradeRequest.init({
         }
     },
     currentLevel: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'),
         allowNull: false
     },
     requestedLevel: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'),
         allowNull: false
     },
     depositId: {
@@ -50,7 +50,7 @@ RankUpgradeRequest.init({
         allowNull: true
     },
     rejectionReason: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(255),
         allowNull: true
     }
 }, {

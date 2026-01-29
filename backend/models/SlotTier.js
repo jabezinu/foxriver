@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-class SlotTier extends Model {}
+class SlotTier extends Model { }
 
 SlotTier.init({
     id: {
@@ -41,7 +41,7 @@ SlotTier.init({
         defaultValue: true
     },
     description: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING(255),
         allowNull: true
     },
     order: {
