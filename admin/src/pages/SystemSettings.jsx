@@ -6,7 +6,7 @@ import PageHeader from '../components/shared/PageHeader';
 import SalaryPanel from '../components/SalaryPanel';
 import ControlTogglePanel from '../components/ControlTogglePanel';
 import SystemInfoPanel from '../components/SystemInfoPanel';
-import BonusSettingsPanel from '../components/BonusSettingsPanel';
+
 
 export default function SystemSettings() {
     const [settings, setSettings] = useState(null);
@@ -109,10 +109,6 @@ export default function SystemSettings() {
                         onToggleFrontend={toggleFrontend}
                         onToggleTasks={toggleTasks}
                         updating={updating}
-                    />
-                    <BonusSettingsPanel 
-                        settings={settings} 
-                        onSettingsUpdate={setSettings}
                     />
                 </div>
 

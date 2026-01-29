@@ -88,14 +88,6 @@ SystemSetting.init({
     tasksDisabled: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
-    },
-    rankUpgradeBonusPercent: {
-        type: DataTypes.DECIMAL(5, 2),
-        defaultValue: 15.00,
-        validate: {
-            min: 0,
-            max: 100
-        }
     }
 }, {
     sequelize,

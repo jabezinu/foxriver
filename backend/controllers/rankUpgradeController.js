@@ -66,25 +66,11 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         // Deduct amount from Personal Wallet
         user.personalWallet = parseFloat(user.personalWallet) - parseFloat(amount);
 
-        // Calculate rank upgrade bonus (dynamic percentage for Rank 2 and above)
-        let upgradeBonus = 0;
-        const getCurrentRankNumber = (level) => {
-            if (level === 'Intern') return 0;
-            const match = level.match(/Rank (\d+)/);
-            return match ? parseInt(match[1]) : 0;
-        };
-
-        const targetRankNumber = getCurrentRankNumber(newLevel);
-        
-        // Apply dynamic bonus only from Rank 2 and above (not for Intern → Rank 1)
-        if (targetRankNumber >= 2) {
-            // Get dynamic bonus percentage from system settings
-            const { SystemSetting } = require('../models');
-            const settings = await SystemSetting.findOne();
-            const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
-            
-            upgradeBonus = parseFloat(amount) * (parseFloat(bonusPercent) / 100);
-            user.incomeWallet = parseFloat(user.incomeWallet) + upgradeBonus;
+        // refund the previous rank price to the personal wallet if the current level is not 'Intern'
+        let previousRankRefund = 0;
+        if (currentMembership.level !== 'Intern') {
+             previousRankRefund = parseFloat(currentMembership.price);
+             user.personalWallet = parseFloat(user.personalWallet) + previousRankRefund;
         }
 
         // Update user's membership level
@@ -115,14 +101,14 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: `Rank upgraded to ${newLevel} successfully! ${upgradeBonus > 0 ? `Bonus of ${upgradeBonus} ETB added to Income Wallet.` : ''}`,
+            message: `Rank upgraded to ${newLevel} successfully!${previousRankRefund > 0 ? ` Refund of ${previousRankRefund} ETB added to Personal Wallet.` : ''}`,
             rankUpgradeRequest,
             newWalletBalances: {
                 personalWallet: parseFloat(user.personalWallet),
                 incomeWallet: parseFloat(user.incomeWallet),
                 tasksWallet: parseFloat(user.tasksWallet)
             },
-            upgradeBonus
+            previousRankRefund
         });
     });
 });
@@ -267,37 +253,7 @@ exports.approveRankUpgradeRequest = asyncHandler(async (req, res) => {
     }
 
     await sequelize.transaction(async (t) => {
-        // Calculate rank upgrade bonus (dynamic percentage for Rank 2 and above)
-        let upgradeBonus = 0;
-        const getCurrentRankNumber = (level) => {
-            if (level === 'Intern') return 0;
-            const match = level.match(/Rank (\d+)/);
-            return match ? parseInt(match[1]) : 0;
-        };
-
-        const targetRankNumber = getCurrentRankNumber(request.requestedLevel);
-        
-        // Apply dynamic bonus only from Rank 2 and above (not for Intern → Rank 1)
-        if (targetRankNumber >= 2) {
-            // Get dynamic bonus percentage from system settings
-            const { SystemSetting } = require('../models');
-            const settings = await SystemSetting.findOne();
-            const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
-            
-            upgradeBonus = parseFloat(request.deposit.amount) * (parseFloat(bonusPercent) / 100);
-            const user = request.userDetails;
-            user.incomeWallet = parseFloat(user.incomeWallet) + upgradeBonus;
-            console.log('Rank upgrade bonus applied:', {
-                userId: user.id,
-                targetRank: request.requestedLevel,
-                upgradeAmount: request.deposit.amount,
-                bonusPercent: bonusPercent,
-                bonusAmount: upgradeBonus
-            });
-        }
-
         // Update user's membership level
-        const user = request.userDetails;
         const oldMembershipLevel = user.membershipLevel;
         user.membershipLevel = request.requestedLevel;
         user.membershipActivatedAt = new Date();

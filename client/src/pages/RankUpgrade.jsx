@@ -18,7 +18,7 @@ export default function RankUpgrade() {
     const [showModal, setShowModal] = useState(false);
     const [selectedTier, setSelectedTier] = useState(null);
     const [confirmLoading, setConfirmLoading] = useState(false);
-    const [bonusPercent, setBonusPercent] = useState(15); // Dynamic bonus percentage
+
     const [walletBalances, setWalletBalances] = useState({
         personalWallet: 0,
         incomeWallet: 0,
@@ -36,9 +36,7 @@ export default function RankUpgrade() {
 
                 setTiers(tiersRes.data.tiers);
 
-                // Set dynamic bonus percentage
-                const bonusPercentage = systemRes.data.settings?.rankUpgradeBonusPercent || 15;
-                setBonusPercent(bonusPercentage);
+
 
                 // Set wallet balances
                 setWalletBalances(walletRes.data.wallet);
@@ -151,20 +149,24 @@ export default function RankUpgrade() {
                     </div>
                 </div>
 
-                {/* Bonus Notice */}
-                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 mb-6">
-                    <div className="flex items-start gap-3">
-                        <div className="bg-emerald-500/10 p-2 rounded-lg">
-                            <Star size={20} className="text-emerald-500" />
-                        </div>
-                        <div>
-                            <h3 className="text-emerald-400 font-bold text-sm mb-1">Upgrade Bonus</h3>
-                            <p className="text-emerald-200/80 text-xs leading-relaxed">
-                                Get {bonusPercent}% bonus on upgrades to Rank 2 and above, credited to your income wallet. No bonus for Rank 1 upgrades.
-                            </p>
+
+
+                {/* Refund Notice */}
+                {user?.membershipLevel !== 'Intern' && (
+                    <div className="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-4 mb-6">
+                        <div className="flex items-start gap-3">
+                            <div className="bg-blue-500/10 p-2 rounded-lg">
+                                <Wallet size={20} className="text-blue-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-blue-400 font-bold text-sm mb-1">Rank Refund</h3>
+                                <p className="text-blue-200/80 text-xs leading-relaxed">
+                                    When you upgrade, the full price of your current rank reserved will be refunded to your Personal Wallet immediately.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 <div className="grid grid-cols-1 gap-4">
                     {tiers.map((tier, index) => {
                         const isCurrent = user?.membershipLevel === tier.level;
@@ -236,49 +238,24 @@ export default function RankUpgrade() {
                                         </div>
                                     </div>
 
-                                    {/* Upgrade Bonus Info */}
-                                    {(() => {
-                                        const getCurrentRankNumber = (level) => {
-                                            if (level === 'Intern') return 0;
-                                            const match = level.match(/Rank (\d+)/);
-                                            return match ? parseInt(match[1]) : 0;
-                                        };
-                                        const targetRankNumber = getCurrentRankNumber(tier.level);
 
-                                        if (canUpgrade && !isHidden && targetRankNumber >= 2) {
-                                            const bonusAmount = tier.price * (bonusPercent / 100);
+
+                                    {/* Refund Info in Cards */}
+                                    {(() => {
+                                        const currentTier = tiers.find(t => t.level === user?.membershipLevel);
+                                        // Only show refund info if:
+                                        // 1. User can upgrade to this tier
+                                        // 2. User is not an Intern (has something to refund)
+                                        // 3. User is not hidden/locked out
+                                        if (canUpgrade && !isHidden && currentTier && currentTier.level !== 'Intern') {
                                             return (
-                                                <div className="bg-emerald-900/20 border border-emerald-500/20 rounded-xl p-3 mb-4">
+                                                <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-3 mb-4">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <Star size={14} className="text-emerald-400" />
-                                                        <span className="text-emerald-400 font-bold text-xs">Upgrade Bonus</span>
+                                                        <Wallet size={14} className="text-blue-400" />
+                                                        <span className="text-blue-400 font-bold text-xs">Refund for {currentTier.level}</span>
                                                     </div>
-                                                    <p className="text-emerald-300 text-xs">
-                                                        Get <span className="font-bold">+{formatNumber(bonusAmount)} ETB</span> bonus ({bonusPercent}%) in your income wallet
-                                                    </p>
-                                                </div>
-                                            );
-                                        } else if (canUpgrade && !isHidden && targetRankNumber === 1) {
-                                            return (
-                                                <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-3 mb-4">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <Star size={14} className="text-zinc-500" />
-                                                        <span className="text-zinc-500 font-bold text-xs">No Bonus</span>
-                                                    </div>
-                                                    <p className="text-zinc-500 text-xs">
-                                                        Bonus starts from Rank 2 upgrades
-                                                    </p>
-                                                </div>
-                                            );
-                                        } else if (isHidden) {
-                                            return (
-                                                <div className="bg-amber-900/20 border border-amber-500/20 rounded-xl p-3 mb-4">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <Star size={14} className="text-amber-400" />
-                                                        <span className="text-amber-400 font-bold text-xs">Coming Soon</span>
-                                                    </div>
-                                                    <p className="text-amber-300 text-xs">
-                                                        This tier will be available soon. Stay tuned for updates!
+                                                    <p className="text-blue-300 text-xs">
+                                                        You will get <span className="font-bold">+{formatNumber(currentTier.price)} ETB</span> refund from your old rank
                                                     </p>
                                                 </div>
                                             );
@@ -336,30 +313,20 @@ export default function RankUpgrade() {
                                 <span className="text-xl font-black text-primary-500">{formatNumber(selectedTier.price)} ETB</span>
                             </div>
 
-                            {/* Show bonus information for Rank 2 and above */}
-                            {(() => {
-                                const getCurrentRankNumber = (level) => {
-                                    if (level === 'Intern') return 0;
-                                    const match = level.match(/Rank (\d+)/);
-                                    return match ? parseInt(match[1]) : 0;
-                                };
-                                const targetRankNumber = getCurrentRankNumber(selectedTier.level);
 
-                                if (targetRankNumber >= 2) {
-                                    const bonusAmount = selectedTier.price * (bonusPercent / 100);
+
+                            {/* Show refund information for previous rank */}
+                            {(() => {
+                                const currentTier = tiers.find(t => t.level === user?.membershipLevel);
+                                if (currentTier && currentTier.level !== 'Intern') {
                                     return (
                                         <div className="flex justify-between items-center pt-2 border-t border-zinc-800">
-                                            <span className="text-sm font-medium text-emerald-400">Upgrade Bonus ({bonusPercent}%)</span>
-                                            <span className="text-lg font-bold text-emerald-400">+{formatNumber(bonusAmount)} ETB</span>
-                                        </div>
-                                    );
-                                } else {
-                                    return (
-                                        <div className="pt-2 border-t border-zinc-800">
-                                            <span className="text-xs text-zinc-500">No bonus for Rank 1 upgrade</span>
+                                            <span className="text-sm font-medium text-blue-400">Refund for {currentTier.level}</span>
+                                            <span className="text-lg font-bold text-blue-400">+{formatNumber(currentTier.price)} ETB</span>
                                         </div>
                                     );
                                 }
+                                return null;
                             })()}
                         </div>
 
@@ -393,7 +360,7 @@ export default function RankUpgrade() {
 
                         <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-4">
                             <p className="text-blue-200 text-xs leading-relaxed">
-                                <strong>Instant Upgrade:</strong> Your rank will be upgraded immediately after payment confirmation. The amount will be deducted from your Personal Wallet.
+                                <strong>Instant Upgrade:</strong> The upgrade cost will be deducted from your Personal Wallet. If applicable, your previous rank's price will be refunded to your Personal Wallet immediately.
                             </p>
                         </div>
 
