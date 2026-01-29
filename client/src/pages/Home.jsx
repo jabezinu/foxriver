@@ -209,7 +209,7 @@ export default function Home() {
                         `}
                     >
                         <RotateCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-                        <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
+                        <span>{isSyncing ? 'Refreshing...' : 'Refresh'}</span>
                     </button>
                     <LanguageSelector />
                     <button className="relative p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-full transition-colors" onClick={() => navigate('/settings')}>
