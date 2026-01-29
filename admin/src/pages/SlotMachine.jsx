@@ -99,8 +99,8 @@ const SlotMachine = () => {
         const headers = ['Date', 'User Phone', 'Membership', 'Result', 'Paid', 'Won'];
         const rows = spins.map(spin => [
             new Date(spin.createdAt).toLocaleString(),
-            spin.userId?.phone || 'N/A',
-            spin.userId?.membershipLevel || 'N/A',
+            spin.player?.phone || 'N/A',
+            spin.player?.membershipLevel || 'N/A',
             spin.result,
             spin.amountPaid,
             spin.amountWon

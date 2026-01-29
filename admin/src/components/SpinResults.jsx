@@ -100,16 +100,16 @@ export default function SpinResults({ spins, stats, loading, pagination, setPagi
                                             {new Date(spin.createdAt).toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 text-xs font-bold text-gray-800">
-                                            {spin.userId?.phone || 'N/A'}
+                                            {spin.player?.phone || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant="indigo">{spin.userId?.membershipLevel || 'N/A'}</Badge>
+                                            <Badge variant="indigo">{spin.player?.membershipLevel || 'N/A'}</Badge>
                                         </td>
                                         <td className="px-6 py-4">
                                             {spin.result === 'Win 100 ETB' ? (
-                                                <Badge variant="green" className="py-1">🎉 {spin.result}</Badge>
+                                                <Badge variant="green" className="py-1">🎉 {spin.result} ({spin.player?.phone || 'N/A'})</Badge>
                                             ) : (
-                                                <Badge variant="red" className="py-1">❌ {spin.result}</Badge>
+                                                <Badge variant="red" className="py-1">❌ {spin.result} </Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-xs font-bold text-red-600">-{spin.amountPaid} ETB</td>
