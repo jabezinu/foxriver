@@ -295,7 +295,7 @@ const SpinWheel = () => {
                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 overflow-hidden">
                     <div className="flex items-center gap-2 mb-4">
                         <Trophy size={20} className="text-yellow-400" />
-                        <h3 className="text-lg font-bold text-white">Monthly Winners</h3>
+                        <h3 className="text-lg font-bold text-white">Active Winners</h3>
                     </div>
 
                     <div className="relative h-40 overflow-hidden">
