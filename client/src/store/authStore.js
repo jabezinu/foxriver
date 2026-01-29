@@ -10,6 +10,8 @@ export const useAuthStore = create((set) => ({
     error: null,
     shouldShowNewsPopup: false,
     latestNews: null,
+    newsQueue: [], // Array of all news to show
+    currentNewsIndex: 0, // Track which news is currently being shown
 
     login: async (credentials) => {
         set({ loading: true, error: null });
@@ -66,7 +68,9 @@ export const useAuthStore = create((set) => ({
             isAuthenticated: false, 
             isInitializing: false,
             shouldShowNewsPopup: false,
-            latestNews: null
+            latestNews: null,
+            newsQueue: [],
+            currentNewsIndex: 0
         });
     },
 
@@ -110,11 +114,47 @@ export const useAuthStore = create((set) => ({
         set((state) => ({ user: { ...state.user, ...userData } }));
     },
 
+    setNewsQueue: (newsArray) => {
+        if (newsArray && newsArray.length > 0) {
+            set({ 
+                newsQueue: newsArray, 
+                currentNewsIndex: 0,
+                latestNews: newsArray[0]
+            });
+        } else {
+            set({ 
+                newsQueue: [], 
+                currentNewsIndex: 0,
+                latestNews: null
+            });
+        }
+    },
+
+    showNextNews: () => {
+        set((state) => {
+            const nextIndex = state.currentNewsIndex + 1;
+            if (nextIndex < state.newsQueue.length) {
+                return {
+                    currentNewsIndex: nextIndex,
+                    latestNews: state.newsQueue[nextIndex]
+                };
+            } else {
+                // No more news to show
+                return {
+                    shouldShowNewsPopup: false,
+                    latestNews: null,
+                    newsQueue: [],
+                    currentNewsIndex: 0
+                };
+            }
+        });
+    },
+
     setLatestNews: (news) => {
         set({ latestNews: news });
     },
 
     hideNewsPopup: () => {
-        set({ shouldShowNewsPopup: false });
+        set({ shouldShowNewsPopup: false, newsQueue: [], currentNewsIndex: 0, latestNews: null });
     },
 }));

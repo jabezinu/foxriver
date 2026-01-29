@@ -68,7 +68,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const { verifyToken, isAuthenticated, shouldShowNewsPopup, latestNews, setLatestNews, hideNewsPopup } = useAuthStore();
+  const { verifyToken, isAuthenticated, shouldShowNewsPopup, latestNews, setNewsQueue, hideNewsPopup, showNextNews, newsQueue, currentNewsIndex } = useAuthStore();
   const [frontendDisabled, setFrontendDisabled] = useState(false);
   const [systemSettingsLoading, setSystemSettingsLoading] = useState(true);
 
@@ -88,7 +88,9 @@ function App() {
     try {
       const response = await newsAPI.getPopupNews();
       if (response.data.success && response.data.news) {
-        setLatestNews(response.data.news);
+        // Backend now returns an array of news
+        const newsArray = Array.isArray(response.data.news) ? response.data.news : [response.data.news];
+        setNewsQueue(newsArray);
       }
     } catch (error) {
       console.error('Failed to fetch popup news:', error);
@@ -97,6 +99,10 @@ function App() {
 
   const handleCloseNewsPopup = () => {
     hideNewsPopup();
+  };
+
+  const handleNextNews = () => {
+    showNextNews();
   };
 
   const checkSystemSettings = async () => {
@@ -158,7 +164,13 @@ function App() {
 
       {/* News Popup - Shows on login/register */}
       {shouldShowNewsPopup && latestNews && (
-        <NewsPopup news={latestNews} onClose={handleCloseNewsPopup} />
+        <NewsPopup 
+          news={latestNews} 
+          onClose={handleCloseNewsPopup}
+          onNext={handleNextNews}
+          currentIndex={currentNewsIndex}
+          totalCount={newsQueue.length}
+        />
       )}
 
       <Suspense fallback={<PageLoader />}>

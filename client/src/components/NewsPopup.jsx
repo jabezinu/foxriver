@@ -1,26 +1,35 @@
-import { X, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import Button from './ui/Button';
 
-export default function NewsPopup({ news, onClose }) {
+export default function NewsPopup({ news, onClose, onNext, currentIndex = 0, totalCount = 1 }) {
     if (!news) return null;
+
+    const hasMoreNews = currentIndex < totalCount - 1;
+
+    const handleAction = () => {
+        if (hasMoreNews) {
+            onNext();
+        } else {
+            onClose();
+        }
+    };
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in">
-            <div className="bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg sm:mx-4 max-h-[75vh] sm:max-h-[85vh] mb-32 sm:mb-0 flex flex-col animate-slide-up shadow-2xl relative overflow-hidden border-t border-zinc-800 sm:border">
-                {/* Header with close button */}
+            <div className="bg-zinc-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg sm:mx-4 max-h-[75vh] sm:max-h-[85vh] mb-32 sm:mb-0 flex flex-col animate-slide-up shadow-2xl relative overflow-hidden border-t border-zinc-800 sm:border pointer-events-auto">
+                {/* Header */}
                 <div className="flex-shrink-0 p-4 sm:p-6 pb-0">
                     <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                             <span className="bg-blue-500/10 text-blue-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide border border-blue-500/20">
                                 Official News
                             </span>
+                            {totalCount > 1 && (
+                                <span className="bg-zinc-800 text-zinc-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide">
+                                    {currentIndex + 1} / {totalCount}
+                                </span>
+                            )}
                         </div>
-                        <button 
-                            onClick={onClose} 
-                            className="p-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors -mt-1 -mr-1"
-                        >
-                            <X size={20} />
-                        </button>
                     </div>
 
                     <h2 className="text-lg sm:text-xl font-black text-white mb-2 leading-tight">
@@ -55,7 +64,7 @@ export default function NewsPopup({ news, onClose }) {
                 {/* Footer with button */}
                 <div className="flex-shrink-0 p-4 sm:p-6 pt-0">
                     <Button
-                        onClick={onClose}
+                        onClick={handleAction}
                         fullWidth
                         variant="secondary"
                         className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300"

@@ -134,20 +134,6 @@ export default function RankUpgrade() {
             </div>
 
             <div className="px-4 py-6 space-y-4">
-                {/* Wallet Balance Notice */}
-                <div className="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-4 mb-6">
-                    <div className="flex items-start gap-3">
-                        <div className="bg-blue-500/10 p-2 rounded-lg">
-                            <Wallet size={20} className="text-blue-500" />
-                        </div>
-                        <div>
-                            <h3 className="text-blue-400 font-bold text-sm mb-1">Personal Wallet Payment</h3>
-                            <p className="text-blue-200/80 text-xs leading-relaxed mb-2">
-                                Rank upgrades are paid from your Personal Wallet. Current balance: <span className="font-bold text-blue-300">{formatNumber(walletBalances.personalWallet)} ETB</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
 
 

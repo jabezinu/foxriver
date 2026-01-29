@@ -29,6 +29,11 @@ News.init({
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
+    targetRanks: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: null
+    },
     publishedDate: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
