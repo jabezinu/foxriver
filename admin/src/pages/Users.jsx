@@ -230,7 +230,6 @@ export default function UserManagement() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
                     </form>
                     <select
                         className="admin-input md:w-48"
