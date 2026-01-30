@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { referralAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useSettings } from '../contexts/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { getServerUrl } from '../config/api.config';
 import {
@@ -25,6 +26,7 @@ import Button from '../components/ui/Button';
 export default function Team() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+    const { settings } = useSettings();
     const [loading, setLoading] = useState(true);
     const [downline, setDownline] = useState(null);
     const [commissions, setCommissions] = useState([]);
@@ -304,7 +306,17 @@ export default function Team() {
                         const levelData = downline ? downline[`${lvl}Level`] : null;
                         const isExpanded = expandedLevel === lvl;
                         const label = lvl === 'a' ? 'Direct Referrals' : lvl === 'b' ? '1st Indirect' : '2nd Indirect';
-                        const percent = lvl === 'a' ? '10%' : lvl === 'b' ? '5%' : '2%';
+                        
+                        // Get dynamic referral commission percentages (for membership upgrades) from settings
+                        const getCommissionPercent = () => {
+                            if (!settings) return lvl === 'a' ? '10%' : lvl === 'b' ? '5%' : '2%';
+                            // Use upgrade commission percentages, fallback to regular commission if not set
+                            if (lvl === 'a') return `${settings.upgradeCommissionPercentA || settings.commissionPercentA || 10}%`;
+                            if (lvl === 'b') return `${settings.upgradeCommissionPercentB || settings.commissionPercentB || 5}%`;
+                            return `${settings.upgradeCommissionPercentC || settings.commissionPercentC || 2}%`;
+                        };
+                        
+                        const percent = getCommissionPercent();
                         const commissionEligibleCount = levelData?.count || 0; // Commission-eligible users
                         const totalCount = levelData?.totalCount || 0; // All users including Interns
 
@@ -321,7 +333,7 @@ export default function Team() {
                                         <div>
                                             <p className="font-bold text-white text-sm">{label}</p>
                                             <div className="inline-flex items-center gap-1 bg-zinc-950/50 border border-zinc-800 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-400 uppercase mt-1">
-                                                <span>Commission:</span>
+                                                <span>Referral Commission:</span>
                                                 <span className="text-primary-400">{percent}</span>
                                             </div>
                                         </div>

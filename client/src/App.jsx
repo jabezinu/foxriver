@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import { newsAPI, systemAPI } from './services/api';
+import { SettingsProvider } from './contexts/SettingsContext';
 import logo from './assets/logo.png';
 
 // Lazy load pages for better performance
@@ -144,73 +145,75 @@ function App() {
   }
 
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true
-      }}
-    >
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
+    <SettingsProvider>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
         }}
-      />
-
-      {/* News Popup - Shows on login/register */}
-      {shouldShowNewsPopup && latestNews && (
-        <NewsPopup 
-          news={latestNews} 
-          onClose={handleCloseNewsPopup}
-          onNext={handleNextNews}
-          currentIndex={currentNewsIndex}
-          totalCount={newsQueue.length}
+      >
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#333',
+              color: '#fff',
+            },
+          }}
         />
-      )}
 
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        {/* News Popup - Shows on login/register */}
+        {shouldShowNewsPopup && latestNews && (
+          <NewsPopup 
+            news={latestNews} 
+            onClose={handleCloseNewsPopup}
+            onNext={handleNextNews}
+            currentIndex={currentNewsIndex}
+            totalCount={newsQueue.length}
+          />
+        )}
 
-          {/* Protected Routes with Layout */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Home />} />
-            <Route path="task" element={<Task />} />
-            <Route path="wealth" element={<Wealth />} />
-            <Route path="wealth/:id" element={<WealthDetail />} />
-            <Route path="my-investments" element={<MyInvestments />} />
-            <Route path="mine" element={<Mine />} />
-            <Route path="deposit" element={<Deposit />} />
-            <Route path="withdraw" element={<Withdraw />} />
-            <Route path="transaction-status" element={<TransactionStatus />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="news" element={<CompanyNews />} />
-            <Route path="qna" element={<QnA />} />
-            <Route path="tiers" element={<TierList />} />
-            <Route path="rank-upgrade" element={<RankUpgrade />} />
-            <Route path="team" element={<Team />} />
-            <Route path="spin" element={<SpinWheel />} />
-            <Route path="app-rules" element={<AppRules />} />
-            <Route path="courses" element={<Courses />} />
-          </Route>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected Routes with Layout */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Home />} />
+              <Route path="task" element={<Task />} />
+              <Route path="wealth" element={<Wealth />} />
+              <Route path="wealth/:id" element={<WealthDetail />} />
+              <Route path="my-investments" element={<MyInvestments />} />
+              <Route path="mine" element={<Mine />} />
+              <Route path="deposit" element={<Deposit />} />
+              <Route path="withdraw" element={<Withdraw />} />
+              <Route path="transaction-status" element={<TransactionStatus />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="news" element={<CompanyNews />} />
+              <Route path="qna" element={<QnA />} />
+              <Route path="tiers" element={<TierList />} />
+              <Route path="rank-upgrade" element={<RankUpgrade />} />
+              <Route path="team" element={<Team />} />
+              <Route path="spin" element={<SpinWheel />} />
+              <Route path="app-rules" element={<AppRules />} />
+              <Route path="courses" element={<Courses />} />
+            </Route>
 
 
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </SettingsProvider>
   );
 }
 

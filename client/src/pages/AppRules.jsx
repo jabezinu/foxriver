@@ -1,29 +1,13 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Info, TrendingUp, Users, Award, DollarSign, Video, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { userAPI } from '../services/api';
+import { useSettings } from '../contexts/SettingsContext';
 import Loading from '../components/Loading';
 
 export default function AppRules() {
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [settings, setSettings] = useState(null);
+    const { settings, loading } = useSettings();
     const [expandedSection, setExpandedSection] = useState(null);
-
-    useEffect(() => {
-        fetchSettings();
-    }, []);
-
-    const fetchSettings = async () => {
-        try {
-            const res = await userAPI.getSystemSettings();
-            setSettings(res.data.settings);
-        } catch (error) {
-            console.error('Failed to fetch settings:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const toggleSection = (section) => {
         setExpandedSection(expandedSection === section ? null : section);
