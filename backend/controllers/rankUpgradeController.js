@@ -49,18 +49,6 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         throw new AppError(`Insufficient Personal Wallet balance. You need ${amount} ETB but have ${user.personalWallet} ETB`, 400);
     }
 
-    // Check if user has any pending rank upgrade requests
-    const existingRequest = await RankUpgradeRequest.findOne({
-        where: {
-            user: req.user.id,
-            status: 'pending'
-        }
-    });
-
-    if (existingRequest) {
-        throw new AppError('You already have a pending rank upgrade request', 400);
-    }
-
     // Process the rank upgrade immediately using wallet funds
     await sequelize.transaction(async (t) => {
         // Deduct amount from Personal Wallet
