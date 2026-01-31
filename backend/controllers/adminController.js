@@ -481,8 +481,7 @@ exports.getCurrentRestrictions = asyncHandler(async (req, res) => {
     // Get a sample user to check current global restrictions
     const sampleUser = await User.findOne({
         where: { role: 'user' },
-        attributes: ['withdrawalRestrictedUntil', 'withdrawalRestrictedDays'],
-        raw: true
+        attributes: ['withdrawalRestrictedUntil', 'withdrawalRestrictedDays']
     });
 
     if (!sampleUser) {

@@ -38,7 +38,7 @@ export default function GlobalRestrictionModal({ isOpen, onClose, onSave, date, 
             display.push(`Until: ${restrictedDate}`);
         }
         
-        if (dayRestrictions && dayRestrictions.length > 0) {
+        if (Array.isArray(dayRestrictions) && dayRestrictions.length > 0) {
             const restrictedDayNames = dayRestrictions.map(day => dayNames[day]).join(', ');
             display.push(`Days: ${restrictedDayNames}`);
         }
@@ -166,7 +166,7 @@ export default function GlobalRestrictionModal({ isOpen, onClose, onSave, date, 
                                             Selected days will be restricted <span className="font-bold">every week</span>. 
                                             Users cannot withdraw on these days until restrictions are lifted.
                                         </p>
-                                        {restrictedDays && restrictedDays.length > 0 && (
+                                        {Array.isArray(restrictedDays) && restrictedDays.length > 0 && (
                                             <p className="text-[10px] text-amber-800 font-medium mt-2">
                                                 🚫 Restricted: {restrictedDays.map(day => 
                                                     ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day]

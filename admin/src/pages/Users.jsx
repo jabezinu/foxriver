@@ -128,7 +128,7 @@ export default function UserManagement() {
             message = 'Are you sure you want to restrict withdrawals for ALL users until this date?';
         } else {
             const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const restrictedDayNames = restrictedDays.map(day => dayNames[day]).join(', ');
+            const restrictedDayNames = (Array.isArray(restrictedDays) ? restrictedDays : []).map(day => dayNames[day]).join(', ');
             message = `Are you sure you want to restrict withdrawals for ALL users on: ${restrictedDayNames}?`;
         }
 
