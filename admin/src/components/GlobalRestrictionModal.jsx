@@ -54,8 +54,8 @@ export default function GlobalRestrictionModal({ isOpen, onClose, onSave, date, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0 z-10">
                     <h3 className="font-bold text-gray-800">Global Withdrawal Restriction</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-red-500">
                         <HiX className="text-xl" />
