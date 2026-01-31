@@ -70,7 +70,9 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     }
 
     // Check if user has sufficient balance
-    const walletBalance = walletType === 'income' ? user.incomeWallet : user.personalWallet;
+    const walletBalance = walletType === 'income' ? user.incomeWallet : 
+                         walletType === 'personal' ? user.personalWallet : 
+                         user.tasksWallet;
 
     if (walletBalance < amount) {
         throw new AppError('Insufficient wallet balance', 400);

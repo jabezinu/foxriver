@@ -139,7 +139,12 @@ export default function Withdraw() {
             return;
         }
 
-        if (wallets[`${walletType}Wallet`] < selectedAmount) {
+        // Get the correct wallet balance based on wallet type
+        const walletBalance = walletType === 'income' ? wallets.incomeWallet :
+                             walletType === 'personal' ? wallets.personalWallet :
+                             wallets.tasksWallet;
+
+        if (walletBalance < selectedAmount) {
             toast.error('Insufficient balance in selected wallet');
             return;
         }

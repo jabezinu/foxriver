@@ -25,7 +25,7 @@ Withdrawal.init({
         }
     },
     walletType: {
-        type: DataTypes.ENUM('income', 'personal'),
+        type: DataTypes.ENUM('income', 'personal', 'tasks'),
         allowNull: false
     },
     grossAmount: {
