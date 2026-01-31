@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoxRiver Database ERD</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f7f9;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 15px;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+        background: #fff;
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+      .info-section {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+      }
+      .info-card {
+        background: #fff;
+        padding: 20px;
+        border-left: 4px solid #3498db;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      }
+      .info-card h3 {
+        margin-top: 0;
+        color: #3498db;
+      }
+      ul {
+        padding-left: 20px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>FoxRiver Database ERD</h1>
+
+      <div class="mermaid">
+erDiagram
+    USER ||--o{ TASK_COMPLETION : "performs"
+    USER ||--o{ COMMISSION : "earns"
+    USER ||--o{ SALARY : "receives"
+    USER ||--o{ DEPOSIT : "requests"
+    USER ||--o{ DEPOSIT : "approves"
+    USER ||--o{ WITHDRAWAL : "requests"
+    USER ||--o{ WITHDRAWAL : "approves"
+    USER ||--o{ WEALTH_INVESTMENT : "invests"
+    USER ||--o{ SPIN_RESULT : "plays"
+    USER ||--o{ DAILY_VIDEO_ASSIGNMENT : "assigned"
+    USER ||--o{ RANK_UPGRADE_REQUEST : "requests"
+    USER ||--o{ RANK_UPGRADE_REQUEST : "approves"
+    USER ||--o| CHAT : "owns"
+    USER ||--o{ CHAT_MESSAGE : "sends"
+    USER ||--o{ USER : "refers"
+    USER ||--o{ NEWS : "creates"
+    
+    MEMBERSHIP ||--o{ USER : "defines_rank"
+    
+    TASK ||--o{ TASK_COMPLETION : "completed_by"
+    TASK_COMPLETION ||--o{ COMMISSION : "triggers"
+    
+    COURSE_CATEGORY ||--o{ COURSE : "categorizes"
+    
+    PLAYLIST ||--o{ VIDEO_POOL : "contains"
+    
+    BANK_ACCOUNT ||--o{ DEPOSIT : "payment_method"
+    
+    DEPOSIT ||--o| RANK_UPGRADE_REQUEST : "links_to"
+    
+    WEALTH_FUND ||--o{ WEALTH_INVESTMENT : "invested_in"
+    
+    SLOT_TIER ||--o{ SPIN_RESULT : "used_in"
+    
+    CHAT ||--o{ CHAT_MESSAGE : "contains"
+
+    USER {
+        int id PK
+        string name
+        string phone
+        string password
+        enum role
+        enum membershipLevel
+        decimal incomeWallet
+        decimal personalWallet
+        decimal tasksWallet
+        string transactionPassword
+        json bankAccount
+        int referrerId FK
+        string invitationCode
+        boolean isActive
+    }
+
+    MEMBERSHIP {
+        int id PK
+        enum level
+        decimal price
+        boolean canWithdraw
+        int order
+        boolean hidden
+    }
+
+    DEPOSIT {
+        int id PK
+        int user FK
+        decimal amount
+        int paymentMethod FK
+        string transactionFT
+        string orderId
+        enum status
+        int approvedBy FK
+    }
+
+    WITHDRAWAL {
+        int id PK
+        int user FK
+        decimal amount
+        enum walletType
+        decimal netAmount
+        enum status
+        int approvedBy FK
+    }
+
+    COMMISSION {
+        int id PK
+        int user FK "Earner"
+        int downlineUser FK "Source"
+        decimal amountEarned
+        int sourceTask FK
+        string sourceMembership
+    }
+
+    RANK_UPGRADE_REQUEST {
+        int id PK
+        int user FK
+        enum currentLevel
+        enum requestedLevel
+        int depositId FK
+        enum status
+        int approvedBy FK
+    }
+
+    WEALTH_INVESTMENT {
+        int id PK
+        int user FK
+        int wealthFund FK
+        decimal amount
+        enum status
+        date endDate
+    }
+
+    SPIN_RESULT {
+        int id PK
+        int user FK
+        decimal amountWon
+        int tier FK
+    }
+
+    TASK_COMPLETION {
+        int id PK
+        int user FK
+        int task FK
+        decimal earningsAmount
+    }
+      </div>
+
+      <div class="info-section">
+        <div class="info-card">
+          <h3>1. User & Membership</h3>
+          <p>
+            Central system core. Users are categorized by
+            <strong>Membership Levels</strong> (Intern to Rank 10), determining
+            earning potential and rights.
+          </p>
+        </div>
+        <div class="info-card">
+          <h3>2. Financial Ecosystem</h3>
+          <ul>
+            <li><strong>Wallets:</strong> Income, Personal, and Tasks.</li>
+            <li><strong>Flows:</strong> Deposits and Withdrawals.</li>
+            <li><strong>Incentives:</strong> Commissions and Salaries.</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h3>3. Rank Upgrades</h3>
+          <p>
+            Tracked via <code>RankUpgradeRequest</code> history, whether via
+            direct deposit or Personal Wallet funds.
+          </p>
+        </div>
+        <div class="info-card">
+          <h3>4. Earning Activities</h3>
+          <p>
+            Comprises Daily Tasks (watched videos), Wealth Funds (fixed-term
+            investments), and Games (spin results).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+  </body>
+</html>
