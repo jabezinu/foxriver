@@ -64,7 +64,8 @@ export default function Login() {
 
         if (result.success) {
             toast.success(t('success.welcomeBack'));
-            navigate('/', { replace: true });
+            // Force full page refresh on login
+            window.location.href = '/';
         } else {
             toast.error(result.message || t('errors.loginFailed'));
             setFormData(prev => ({ ...prev, captcha: '' }));
