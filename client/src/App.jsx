@@ -78,6 +78,19 @@ function App() {
     checkSystemSettings();
   }, [verifyToken]);
 
+  // Handle Telegram browser aggressive caching
+  useEffect(() => {
+    const isTelegram = /Telegram/i.test(navigator.userAgent);
+    if (isTelegram) {
+      const hasRefreshed = sessionStorage.getItem('telegram_refreshed');
+      if (!hasRefreshed) {
+        sessionStorage.setItem('telegram_refreshed', 'true');
+        // Force reload from server to get fresh assets
+        window.location.reload(true);
+      }
+    }
+  }, []);
+
   // Fetch latest popup news when user logs in
   useEffect(() => {
     if (isAuthenticated && shouldShowNewsPopup) {

@@ -15,6 +15,12 @@ axios.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add cache buster for GET requests to prevent Telegram/browser caching
+        if (config.method === 'get') {
+            config.params = { ...config.params, _t: Date.now() };
+        }
+
         return config;
     },
     (error) => {
