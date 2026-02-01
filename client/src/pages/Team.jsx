@@ -22,6 +22,7 @@ import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Modal from '../components/Modal';
 
 export default function Team() {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ export default function Team() {
     const [commissionTotals, setCommissionTotals] = useState({ A: 0, B: 0, C: 0, total: 0 });
     const [salaryData, setSalaryData] = useState(null);
     const [expandedLevel, setExpandedLevel] = useState('a'); // 'a', 'b', 'c', or null
+    const [showInviteModal, setShowInviteModal] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -80,6 +82,26 @@ export default function Team() {
     const handleCopyCode = () => {
         navigator.clipboard.writeText(user?.invitationCode);
         toast.success('Invitation code copied!');
+    };
+
+    const handleShareToTelegram = () => {
+        const link = `${window.location.origin}/register?ref=${user?.invitationCode}`;
+        const message = `Join me on this amazing platform! Use my invitation link: ${link}`;
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(message)}`;
+        window.open(telegramUrl, '_blank');
+    };
+
+    const handleShareToWhatsApp = () => {
+        const link = `${window.location.origin}/register?ref=${user?.invitationCode}`;
+        const message = `Join me on this amazing platform! Use my invitation link: ${link}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    };
+
+    const handleShareToFacebook = () => {
+        const link = `${window.location.origin}/register?ref=${user?.invitationCode}`;
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+        window.open(facebookUrl, '_blank');
     };
 
     if (loading) return <Loading />;
@@ -183,7 +205,7 @@ export default function Team() {
                                     </div>
                                 </div>
                                 <Button
-                                    onClick={handleCopyLink}
+                                    onClick={() => setShowInviteModal(true)}
                                     className="bg-primary-500 hover:bg-primary-600 text-black font-bold min-w-[100px] shadow-glow border-none"
                                 >
                                     <Share2 size={16} className="mr-2" />
@@ -420,6 +442,95 @@ export default function Team() {
                     </div>
                 </Card>
             </div>
+
+            {/* Invite Modal */}
+            <Modal
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                title="Share Invitation"
+            >
+                <div className="space-y-6">
+                    {/* Invitation Link */}
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-2">
+                            Your Invitation Link
+                        </label>
+                        <div className="flex gap-2">
+                            <div className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl p-3 overflow-hidden">
+                                <p className="font-mono text-xs text-zinc-300 truncate">
+                                    {window.location.origin}/register?ref={user?.invitationCode}
+                                </p>
+                            </div>
+                            <Button
+                                onClick={handleCopyLink}
+                                className="bg-zinc-800 hover:bg-zinc-700 text-white border-zinc-700 min-w-[80px]"
+                            >
+                                <Copy size={16} className="mr-2" />
+                                Copy
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Social Share Buttons */}
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wide mb-3">
+                            Share via Social Media
+                        </label>
+                        <div className="space-y-3">
+                            {/* Telegram */}
+                            <button
+                                onClick={handleShareToTelegram}
+                                className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 group"
+                            >
+                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-1.969 9.3-2.098 9.98-.055.29-.163.387-.267.396-.22.02-.365-.145-.566-.284-.314-.217-4.918-3.152-5.288-3.424-.096-.07-.203-.21-.006-.374.451-.376 4.182-3.794 4.27-3.88.088-.086.044-.14-.061-.088-.105.052-5.26 3.34-5.482 3.48-.222.14-.48.21-.692.07-.212-.14-1.294-.413-1.478-.47-.184-.057-.397-.18-.397-.42 0-.24.214-.375.428-.495.214-.12 8.094-3.14 8.488-3.29.394-.15.788-.07.788.36z"/>
+                                    </svg>
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <p className="font-bold text-white text-sm">Share on Telegram</p>
+                                    <p className="text-xs text-blue-100 opacity-90">Send to your Telegram contacts</p>
+                                </div>
+                                <ArrowRight className="text-white opacity-70 group-hover:translate-x-1 transition-transform" size={20} />
+                            </button>
+
+                            {/* WhatsApp */}
+                            <button
+                                onClick={handleShareToWhatsApp}
+                                className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-xl transition-all shadow-lg hover:shadow-green-500/20 group"
+                            >
+                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                    </svg>
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <p className="font-bold text-white text-sm">Share on WhatsApp</p>
+                                    <p className="text-xs text-green-100 opacity-90">Send to your WhatsApp contacts</p>
+                                </div>
+                                <ArrowRight className="text-white opacity-70 group-hover:translate-x-1 transition-transform" size={20} />
+                            </button>
+
+                            {/* Facebook */}
+                            <button
+                                onClick={handleShareToFacebook}
+                                className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-lg hover:shadow-blue-600/20 group"
+                            >
+                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                </div>
+                                <div className="flex-1 text-left">
+                                    <p className="font-bold text-white text-sm">Share on Facebook</p>
+                                    <p className="text-xs text-blue-100 opacity-90">Post to your Facebook timeline</p>
+                                </div>
+                                <ArrowRight className="text-white opacity-70 group-hover:translate-x-1 transition-transform" size={20} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
