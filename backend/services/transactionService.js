@@ -151,6 +151,7 @@ class TransactionService {
 
     /**
      * Approve a withdrawal request
+     * Note: Amount is already deducted when request was created
      */
     async approveWithdrawal(withdrawalId, adminId, notes = '') {
         const withdrawal = await Withdrawal.findByPk(withdrawalId);
@@ -168,18 +169,8 @@ class TransactionService {
             throw new AppError('User not found', 404);
         }
 
-        // Deduct from user's balance
-        const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
-            withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
-
-        if (parseFloat(user[walletField]) < parseFloat(withdrawal.amount)) {
-            throw new AppError('Insufficient balance in user wallet', 400);
-        }
-
-        user[walletField] = parseFloat(user[walletField]) - parseFloat(withdrawal.amount);
-        await user.save();
-
-        // Update withdrawal status
+        // No wallet deduction needed - amount was already deducted when request was created
+        // Just update withdrawal status
         withdrawal.status = 'approved';
         withdrawal.approvedBy = adminId;
         withdrawal.approvedAt = new Date();
@@ -192,6 +183,7 @@ class TransactionService {
 
     /**
      * Reject a withdrawal request
+     * Note: Amount was deducted when request was created, so we need to refund it
      */
     async rejectWithdrawal(withdrawalId, notes = '') {
         const withdrawal = await Withdrawal.findByPk(withdrawalId);
@@ -200,11 +192,34 @@ class TransactionService {
             throw new AppError('Withdrawal not found', 404);
         }
 
-        withdrawal.status = 'rejected';
-        withdrawal.adminNotes = notes;
-        await withdrawal.save();
+        if (withdrawal.status === 'rejected') {
+            throw new AppError('Withdrawal already rejected', 400);
+        }
 
-        logger.info('Withdrawal rejected', { withdrawalId, notes });
+        if (withdrawal.status === 'approved') {
+            throw new AppError('Cannot reject an approved withdrawal. Use undo instead.', 400);
+        }
+
+        const user = await User.findByPk(withdrawal.user);
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        await sequelize.transaction(async (t) => {
+            // Refund the deducted amount back to user's wallet
+            const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
+                withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+
+            user[walletField] = parseFloat(user[walletField]) + parseFloat(withdrawal.amount);
+            await user.save({ transaction: t });
+
+            // Update withdrawal status
+            withdrawal.status = 'rejected';
+            withdrawal.adminNotes = notes;
+            await withdrawal.save({ transaction: t });
+        });
+
+        logger.info('Withdrawal rejected and amount refunded', { withdrawalId, notes, amount: withdrawal.amount, userId: user.id });
         return withdrawal;
     }
 
@@ -288,6 +303,9 @@ class TransactionService {
 
     /**
      * Undo a withdrawal (revert approved/rejected to pending)
+     * Note: With new logic, amount is deducted on creation, so:
+     * - If approved: amount is still deducted (no change on approval), so refund it
+     * - If rejected: amount was already refunded on rejection, so deduct it again
      */
     async undoWithdrawal(withdrawalId) {
         const withdrawal = await Withdrawal.findByPk(withdrawalId);
@@ -298,11 +316,21 @@ class TransactionService {
         if (!user) throw new AppError('User not found', 404);
 
         await sequelize.transaction(async (t) => {
+            const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
+                withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+
             if (withdrawal.status === 'approved') {
-                // Reverse balance deduction
-                const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
-                    withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+                // Amount was deducted on creation and never refunded
+                // Refund it to restore to pending state (where amount should be deducted)
                 user[walletField] = parseFloat(user[walletField]) + parseFloat(withdrawal.amount);
+                await user.save({ transaction: t });
+            } else if (withdrawal.status === 'rejected') {
+                // Amount was refunded on rejection
+                // Deduct it again to restore to pending state (where amount should be deducted)
+                if (parseFloat(user[walletField]) < parseFloat(withdrawal.amount)) {
+                    throw new AppError('Insufficient balance to undo rejection', 400);
+                }
+                user[walletField] = parseFloat(user[walletField]) - parseFloat(withdrawal.amount);
                 await user.save({ transaction: t });
             }
 

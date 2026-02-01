@@ -1,4 +1,4 @@
-const { Withdrawal, User } = require('../models');
+const { Withdrawal, User, sequelize } = require('../models');
 const transactionService = require('../services/transactionService');
 const { isValidWithdrawalAmount } = require('../utils/validators');
 const { asyncHandler, AppError } = require('../middlewares/errorHandler');
@@ -27,12 +27,16 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     }
 
     // Check if user already made a withdrawal request in the last 7 days
+    // Only count pending or approved withdrawals (rejected ones don't count)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const recentWithdrawal = await Withdrawal.findOne({
         where: {
             user: req.user.id,
+            status: {
+                [Op.in]: ['pending', 'approved']
+            },
             createdAt: {
                 [Op.gte]: sevenDaysAgo
             }
@@ -78,16 +82,28 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
         throw new AppError('Insufficient wallet balance', 400);
     }
 
-    // Create withdrawal (tax calculation is done in model pre-save hook)
-    const withdrawal = await Withdrawal.create({
-        user: req.user.id,
-        amount,
-        walletType
+    // Use transaction to ensure atomicity
+    const withdrawal = await sequelize.transaction(async (t) => {
+        // Deduct amount from user's wallet immediately
+        const walletField = walletType === 'income' ? 'incomeWallet' :
+            walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+
+        user[walletField] = parseFloat(user[walletField]) - parseFloat(amount);
+        await user.save({ transaction: t });
+
+        // Create withdrawal (tax calculation is done in model pre-save hook)
+        const newWithdrawal = await Withdrawal.create({
+            user: req.user.id,
+            amount,
+            walletType
+        }, { transaction: t });
+
+        return newWithdrawal;
     });
 
     res.status(201).json({
         success: true,
-        message: 'Withdrawal request created. Awaiting admin approval.',
+        message: 'Withdrawal request created. Amount deducted from wallet. Awaiting admin approval.',
         withdrawal,
         note: `10% tax will be deducted. You will receive ${withdrawal.netAmount} ETB`
     });
@@ -154,7 +170,7 @@ exports.approveWithdrawal = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         success: true,
-        message: 'Withdrawal approved and amount deducted from user wallet',
+        message: 'Withdrawal approved',
         withdrawal
     });
 });

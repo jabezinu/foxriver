@@ -74,20 +74,26 @@ export default function Withdraw() {
         }
 
         // Check for weekly withdrawal limit (new requirement)
+        // Only count pending or approved withdrawals (rejected ones don't count)
         if (history && history.length > 0) {
-            const latestWithdrawal = history[0];
-            const lastWithdrawalDate = new Date(latestWithdrawal.createdAt);
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            // Filter out rejected withdrawals
+            const activeWithdrawals = history.filter(w => w.status === 'pending' || w.status === 'approved');
+            
+            if (activeWithdrawals.length > 0) {
+                const latestWithdrawal = activeWithdrawals[0];
+                const lastWithdrawalDate = new Date(latestWithdrawal.createdAt);
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-            if (lastWithdrawalDate > sevenDaysAgo) {
-                const nextPossibleDate = new Date(lastWithdrawalDate);
-                nextPossibleDate.setDate(nextPossibleDate.getDate() + 7);
-                
-                return {
-                    isRestricted: true,
-                    message: `Next withdrawal available after ${nextPossibleDate.toLocaleDateString()} ${nextPossibleDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                };
+                if (lastWithdrawalDate > sevenDaysAgo) {
+                    const nextPossibleDate = new Date(lastWithdrawalDate);
+                    nextPossibleDate.setDate(nextPossibleDate.getDate() + 7);
+                    
+                    return {
+                        isRestricted: true,
+                        message: `Next withdrawal available after ${nextPossibleDate.toLocaleDateString()} ${nextPossibleDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    };
+                }
             }
         }
 
