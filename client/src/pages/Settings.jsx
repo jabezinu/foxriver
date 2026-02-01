@@ -172,7 +172,7 @@ export default function Settings() {
             color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
         },
         {
-            label: 'Login Password',
+            label: 'Change Password',
             icon: Lock,
             desc: 'Secure your account access',
             action: () => setModalType('loginPass'),
