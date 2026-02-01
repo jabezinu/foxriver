@@ -3,12 +3,20 @@ const {
     Deposit,
     Withdrawal,
     Task,
-    Message,
+    ChatMessage,
     SystemSetting,
     Commission,
     TaskCompletion,
     Membership,
     Salary,
+    RankUpgradeRequest,
+    WealthInvestment,
+    SpinResult,
+    DailyVideoAssignment,
+    Chat,
+    Playlist,
+    News,
+    QnA,
     sequelize
 } = require('../models');
 const adminService = require('../services/adminService');
@@ -235,6 +243,11 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 
     // Run deletions in transaction
     await sequelize.transaction(async (t) => {
+        // 1. Delete dependent children records that depend on other child records first
+        // RankUpgradeRequest depends on Deposit, so delete it first
+        await RankUpgradeRequest.destroy({ where: { user: userId }, transaction: t });
+
+        // 2. Delete other independent child records
         await Promise.all([
             Deposit.destroy({ where: { user: userId }, transaction: t }),
             Withdrawal.destroy({ where: { user: userId }, transaction: t }),
@@ -243,9 +256,31 @@ exports.deleteUser = asyncHandler(async (req, res) => {
                 transaction: t
             }),
             TaskCompletion.destroy({ where: { user: userId }, transaction: t }),
-            Message.destroy({ where: { sender: userId }, transaction: t }),
+            Salary.destroy({ where: { user: userId }, transaction: t }),
+            WealthInvestment.destroy({ where: { user: userId }, transaction: t }),
+            SpinResult.destroy({ where: { user: userId }, transaction: t }),
+            DailyVideoAssignment.destroy({ where: { user: userId }, transaction: t })
+        ]);
+
+        // 2. Handle Chat: Delete messages and the chat session
+        const chat = await Chat.findOne({ where: { user: userId }, transaction: t });
+        if (chat) {
+            await ChatMessage.destroy({ where: { chat: chat.id }, transaction: t });
+            await chat.destroy({ transaction: t });
+        }
+        // Also delete any messages sent by this user in other contexts (if any)
+        await ChatMessage.destroy({ where: { sender: userId }, transaction: t });
+
+        // 3. Nullify references for content that should persist (Content Ownership)
+        await Promise.all([
+            Task.update({ uploadedBy: null }, { where: { uploadedBy: userId }, transaction: t }),
+            Playlist.update({ addedBy: null }, { where: { addedBy: userId }, transaction: t }),
+            News.update({ createdBy: null }, { where: { createdBy: userId }, transaction: t }),
+            QnA.update({ uploadedBy: null }, { where: { uploadedBy: userId }, transaction: t }),
             User.update({ referrerId: null }, { where: { referrerId: userId }, transaction: t })
         ]);
+
+        // 4. Finally delete the user
         await user.destroy({ transaction: t });
     });
 

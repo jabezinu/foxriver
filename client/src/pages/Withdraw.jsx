@@ -163,7 +163,8 @@ export default function Withdraw() {
                 transactionPassword
             });
             toast.success('Withdrawal request submitted!');
-            navigate('/');
+            // Force reload the webpage after successful withdrawal
+            window.location.href = '/';
         } catch (error) {
             toast.error(error.response?.data?.message || 'Withdrawal failed');
         } finally {
