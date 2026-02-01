@@ -368,6 +368,14 @@ export default function Task() {
                                         attributes: {
                                             style: { objectFit: 'contain', width: '100%', height: '100%' }
                                         }
+                                    },
+                                    youtube: {
+                                        playerVars: {
+                                            origin: window.location.origin,
+                                            rel: 0,
+                                            showinfo: 0,
+                                            modestbranding: 1
+                                        }
                                     }
                                 }}
                             />

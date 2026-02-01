@@ -166,7 +166,7 @@ class TaskService {
         const todayEarnings = await TaskCompletion.findOne({
             where: {
                 user: user.id,
-                completionDate: { [Op.gte]: today }
+                createdAt: { [Op.gte]: today }
             },
             attributes: [[sequelize.fn('SUM', sequelize.col('earningsAmount')), 'total']],
             raw: true

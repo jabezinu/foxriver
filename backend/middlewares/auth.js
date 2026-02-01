@@ -29,8 +29,8 @@ exports.protect = async (req, res, next) => {
             });
         }
 
-        // Convert to plain object for easier access
-        req.user = req.user.toJSON();
+        // Keep as Sequelize instance to allow method usage
+        // req.user = req.user.toJSON();
 
         next();
     } catch (error) {
@@ -128,8 +128,8 @@ exports.optionalProtect = async (req, res, next) => {
         });
 
         if (req.user) {
-            // Convert to plain object for easier access
-            req.user = req.user.toJSON();
+            // Keep as Sequelize instance to allow method usage
+            // req.user = req.user.toJSON();
         }
     } catch (error) {
         // Ignore token errors and continue without user
