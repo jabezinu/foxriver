@@ -6,8 +6,7 @@ import { toast } from 'react-hot-toast';
 import { formatNumber } from '../utils/formatNumber';
 import {
     Download, Upload, LayoutGrid, Zap,
-    Briefcase,
-    HelpCircle, Share2, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy, RotateCw
+    HelpCircle, Settings, Bell, Newspaper, GraduationCap, Gamepad2, Sparkles, Trophy, RotateCw
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loading from '../components/Loading';
@@ -119,8 +118,6 @@ export default function Home() {
     // However, with the new store, we might want to just show the skeleton or cached data immediately.
     // Let's keep a simple effective loading state for the very first fetch if wallet is empty.
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    const [showInvitation, setShowInvitation] = useState(false);
-    const [referralLink, setReferralLink] = useState('');
     const [isSyncing, setIsSyncing] = useState(false);
     const [bankChangeInfo, setBankChangeInfo] = useState(null);
 
@@ -156,11 +153,6 @@ export default function Home() {
         }
     };
 
-    const handleCopyLink = () => {
-        navigator.clipboard.writeText(referralLink);
-        toast.success(t('home.linkCopied'));
-    };
-
     const menuItems = [
         { icon: Download, label: t('home.deposit'), color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20', path: '/deposit' },
         { icon: Upload, label: t('home.withdraw'), color: 'bg-blue-500/10 text-blue-400 border border-blue-500/20', path: '/withdraw' },
@@ -170,21 +162,7 @@ export default function Home() {
         { icon: GraduationCap, label: t('home.courses'), color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
         { icon: Newspaper, label: t('home.news'), color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
         { icon: HelpCircle, label: t('home.qna'), color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
-        {
-            icon: Share2,
-            label: t('home.inviteFriends'),
-            color: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-            description: t('home.inviteFriendsDesc'),
-            action: async () => {
-                try {
-                    const res = await userAPI.getReferralLink();
-                    setReferralLink(res.data.referralLink);
-                    setShowInvitation(true);
-                } catch (error) {
-                    toast.error('Failed to get link');
-                }
-            }
-        },
+
     ];
 
     if (isInitialLoad && wallet.incomeWallet === 0 && wallet.personalWallet === 0 && wallet.tasksWallet === 0) return <Loading />;
@@ -270,16 +248,9 @@ export default function Home() {
                 </div>
 
                 {/* Remaining items */}
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-3 gap-3">
                     {menuItems.slice(4, 8).map((item, index) => (
                         <MenuItem key={index + 4} item={item} navigate={navigate} />
-                    ))}
-                </div>
-
-                {/* Featured Large Card - Invite Friends */}
-                <div className="grid grid-cols-1">
-                    {menuItems.slice(8, 9).map((item, index) => (
-                        <MenuItem key={index + 8} item={item} navigate={navigate} isLarge={true} />
                     ))}
                 </div>
             </div>
@@ -304,28 +275,6 @@ export default function Home() {
                     </div>
                 </Card>
             </div>
-
-            {/* Modals */}
-            <Modal
-                isOpen={showInvitation}
-                onClose={() => setShowInvitation(false)}
-                title={t('home.inviteTitle')}
-            >
-                <div className="text-center pt-2">
-                    <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500 border border-rose-500/20">
-                        <Share2 size={32} />
-                    </div>
-                    <p className="text-zinc-400 mb-6 text-sm">
-                        {t('home.inviteDesc')}
-                    </p>
-                    <div className="bg-white/30 p-4 rounded-xl break-all mb-6 text-xs font-mono text-primary-500 border border-zinc-800 selection:bg-primary-500 selection:text-white">
-                        {referralLink}
-                    </div>
-                    <Button onClick={handleCopyLink} fullWidth>
-                        {t('home.copyLink')}
-                    </Button>
-                </div>
-            </Modal>
 
             {/* Bank Change Confirmation Modal */}
             <BankChangeConfirmation
