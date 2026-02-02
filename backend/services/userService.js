@@ -32,7 +32,7 @@ class UserService {
      * Update user wallet balance
      */
     async updateWallet(userId, type, amount) {
-        const field = type === 'income' ? 'incomeWallet' : type === 'personal' ? 'personalWallet' : 'tasksWallet';
+        const field = type === 'income' ? 'incomeWallet' : 'personalWallet';
         const user = await User.findByPk(userId);
 
         if (!user) {
@@ -43,7 +43,7 @@ class UserService {
         await user.save();
 
         logger.info('Wallet updated', { userId, type, amount, newBalance: user[field] });
-        return { incomeWallet: user.incomeWallet, personalWallet: user.personalWallet, tasksWallet: user.tasksWallet };
+        return { incomeWallet: user.incomeWallet, personalWallet: user.personalWallet };
     }
 
     /**

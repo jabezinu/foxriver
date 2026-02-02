@@ -28,7 +28,6 @@ async function createAdminUser() {
             membershipLevel: 'Rank 10',
             incomeWallet: 0,
             personalWallet: 0,
-            tasksWallet: 0,
             invitationCode: 'ADMIN001'
         });
 

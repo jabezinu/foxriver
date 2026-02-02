@@ -38,10 +38,11 @@ exports.registerValidation = [
         .isLength({ min: 2, max: 100 })
         .withMessage('Account name must be between 2 and 100 characters'),
     body('bank')
+        .trim()
         .notEmpty()
-        .withMessage('Bank selection is required')
-        .isIn(['CBE', 'Awash', 'BOA'])
-        .withMessage('Invalid bank selection. Must be CBE, Awash, or BOA'),
+        .withMessage('Bank name is required')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Bank name must be between 2 and 100 characters'),
     body('accountNumber')
         .trim()
         .notEmpty()
@@ -99,8 +100,11 @@ exports.bankAccountValidation = [
         .isLength({ min: 2, max: 100 })
         .withMessage('Account name must be between 2 and 100 characters'),
     body('bank')
-        .isIn(['CBE', 'Awash', 'BOA'])
-        .withMessage('Invalid bank selection'),
+        .trim()
+        .notEmpty()
+        .withMessage('Bank name is required')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Bank name must be between 2 and 100 characters'),
     body('accountNumber')
         .trim()
         .notEmpty()

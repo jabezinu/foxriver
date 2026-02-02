@@ -140,9 +140,7 @@ export default function Withdraw() {
 
 
         // Get the correct wallet balance based on wallet type
-        const walletBalance = walletType === 'income' ? wallets.incomeWallet :
-                             walletType === 'personal' ? wallets.personalWallet :
-                             wallets.tasksWallet;
+        const walletBalance = walletType === 'income' ? wallets.incomeWallet : wallets.personalWallet;
 
         if (walletBalance < selectedAmount) {
             toast.error('Insufficient balance in selected wallet');
@@ -186,18 +184,14 @@ export default function Withdraw() {
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* Wallet Balances Summary */}
                 <div className="bg-zinc-900 rounded-2xl p-5 shadow-sm mb-6 border border-zinc-800">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="text-center">
                             <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Income</p>
                             <p className="text-lg font-bold text-white">{formatNumber(wallets.incomeWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
-                        <div className="text-center border-l border-r border-zinc-800">
+                        <div className="text-center border-l border-zinc-800">
                             <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Personal</p>
                             <p className="text-lg font-bold text-white">{formatNumber(wallets.personalWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Tasks</p>
-                            <p className="text-lg font-bold text-white">{formatNumber(wallets.tasksWallet)} <span className="text-xs text-zinc-500 font-medium">ETB</span></p>
                         </div>
                     </div>
                 </div>
@@ -205,7 +199,7 @@ export default function Withdraw() {
                 {/* Wallet Selector */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold text-zinc-400 mb-3 ml-1 uppercase tracking-wider text-[10px]">Withdraw From</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <button
                             onClick={() => setWalletType('income')}
                             className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'income'
@@ -225,16 +219,6 @@ export default function Withdraw() {
                         >
                             <Wallet size={20} strokeWidth={walletType === 'personal' ? 2 : 1.5} />
                             <span className="text-xs font-bold uppercase">Personal</span>
-                        </button>
-                        <button
-                            onClick={() => setWalletType('tasks')}
-                            className={`p-3 rounded-xl border transition-all flex flex-col items-center gap-2 ${walletType === 'tasks'
-                                ? 'border-primary-500 bg-primary-500/10 text-primary-500 shadow-glow'
-                                : 'border-zinc-800 bg-zinc-900 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
-                                }`}
-                        >
-                            <Wallet size={20} strokeWidth={walletType === 'tasks' ? 2 : 1.5} />
-                            <span className="text-xs font-bold uppercase">Tasks</span>
                         </button>
                     </div>
                 </div>

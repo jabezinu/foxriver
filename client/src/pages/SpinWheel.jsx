@@ -10,7 +10,6 @@ const SpinWheel = () => {
     const [spinning, setSpinning] = useState(false);
     const [personalBalance, setPersonalBalance] = useState(0);
     const [incomeBalance, setIncomeBalance] = useState(0);
-    const [tasksBalance, setTasksBalance] = useState(0);
     const [history, setHistory] = useState([]);
     const [stats, setStats] = useState(null);
     const [showResult, setShowResult] = useState(false);
@@ -66,7 +65,6 @@ const SpinWheel = () => {
             const response = await spinAPI.getBalance();
             setPersonalBalance(response.data.wallet.personalWallet);
             setIncomeBalance(response.data.wallet.incomeWallet);
-            setTasksBalance(response.data.wallet.tasksWallet);
         } catch (error) {
             console.error('Error fetching balance:', error);
         }
@@ -87,7 +85,7 @@ const SpinWheel = () => {
     };
 
     const handleTierSelect = (tier) => {
-        if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount && tasksBalance < tier.betAmount) {
+        if (personalBalance < tier.betAmount && incomeBalance < tier.betAmount) {
             toast.error(`Insufficient balance! You need ${tier.betAmount} ETB to play this tier.`);
             return;
         }
@@ -98,8 +96,7 @@ const SpinWheel = () => {
     };
 
     const handleWalletSelect = (wallet) => {
-        const balance = wallet === 'personal' ? personalBalance :
-            wallet === 'income' ? incomeBalance : tasksBalance;
+        const balance = wallet === 'personal' ? personalBalance : incomeBalance;
 
         if (balance < selectedTier.betAmount) {
             toast.error(`Insufficient ${wallet} balance! You need ${selectedTier.betAmount} ETB to play.`);
@@ -200,7 +197,7 @@ const SpinWheel = () => {
 
             <div className="px-5 py-6 space-y-6">
                 {/* Balance Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-4">
                         <p className="text-xs text-emerald-400 mb-1 font-semibold">Personal Balance</p>
                         <p className="text-2xl font-bold text-white">{personalBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
@@ -208,10 +205,6 @@ const SpinWheel = () => {
                     <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-2xl p-4">
                         <p className="text-xs text-blue-400 mb-1 font-semibold">Income Balance</p>
                         <p className="text-2xl font-bold text-white">{incomeBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-2xl p-4">
-                        <p className="text-xs text-purple-400 mb-1 font-semibold">Tasks Balance</p>
-                        <p className="text-2xl font-bold text-white">{tasksBalance.toFixed(2)} <span className="text-sm text-zinc-400">ETB</span></p>
                     </div>
                 </div>
 
@@ -451,25 +444,6 @@ const SpinWheel = () => {
                                 </div>
                             </button>
 
-                            <button
-                                onClick={() => handleWalletSelect('tasks')}
-                                disabled={!selectedTier || tasksBalance < selectedTier.betAmount}
-                                className={`w-full p-5 rounded-2xl transition-all transform active:scale-95 border-2 ${!selectedTier || tasksBalance < selectedTier.betAmount
-                                    ? 'bg-zinc-800/50 border-zinc-700 cursor-not-allowed opacity-50'
-                                    : 'bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20'
-                                    }`}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="text-left">
-                                        <p className="text-white font-bold">Tasks Balance</p>
-                                        <p className="text-purple-400 text-xs mt-0.5">Use tasks wallet</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-white font-bold text-xl">{tasksBalance.toFixed(2)}</p>
-                                        <p className="text-zinc-400 text-xs">ETB</p>
-                                    </div>
-                                </div>
-                            </button>
                         </div>
 
                         <button

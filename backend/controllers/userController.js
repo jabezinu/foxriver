@@ -161,8 +161,7 @@ exports.getWalletBalance = asyncHandler(async (req, res) => {
         wallet: {
             incomeWallet: parseFloat(user.incomeWallet),
             personalWallet: parseFloat(user.personalWallet),
-            tasksWallet: parseFloat(user.tasksWallet),
-            total: parseFloat(user.incomeWallet) + parseFloat(user.personalWallet) + parseFloat(user.tasksWallet)
+            total: parseFloat(user.incomeWallet) + parseFloat(user.personalWallet)
         }
     });
 });

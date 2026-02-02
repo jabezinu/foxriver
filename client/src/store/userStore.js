@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { userAPI, taskAPI } from '../services/api';
 
 export const useUserStore = create((set, get) => ({
-    wallet: { incomeWallet: 0, personalWallet: 0, tasksWallet: 0 },
+    wallet: { incomeWallet: 0, personalWallet: 0 },
     profile: null,
     lastWalletFetch: 0,
     lastProfileFetch: 0,
@@ -142,7 +142,7 @@ export const useUserStore = create((set, get) => ({
     // Reset store (useful for logout)
     reset: () => {
         set({
-            wallet: { incomeWallet: 0, personalWallet: 0, tasksWallet: 0 },
+            wallet: { incomeWallet: 0, personalWallet: 0 },
             profile: null,
             tasks: [],
             dailyStats: { dailyIncome: 0, perVideoIncome: 0 },

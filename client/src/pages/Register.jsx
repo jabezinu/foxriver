@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
-import { Phone, Lock, Eye, EyeOff } from 'lucide-react';
+import { Phone, Lock, Eye, EyeOff, User, Building2, CreditCard } from 'lucide-react';
 import CanvasCaptcha from '../components/CanvasCaptcha';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -23,6 +23,10 @@ export default function Register() {
         password: '',
         confirmPassword: '',
         invitationCode: searchParams.get('ref') || '',
+        accountName: '',
+        bank: '',
+        accountNumber: '',
+        accountPhone: '+251',
         captcha: '',
     });
 
@@ -41,13 +45,20 @@ export default function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation
         // Normalize phone number
         let phone = formData.phone.trim();
         if (phone.startsWith('0')) {
             phone = '+251' + phone.substring(1);
         } else if (phone.startsWith('9')) {
             phone = '+251' + phone;
+        }
+
+        // Normalize account phone number
+        let accountPhone = formData.accountPhone.trim();
+        if (accountPhone.startsWith('0')) {
+            accountPhone = '+251' + accountPhone.substring(1);
+        } else if (accountPhone.startsWith('9')) {
+            accountPhone = '+251' + accountPhone;
         }
 
         // Validation
@@ -69,6 +80,31 @@ export default function Register() {
             return;
         }
 
+        // Validate bank account fields
+        if (!formData.accountName.trim()) {
+            toast.error('Account holder name is required');
+            captchaRef.current?.refreshCaptcha();
+            return;
+        }
+
+        if (!formData.bank.trim()) {
+            toast.error('Bank name is required');
+            captchaRef.current?.refreshCaptcha();
+            return;
+        }
+
+        if (!formData.accountNumber.trim()) {
+            toast.error('Account number is required');
+            captchaRef.current?.refreshCaptcha();
+            return;
+        }
+
+        if (!accountPhone.startsWith('+251') || accountPhone.length !== 13) {
+            toast.error('Please enter a valid Ethiopian phone number for bank account');
+            captchaRef.current?.refreshCaptcha();
+            return;
+        }
+
         if (formData.captcha.toUpperCase() !== realCaptchaValue) {
             toast.error('Incorrect CAPTCHA');
             setFormData(prev => ({ ...prev, captcha: '' }));
@@ -80,6 +116,10 @@ export default function Register() {
             phone: phone,
             password: formData.password,
             invitationCode: formData.invitationCode || undefined,
+            accountName: formData.accountName.trim(),
+            bank: formData.bank,
+            accountNumber: formData.accountNumber.trim(),
+            accountPhone: accountPhone,
         });
 
         if (result.success) {
@@ -163,6 +203,88 @@ export default function Register() {
                             />
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
                                 <Lock size={18} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bank Account Information Section */}
+                    <div className="pt-4 border-t border-zinc-800/50">
+                        <h3 className="text-sm font-semibold text-zinc-300 mb-4 flex items-center gap-2">
+                            <Building2 size={18} className="text-primary-500" />
+                            Bank Account Information
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-zinc-300 ml-1">Account Holder Name</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="accountName"
+                                        value={formData.accountName}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 pl-11 placeholder-zinc-600"
+                                        placeholder="Full name as on account"
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                                        <User size={18} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-zinc-300 ml-1">Bank Name</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="bank"
+                                        value={formData.bank}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 pl-11 placeholder-zinc-600"
+                                        placeholder="Enter your bank name"
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                                        <Building2 size={18} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-zinc-300 ml-1">Account Number</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        name="accountNumber"
+                                        value={formData.accountNumber}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 pl-11 placeholder-zinc-600"
+                                        placeholder="Enter account number"
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                                        <CreditCard size={18} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="block text-sm font-medium text-zinc-300 ml-1">Account Phone Number</label>
+                                <div className="relative">
+                                    <input
+                                        type="tel"
+                                        name="accountPhone"
+                                        value={formData.accountPhone}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-950 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all duration-300 pl-11 placeholder-zinc-600"
+                                        placeholder="+251912345678"
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                                        <Phone size={18} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

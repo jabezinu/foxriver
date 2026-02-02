@@ -206,11 +206,6 @@ export default function MyInvestments() {
                                                 Personal: ETB {investment.fundingSource.personalWallet.toFixed(2)}
                                             </span>
                                         )}
-                                        {investment.fundingSource.tasksWallet > 0 && (
-                                            <span className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded">
-                                                Tasks: ETB {investment.fundingSource.tasksWallet.toFixed(2)}
-                                            </span>
-                                        )}
                                     </div>
                                 </div>
                             </Card>

@@ -29,7 +29,7 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                             ))}
                         </select>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Income Wallet</label>
                             <input
@@ -48,16 +48,6 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                                 className="admin-input font-bold text-blue-600"
                                 value={form.personalWallet}
                                 onChange={e => onChange({ ...form, personalWallet: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Task Wallet</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                className="admin-input font-bold text-orange-600"
-                                value={form.tasksWallet}
-                                onChange={e => onChange({ ...form, tasksWallet: e.target.value })}
                             />
                         </div>
                     </div>

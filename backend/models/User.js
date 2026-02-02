@@ -87,10 +87,6 @@ User.init({
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0
     },
-    tasksWallet: {
-        type: DataTypes.DECIMAL(15, 2),
-        defaultValue: 0
-    },
     bankAccount: {
         type: DataTypes.JSON,
         defaultValue: null,

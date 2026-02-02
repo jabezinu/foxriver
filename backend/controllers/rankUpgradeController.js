@@ -93,8 +93,7 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
             rankUpgradeRequest,
             newWalletBalances: {
                 personalWallet: parseFloat(user.personalWallet),
-                incomeWallet: parseFloat(user.incomeWallet),
-                tasksWallet: parseFloat(user.tasksWallet)
+                incomeWallet: parseFloat(user.incomeWallet)
             },
             previousRankRefund
         });

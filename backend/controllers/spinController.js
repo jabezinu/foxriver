@@ -9,8 +9,8 @@ exports.spinWheel = asyncHandler(async (req, res) => {
     const { walletType, tierId } = req.body;
 
     if (!tierId) throw new AppError('Tier ID is required', 400);
-    if (!walletType || !['personal', 'income', 'tasks'].includes(walletType)) {
-        throw new AppError('Valid wallet type required (personal, income, or tasks)', 400);
+    if (!walletType || !['personal', 'income'].includes(walletType)) {
+        throw new AppError('Valid wallet type required (personal or income)', 400);
     }
 
     const tier = await SlotTier.findByPk(tierId);
@@ -21,8 +21,7 @@ exports.spinWheel = asyncHandler(async (req, res) => {
     const winProbability = parseFloat(tier.winProbability) / 100;
 
     const user = await User.findByPk(req.user.id);
-    const walletField = walletType === 'income' ? 'incomeWallet' :
-        walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+    const walletField = walletType === 'income' || walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
     if (parseFloat(user[walletField]) < spinCost) {
         throw new AppError(`Insufficient ${walletType} balance. Need ${spinCost} ETB.`, 400);

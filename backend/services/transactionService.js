@@ -207,8 +207,7 @@ class TransactionService {
 
         await sequelize.transaction(async (t) => {
             // Refund the deducted amount back to user's wallet
-            const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
-                withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+            const walletField = withdrawal.walletType === 'income' || withdrawal.walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
             user[walletField] = parseFloat(user[walletField]) + parseFloat(withdrawal.amount);
             await user.save({ transaction: t });
@@ -316,8 +315,7 @@ class TransactionService {
         if (!user) throw new AppError('User not found', 404);
 
         await sequelize.transaction(async (t) => {
-            const walletField = withdrawal.walletType === 'income' ? 'incomeWallet' :
-                withdrawal.walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+            const walletField = withdrawal.walletType === 'income' || withdrawal.walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
             if (withdrawal.status === 'approved') {
                 // Amount was deducted on creation and never refunded

@@ -117,7 +117,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res) => {
-    const { membershipLevel, incomeWallet, personalWallet, tasksWallet, withdrawalRestrictedUntil, withdrawalRestrictedDays, approveBankChange, password } = req.body;
+    const { membershipLevel, incomeWallet, personalWallet, withdrawalRestrictedUntil, withdrawalRestrictedDays, approveBankChange, password } = req.body;
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
@@ -145,7 +145,6 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
     if (incomeWallet !== undefined) user.incomeWallet = Number(incomeWallet);
     if (personalWallet !== undefined) user.personalWallet = Number(personalWallet);
-    if (tasksWallet !== undefined) user.tasksWallet = Number(tasksWallet);
 
     if (withdrawalRestrictedUntil !== undefined) {
         user.withdrawalRestrictedUntil = withdrawalRestrictedUntil === '' ? null : withdrawalRestrictedUntil;

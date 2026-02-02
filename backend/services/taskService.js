@@ -134,14 +134,14 @@ class TaskService {
                 earningsAmount
             }, { transaction: t });
 
-            user.tasksWallet = parseFloat(user.tasksWallet) + earningsAmount;
+            user.incomeWallet = parseFloat(user.incomeWallet) + earningsAmount;
             await user.save({ transaction: t });
 
             // Referral commissions
             await calculateAndCreateCommissions(completion, earningsAmount, { transaction: t });
 
             logger.info('Task completed', { userId, taskId, earnings: earningsAmount });
-            return { completion, earningsAmount, newBalance: user.tasksWallet };
+            return { completion, earningsAmount, newBalance: user.incomeWallet };
         });
     }
 

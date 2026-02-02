@@ -22,8 +22,13 @@ exports.register = asyncHandler(async (req, res) => {
         throw new AppError('Please provide a valid Ethiopian phone number (+251XXXXXXXXX)', 400);
     }
 
-    // Validate bank account phone if provided
-    if (accountPhone && !isValidEthiopianPhone(accountPhone)) {
+    // Validate required bank account fields
+    if (!accountName || !bank || !accountNumber || !accountPhone) {
+        throw new AppError('All bank account information is required', 400);
+    }
+
+    // Validate bank account phone
+    if (!isValidEthiopianPhone(accountPhone)) {
         throw new AppError('Please provide a valid Ethiopian phone number for bank account', 400);
     }
 
@@ -31,6 +36,13 @@ exports.register = asyncHandler(async (req, res) => {
     const existingUser = await User.findOne({ where: { phone }, raw: true });
     if (existingUser) {
         throw new AppError('User already exists', 400);
+    }
+
+    // Check if bank account is already registered to another user
+    const userService = require('../services/userService');
+    const isDuplicate = await userService.isBankAccountDuplicate(accountNumber, bank, null);
+    if (isDuplicate) {
+        throw new AppError('This bank account is already registered to another user', 400);
     }
 
     let referrerId = null;
@@ -41,13 +53,20 @@ exports.register = asyncHandler(async (req, res) => {
         }
     }
 
-    // Create user
+    // Create user with bank account information
     const user = await User.create({
         phone,
         password,
         referrerId,
         membershipLevel: 'Intern',
-        invitationCode: generateInvitationCode()
+        invitationCode: generateInvitationCode(),
+        bankAccount: {
+            accountName,
+            bank,
+            accountNumber,
+            phone: accountPhone,
+            isSet: true
+        }
     });
 
     // Invalidate referrer's cache if they have one
@@ -120,8 +139,7 @@ exports.login = asyncHandler(async (req, res) => {
             membershipLevel: user.membershipLevel,
             invitationCode: user.invitationCode,
             incomeWallet: user.incomeWallet,
-            personalWallet: user.personalWallet,
-            tasksWallet: user.tasksWallet
+            personalWallet: user.personalWallet
         }
     });
 });

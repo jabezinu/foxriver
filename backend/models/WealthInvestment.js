@@ -36,8 +36,7 @@ WealthInvestment.init({
         type: DataTypes.JSON,
         defaultValue: {
             incomeWallet: 0,
-            personalWallet: 0,
-            tasksWallet: 0
+            personalWallet: 0
         }
     },
     dailyProfit: {

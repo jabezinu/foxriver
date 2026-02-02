@@ -21,8 +21,7 @@ export default function RankUpgrade() {
 
     const [walletBalances, setWalletBalances] = useState({
         personalWallet: 0,
-        incomeWallet: 0,
-        tasksWallet: 0
+        incomeWallet: 0
     });
 
     useEffect(() => {
@@ -99,8 +98,7 @@ export default function RankUpgrade() {
                     ...user,
                     membershipLevel: selectedTier.level,
                     personalWallet: res.data.newWalletBalances.personalWallet,
-                    incomeWallet: res.data.newWalletBalances.incomeWallet,
-                    tasksWallet: res.data.newWalletBalances.tasksWallet
+                    incomeWallet: res.data.newWalletBalances.incomeWallet
                 });
 
                 setWalletBalances(res.data.newWalletBalances);

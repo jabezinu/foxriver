@@ -58,7 +58,7 @@ export default function Wealth() {
             </div>
 
             {/* User Wallets */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-6">
                 <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border-yellow-500/20">
                     <p className="text-xs text-yellow-400 mb-1">Income Wallet</p>
                     <p className="text-xl font-bold text-yellow-400">ETB {parseFloat(user?.incomeWallet || 0).toFixed(2)}</p>
@@ -66,10 +66,6 @@ export default function Wealth() {
                 <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 border-orange-500/20">
                     <p className="text-xs text-orange-400 mb-1">Personal Wallet</p>
                     <p className="text-xl font-bold text-orange-400">ETB {parseFloat(user?.personalWallet || 0).toFixed(2)}</p>
-                </Card>
-                <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
-                    <p className="text-xs text-blue-400 mb-1">Tasks Wallet</p>
-                    <p className="text-xl font-bold text-blue-400">ETB {parseFloat(user?.tasksWallet || 0).toFixed(2)}</p>
                 </Card>
             </div>
 

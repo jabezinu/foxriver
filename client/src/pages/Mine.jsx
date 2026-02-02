@@ -295,7 +295,7 @@ export default function Mine() {
 
                 {/* Wallets */}
                 <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">My Assets</h3>
-                <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-2 gap-3 mb-6">
                     <Card className="p-3 border-zinc-800 hover:border-primary-500/30 transition-shadow bg-zinc-900">
                         <div className="flex items-start justify-between mb-2">
                             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
@@ -316,17 +316,6 @@ export default function Mine() {
                         </div>
                         <p className="text-lg font-bold text-blue-400">{formatNumber(wallet.personalWallet)}</p>
                         <p className="text-xs text-zinc-500 font-medium">Personal</p>
-                    </Card>
-
-                    <Card className="p-3 border-zinc-800 hover:border-purple-500/30 transition-shadow bg-zinc-900">
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 border border-purple-500/20">
-                                <TrendingUp size={18} />
-                            </div>
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Tasks</span>
-                        </div>
-                        <p className="text-lg font-bold text-purple-400">{formatNumber(wallet.tasksWallet)}</p>
-                        <p className="text-xs text-zinc-500 font-medium">Tasks</p>
                     </Card>
                 </div>
 

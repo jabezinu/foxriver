@@ -61,9 +61,7 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     }
 
     // Check if user has sufficient balance
-    const walletBalance = walletType === 'income' ? user.incomeWallet : 
-                         walletType === 'personal' ? user.personalWallet : 
-                         user.tasksWallet;
+    const walletBalance = walletType === 'income' || walletType === 'tasks' ? user.incomeWallet : user.personalWallet;
 
     if (walletBalance < amount) {
         throw new AppError('Insufficient wallet balance', 400);
@@ -72,8 +70,7 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
     // Use transaction to ensure atomicity
     const withdrawal = await sequelize.transaction(async (t) => {
         // Deduct amount from user's wallet immediately
-        const walletField = walletType === 'income' ? 'incomeWallet' :
-            walletType === 'personal' ? 'personalWallet' : 'tasksWallet';
+        const walletField = walletType === 'income' || walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
         user[walletField] = parseFloat(user[walletField]) - parseFloat(amount);
         await user.save({ transaction: t });
