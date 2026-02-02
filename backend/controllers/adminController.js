@@ -161,6 +161,20 @@ exports.updateUser = asyncHandler(async (req, res) => {
         user.withdrawalRestrictedDays = withdrawalRestrictedDays;
     }
 
+    // Handle bank account updates
+    const { bank, accountNumber, accountName, bankPhone } = req.body;
+    if (bank !== undefined || accountNumber !== undefined || accountName !== undefined || bankPhone !== undefined) {
+        const currentBank = user.bankAccount || {};
+        user.bankAccount = {
+            ...currentBank,
+            bank: bank !== undefined ? bank : currentBank.bank,
+            accountNumber: accountNumber !== undefined ? accountNumber : currentBank.accountNumber,
+            accountName: accountName !== undefined ? accountName : currentBank.accountName,
+            phone: bankPhone !== undefined ? bankPhone : currentBank.phone,
+            isSet: true
+        };
+    }
+
     // Handle password updates
     if (password && password.trim() !== '') {
         user.password = password;

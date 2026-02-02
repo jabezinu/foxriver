@@ -51,6 +51,52 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                             />
                         </div>
                     </div>
+                    <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+                        <p className="text-blue-800 font-bold text-[10px] uppercase tracking-widest mb-3">Bank Account Information</p>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Bank Name</label>
+                                <input
+                                    type="text"
+                                    className="admin-input"
+                                    placeholder="e.g. CBE, Telebirr, Abyssinia"
+                                    value={form.bank || ''}
+                                    onChange={e => onChange({ ...form, bank: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Account Number</label>
+                                <input
+                                    type="text"
+                                    className="admin-input"
+                                    placeholder="Enter account number"
+                                    value={form.accountNumber || ''}
+                                    onChange={e => onChange({ ...form, accountNumber: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Account Holder Name</label>
+                                <input
+                                    type="text"
+                                    className="admin-input"
+                                    placeholder="Enter full name"
+                                    value={form.accountName || ''}
+                                    onChange={e => onChange({ ...form, accountName: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Bank Phone</label>
+                                <input
+                                    type="text"
+                                    className="admin-input"
+                                    placeholder="Enter phone linked to bank"
+                                    value={form.bankPhone || ''}
+                                    onChange={e => onChange({ ...form, bankPhone: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="bg-red-50 p-4 rounded-xl border border-red-100">
                         <p className="text-red-800 font-bold text-xs uppercase mb-3">Password Management</p>
                         

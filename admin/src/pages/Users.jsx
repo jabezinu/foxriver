@@ -87,6 +87,10 @@ export default function UserManagement() {
             personalWallet: user.personalWallet,
             withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : '',
             withdrawalRestrictedDays: user.withdrawalRestrictedDays || [],
+            bank: user.bankAccount?.bank || '',
+            accountNumber: user.bankAccount?.accountNumber || '',
+            accountName: user.bankAccount?.accountName || '',
+            bankPhone: user.bankAccount?.phone || '',
             password: ''
         });
     };
