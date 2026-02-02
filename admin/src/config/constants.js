@@ -25,7 +25,6 @@ export const API_ENDPOINTS = {
     TASKS: '/tasks',
     NEWS: '/news',
     CHAT: '/chat',
-    QNA: '/qna',
     BANK: '/bank',
     MEMBERSHIPS: '/memberships',
     WEALTH: '/wealth',

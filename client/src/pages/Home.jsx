@@ -51,28 +51,35 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
 const DashboardCard = ({ icon: Icon, label, color, gradient, onClick }) => (
     <div
         onClick={onClick}
-        className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border-2 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 active:scale-95 cursor-pointer aspect-square overflow-hidden"
+        className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border border-zinc-800/50 shadow-2xl hover:border-white/10 hover:-translate-y-1.5 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
         style={{
-            background: gradient || 'linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.95) 100%)',
-            borderColor: color.split(' ')[1].replace('text-', '').replace('400', '500/40')
+            background: gradient || 'linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.95) 100%)'
         }}
     >
-        {/* Glow effect */}
-        <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 ${color.split(' ')[0]}`}></div>
+        {/* Color-specific glow effect */}
+        <div className={`absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${color.split(' ')[0]}`}></div>
         
-        {/* Icon with enhanced styling */}
-        <div className={`relative p-3 rounded-xl mb-2 transition-all duration-300 group-hover:scale-125 group-hover:rotate-6 ${color}`}>
-            <Icon size={24} strokeWidth={2.5} />
+        {/* Subtle inner shadow match */}
+        <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)] pointer-events-none"></div>
+        
+        {/* Icon with enhanced styling and brighter background */}
+        <div className={`relative p-3.5 rounded-2xl mb-2 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${color.replace('300', '200')} backdrop-blur-md shadow-lg`}
+            style={{
+                backgroundColor: `${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.4').replace('400', '0.4')}`,
+                border: `1px solid ${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.5').replace('400', '0.5')}`
+            }}
+        >
+            <Icon size={24} strokeWidth={2.5} className="drop-shadow-md" />
         </div>
         
-        {/* Label */}
-        <span className="relative font-bold text-white leading-tight text-xs text-center drop-shadow-sm">
+        {/* Label with better visibility */}
+        <span className="relative font-black text-white leading-tight text-[11px] text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase tracking-tight">
             {label}
         </span>
         
-        {/* Shine effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+        {/* Stronger shine effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
         </div>
     </div>
 );
@@ -231,7 +238,6 @@ export default function Home() {
         { icon: Zap, label: t('home.wealth'), color: 'bg-violet-500/10 text-violet-400 border border-violet-500/20', path: '/wealth' },
         { icon: GraduationCap, label: t('home.courses'), color: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', path: '/courses' },
         { icon: Newspaper, label: t('home.news'), color: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', path: '/news' },
-        { icon: HelpCircle, label: t('home.qna'), color: 'bg-teal-500/10 text-teal-400 border border-teal-500/20', path: '/qna' },
 
     ];
 
@@ -280,11 +286,9 @@ export default function Home() {
                         {/* Featured Tasks Card - Extra Eye-Catching */}
                         <div
                             onClick={() => navigate('/task')}
-                            className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border-2 shadow-2xl hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:-translate-y-2 transition-all duration-300 active:scale-95 cursor-pointer aspect-square overflow-hidden animate-pulse-slow"
+                            className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border border-cyan-500/30 shadow-2xl hover:border-cyan-400/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden animate-pulse-slow"
                             style={{
-                                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.25) 100%)',
-                                borderColor: 'rgba(6, 182, 212, 0.6)',
-                                boxShadow: '0 0 20px rgba(6, 182, 212, 0.4), inset 0 0 20px rgba(6, 182, 212, 0.1)'
+                                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(8, 145, 178, 0.3) 100%)'
                             }}
                         >
                             {/* Animated ring effect */}
@@ -298,8 +302,8 @@ export default function Home() {
                             <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse delay-150"></div>
                             
                             {/* Icon with enhanced styling */}
-                            <div className="relative p-3 rounded-xl mb-2 transition-all duration-300 group-hover:scale-150 group-hover:rotate-12 bg-cyan-500/30 text-cyan-300 border-2 border-cyan-400/50">
-                                <Zap size={24} strokeWidth={3} className="drop-shadow-[0_0_8px_rgba(6,182,212,1)]" />
+                            <div className="relative p-3 rounded-xl mb-2 transition-all duration-300 group-hover:scale-150 group-hover:rotate-12 bg-cyan-500/40 text-cyan-200 border-2 border-cyan-400/70">
+                                <Zap size={24} strokeWidth={3} className="drop-shadow-[0_0_12px_rgba(6,182,212,1)]" />
                             </div>
                             
                             {/* Label with glow */}
@@ -319,22 +323,22 @@ export default function Home() {
                         <DashboardCard
                             icon={Download}
                             label="Deposit"
-                            color="bg-emerald-500/20 text-emerald-400"
-                            gradient="linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%)"
+                            color="bg-emerald-500/30 text-emerald-300"
+                            gradient="linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.25) 100%)"
                             onClick={() => navigate('/deposit')}
                         />
                         <DashboardCard
                             icon={LayoutGrid}
                             label="Upgrade"
-                            color="bg-purple-500/20 text-purple-400"
-                            gradient="linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(126, 34, 206, 0.15) 100%)"
+                            color="bg-purple-500/30 text-purple-300"
+                            gradient="linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(126, 34, 206, 0.25) 100%)"
                             onClick={() => navigate('/rank-upgrade')}
                         />
                         <DashboardCard
                             icon={UserPlus}
                             label="Invite"
-                            color="bg-rose-500/20 text-rose-400"
-                            gradient="linear-gradient(135deg, rgba(251, 113, 133, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%)"
+                            color="bg-rose-500/30 text-rose-300"
+                            gradient="linear-gradient(135deg, rgba(251, 113, 133, 0.25) 0%, rgba(244, 63, 94, 0.25) 100%)"
                             onClick={() => setShowInviteModal(true)}
                         />
                     </div>
@@ -343,8 +347,8 @@ export default function Home() {
                         <DashboardCard
                             icon={Users}
                             label="My Team"
-                            color="bg-blue-500/20 text-blue-400"
-                            gradient="linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)"
+                            color="bg-blue-500/30 text-blue-300"
+                            gradient="linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%)"
                             onClick={() => {
                                 navigate('/team');
                                 setTimeout(() => {
@@ -358,22 +362,22 @@ export default function Home() {
                         <DashboardCard
                             icon={DollarSign}
                             label="Salary"
-                            color="bg-amber-500/20 text-amber-400"
-                            gradient="linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%)"
+                            color="bg-amber-500/30 text-amber-300"
+                            gradient="linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%)"
                             onClick={() => navigate('/team')}
                         />
                         <DashboardCard
                             icon={Briefcase}
                             label="Investments"
-                            color="bg-violet-500/20 text-violet-400"
-                            gradient="linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(109, 40, 217, 0.15) 100%)"
+                            color="bg-violet-500/30 text-violet-300"
+                            gradient="linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(109, 40, 217, 0.25) 100%)"
                             onClick={() => navigate('/my-investments')}
                         />
                         <DashboardCard
                             icon={Gamepad2}
                             label="Game"
-                            color="bg-pink-500/20 text-pink-400"
-                            gradient="linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(219, 39, 119, 0.15) 100%)"
+                            color="bg-pink-500/30 text-pink-300"
+                            gradient="linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(219, 39, 119, 0.25) 100%)"
                             onClick={() => navigate('/spin')}
                         />
                     </div>
@@ -382,30 +386,23 @@ export default function Home() {
                         <DashboardCard
                             icon={Upload}
                             label="Withdrawal"
-                            color="bg-orange-500/20 text-orange-400"
-                            gradient="linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%)"
+                            color="bg-orange-500/30 text-orange-300"
+                            gradient="linear-gradient(135deg, rgba(249, 115, 22, 0.25) 0%, rgba(234, 88, 12, 0.25) 100%)"
                             onClick={() => navigate('/withdraw')}
                         />
                         <DashboardCard
                             icon={Newspaper}
                             label="News"
-                            color="bg-indigo-500/20 text-indigo-400"
-                            gradient="linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%)"
+                            color="bg-indigo-500/30 text-indigo-300"
+                            gradient="linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.25) 100%)"
                             onClick={() => navigate('/news')}
                         />
                         <DashboardCard
                             icon={GraduationCap}
                             label="Courses"
-                            color="bg-teal-500/20 text-teal-400"
-                            gradient="linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(13, 148, 136, 0.15) 100%)"
+                            color="bg-teal-500/30 text-teal-300"
+                            gradient="linear-gradient(135deg, rgba(20, 184, 166, 0.25) 0%, rgba(13, 148, 136, 0.25) 100%)"
                             onClick={() => navigate('/courses')}
-                        />
-                        <DashboardCard
-                            icon={HelpCircle}
-                            label="Q&A"
-                            color="bg-sky-500/20 text-sky-400"
-                            gradient="linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(2, 132, 199, 0.15) 100%)"
-                            onClick={() => navigate('/qna')}
                         />
                     </div>
                 </div>

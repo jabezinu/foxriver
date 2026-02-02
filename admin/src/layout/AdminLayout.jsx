@@ -67,7 +67,6 @@ export default function AdminLayout() {
         { path: '/tasks', icon: HiVideoCamera, label: 'Tasks', permission: 'manage_tasks' },
         { path: '/courses', icon: HiAcademicCap, label: 'Courses', permission: 'manage_courses' },
         { path: '/wealth-funds', icon: HiTrendingUp, label: 'Wealth Funds', permission: 'manage_wealth' },
-        { path: '/qna', icon: HiPhotograph, label: 'Q&A', permission: 'manage_qna' },
         { path: '/news', icon: HiNewspaper, label: 'News', permission: 'manage_news' },
         { path: '/slot-machine', icon: HiRefresh, label: 'Game', permission: 'manage_slot_machine' },
         { path: '/bank-settings', icon: HiLibrary, label: 'Bank Settings', permission: 'manage_bank_settings' },

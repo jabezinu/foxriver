@@ -24,7 +24,6 @@ const SlotTier = require('./SlotTier');
 const News = require('./News');
 const Chat = require('./Chat');
 const ChatMessage = require('./ChatMessage');
-const QnA = require('./QnA');
 const RankUpgradeRequest = require('./RankUpgradeRequest');
 
 // Define associations
@@ -102,9 +101,6 @@ ChatMessage.belongsTo(User, { foreignKey: 'sender', as: 'senderDetails' });
 Chat.hasMany(ChatMessage, { foreignKey: 'chat', as: 'messages' });
 Chat.belongsTo(User, { foreignKey: 'user', as: 'customer' });
 
-// QnA associations
-QnA.belongsTo(User, { foreignKey: 'uploadedBy', as: 'uploader' });
-
 // DailyVideoAssignment associations
 DailyVideoAssignment.belongsTo(User, { foreignKey: 'user', as: 'userDetails' });
 
@@ -113,7 +109,7 @@ const models = [
     User, Membership, Task, TaskCompletion, Course, CourseCategory,
     DailyVideoAssignment, VideoPool, Playlist, SystemSetting, Commission,
     Salary, Deposit, Withdrawal, BankAccount, WealthFund, WealthInvestment,
-    SpinResult, SlotTier, News, Chat, ChatMessage, QnA, RankUpgradeRequest
+    SpinResult, SlotTier, News, Chat, ChatMessage, RankUpgradeRequest
 ];
 
 models.forEach(model => addMongoCompatibility(model));
@@ -142,6 +138,5 @@ module.exports = {
     News,
     Chat,
     ChatMessage,
-    QnA,
     RankUpgradeRequest
 };

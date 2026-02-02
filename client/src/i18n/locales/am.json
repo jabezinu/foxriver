@@ -87,7 +87,6 @@
     "wealth": "ሀብት",
     "courses": "ኮርሶች",
     "news": "ዜና",
-    "qna": "ጥያቄ እና መልስ",
     "inviteFriends": "ጓደኞችን ጋብዝ",
     "inviteFriendsDesc": "ጓደኞችን ጋብዘው አብረው ኮሚሽን ያግኙ",
     "latestUpdates": "የቅርብ ጊዜ ዝመናዎች",
@@ -280,12 +279,6 @@
     "officialNews": "ኦፊሴላዊ ዜና",
     "publishedOn": "የታተመው",
     "close": "ዝጋ"
-  },
-  "qna": {
-    "title": "ጥያቄ እና መልስ ማዕከል",
-    "visualAssistance": "የእይታ እገዛ",
-    "visualAssistanceDesc": "ለመድረክ አጠቃቀም፣ የስራ ማጠናቀቂያ ደንቦች እና አስፈላጊ ትምህርቶች የእይታ መመሪያዎች።",
-    "noImages": "ምንም የእገዛ ምስሎች አልተገኙም።"
   },
   "tiers": {
     "title": "የአባልነት ደረጃዎች",

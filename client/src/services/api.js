@@ -132,11 +132,6 @@ export const referralAPI = {
     getSalary: () => axios.get('/referrals/salary'),
 };
 
-// Q&A endpoints
-export const qnaAPI = {
-    getQnA: () => axios.get('/qna'),
-};
-
 // News endpoints
 export const newsAPI = {
     getNews: () => axios.get('/news'),

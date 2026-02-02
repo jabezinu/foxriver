@@ -20,7 +20,6 @@ const Withdraw = lazy(() => import('./pages/Withdraw'));
 const TransactionStatus = lazy(() => import('./pages/TransactionStatus'));
 const Settings = lazy(() => import('./pages/Settings'));
 const CompanyNews = lazy(() => import('./pages/CompanyNews'));
-const QnA = lazy(() => import('./pages/QnA'));
 const TierList = lazy(() => import('./pages/TierList'));
 const RankUpgrade = lazy(() => import('./pages/RankUpgrade'));
 const Team = lazy(() => import('./pages/Team'));
@@ -211,7 +210,6 @@ function App() {
               <Route path="transaction-status" element={<TransactionStatus />} />
               <Route path="settings" element={<Settings />} />
               <Route path="news" element={<CompanyNews />} />
-              <Route path="qna" element={<QnA />} />
               <Route path="tiers" element={<TierList />} />
               <Route path="rank-upgrade" element={<RankUpgrade />} />
               <Route path="team" element={<Team />} />

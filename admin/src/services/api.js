@@ -98,11 +98,7 @@ export const adminChatAPI = {
 };
 
 export const adminQnaAPI = {
-    getQna: () => axios.get(API_ENDPOINTS.QNA),
-    upload: (data) => axios.post(`${API_ENDPOINTS.QNA}/upload`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
-    delete: (id) => axios.delete(`${API_ENDPOINTS.QNA}/${id}`),
+    // Removed - Q&A feature deleted
 };
 
 export const adminProfileAPI = {

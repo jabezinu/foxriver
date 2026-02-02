@@ -97,7 +97,6 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/memberships', require('./routes/membership'));
 app.use('/api/rank-upgrades', require('./routes/rankUpgrade'));
 app.use('/api/referrals', require('./routes/referral'));
-app.use('/api/qna', require('./routes/qna'));
 app.use('/api/news', require('./routes/news'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/bank', require('./routes/bank'));

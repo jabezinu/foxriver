@@ -86,7 +86,6 @@
     "wealth": "Wealth",
     "courses": "Courses",
     "news": "News",
-    "qna": "Q&A",
     "inviteFriends": "Invite Friends",
     "inviteFriendsDesc": "Invite friends and earn commission together",
     "latestUpdates": "Latest Updates",
@@ -276,12 +275,6 @@
     "officialNews": "Official News",
     "publishedOn": "Published on",
     "close": "Close"
-  },
-  "qna": {
-    "title": "Q & A Center",
-    "visualAssistance": "Visual Assistance",
-    "visualAssistanceDesc": "Visual guides for platform usage, task completion rules, and important tutorials.",
-    "noImages": "No help images found."
   },
   "tiers": {
     "title": "Membership Tiers",

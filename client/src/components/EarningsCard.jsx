@@ -41,49 +41,58 @@ const EarningsCard = ({
 
     return (
         <Card 
-            className={`p-4 border-zinc-800 hover:border-primary-500/30 transition-all bg-zinc-900 ${onClick ? 'cursor-pointer group' : ''}`}
+            className={`p-4 border transition-all duration-300 relative overflow-hidden ${onClick ? 'cursor-pointer group active:scale-[0.98]' : ''}`}
+            style={{
+                background: 'linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.95) 100%)',
+                borderColor: amount > 0 ? 'rgba(255, 255, 255, 0.05)' : 'rgba(39, 39, 42, 0.3)',
+                boxShadow: amount > 0 ? `0 10px 30px -10px rgba(0,0,0,0.5)` : 'none'
+            }}
             onClick={onClick}
         >
+            {/* Background Glow */}
+            <div className={`absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-300 ${getColorClasses(color).split(' ')[0]}`}></div>
+
             {compact ? (
                 // Compact layout for summary view
-                <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg border ${getColorClasses(color)} ${onClick ? 'group-hover:scale-110 transition-transform' : ''}`}>
-                        <Icon size={16} />
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className={`p-2.5 rounded-xl border-2 shadow-lg ${getColorClasses(color).replace('10', '20')} ${onClick ? 'group-hover:scale-110 group-hover:rotate-3 transition-all duration-300' : ''}`}>
+                        <Icon size={18} strokeWidth={2.5} />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
-                        <p className={`text-lg font-bold ${getTextColor(color)} truncate`}>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">{title}</p>
+                        <p className={`text-xl font-black ${getTextColor(color)} truncate drop-shadow-sm`}>
                             {formatNumber(amount)}
                         </p>
                     </div>
                 </div>
             ) : (
                 // Full layout for detailed view
-                <>
-                    <div className="flex items-start justify-between mb-3">
-                        <div className={`p-2 rounded-lg border ${getColorClasses(color)} ${onClick ? 'group-hover:scale-110 transition-transform' : ''}`}>
-                            <Icon size={18} />
+                <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className={`p-2.5 rounded-xl border-2 shadow-lg ${getColorClasses(color).replace('10', '20')} ${onClick ? 'group-hover:scale-110 group-hover:rotate-3 transition-all duration-300' : ''}`}>
+                            <Icon size={20} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-800/50 px-2 py-0.5 rounded-full border border-zinc-700/50">
                             {title}
                         </span>
                     </div>
                     
-                    <p className={`text-lg font-bold mb-1 ${getTextColor(color)}`}>
-                        {formatNumber(amount)}
-                    </p>
-                    
-                    {description && (
-                        <p className="text-xs text-zinc-500 mb-2">{description}</p>
-                    )}
+                    <div className="mb-3">
+                        <p className={`text-2xl font-black mb-0.5 ${getTextColor(color).replace('400', '300')} drop-shadow-md`}>
+                            {formatNumber(amount)}
+                        </p>
+                        {description && (
+                            <p className="text-[11px] font-medium text-zinc-400 leading-tight">{description}</p>
+                        )}
+                    </div>
                     
                     {details && (
-                        <div className="space-y-1">
+                        <div className="space-y-1.5 pt-3 border-t border-zinc-800/50">
                             {Object.entries(details).map(([key, value]) => (
                                 value > 0 && (
-                                    <div key={key} className="flex justify-between text-xs">
-                                        <span className="text-zinc-500 capitalize">{key}:</span>
-                                        <span className="text-zinc-400">{formatNumber(value)}</span>
+                                    <div key={key} className="flex justify-between items-center text-[11px]">
+                                        <span className="text-zinc-500 font-bold uppercase tracking-tight">{key}</span>
+                                        <span className={`${getTextColor(color)} font-black`}>{formatNumber(value)}</span>
                                     </div>
                                 )
                             ))}
@@ -91,10 +100,17 @@ const EarningsCard = ({
                     )}
                     
                     {amount === 0 && !details && (
-                        <p className="text-xs text-zinc-500">No earnings yet</p>
+                        <div className="pt-3 border-t border-zinc-800/50">
+                            <p className="text-[10px] font-bold text-zinc-600 uppercase italic">Waiting for earnings...</p>
+                        </div>
                     )}
-                </>
+                </div>
             )}
+
+            {/* Shine effect on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+            </div>
         </Card>
     );
 };

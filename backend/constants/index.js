@@ -87,7 +87,6 @@ exports.CLOUDINARY_FOLDERS = {
     PROFILES: 'foxriver/profiles',
     TRANSACTIONS: 'foxriver/transactions',
     NEWS: 'foxriver/news',
-    QNA: 'foxriver/qna',
     TASKS: 'foxriver/tasks'
 };
 
