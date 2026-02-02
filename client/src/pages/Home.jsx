@@ -274,6 +274,22 @@ export default function Home() {
 
             {/* Hero Section */}
             <div className="px-5 pt-6 pb-2">
+                {/* Total Balance Hero Section */}
+                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-violet-400 rounded-[2rem] p-6 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden mb-6">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2 opacity-80">
+                            <span className="text-sm font-bold uppercase tracking-wide">{t('home.totalBalance')}</span>
+                            <EyeToggle />
+                        </div>
+                        <div className="text-4xl font-black mb-1 drop-shadow-lg flex items-baseline gap-1">
+                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">{t('common.currency')}</span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Dashboard Section */}
                 <div className="mb-6">
                     <h3 className="font-bold text-white text-sm mb-3 uppercase tracking-wide flex items-center gap-2">
@@ -419,29 +435,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-violet-400 rounded-[2rem] p-6 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
-
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2 opacity-80">
-                            <span className="text-sm font-bold uppercase tracking-wide">{t('home.totalBalance')}</span>
-                            <EyeToggle />
-                        </div>
-                            {formatNumber(wallet.incomeWallet + wallet.personalWallet)} <span className="text-lg font-bold opacity-80">{t('common.currency')}</span>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[9px] font-bold text-white/70 mb-1 uppercase">{t('home.incomeWallet')}</p>
-                                <p className="font-bold text-sm text-white">{formatNumber(wallet.incomeWallet)}</p>
-                            </div>
-                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/10 hover:bg-white/30 transition-colors">
-                                <p className="text-[9px] font-bold text-white/70 mb-1 uppercase">{t('home.personalWallet')}</p>
-                                <p className="font-bold text-sm text-white">{formatNumber(wallet.personalWallet)}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Transaction Notifications */}
