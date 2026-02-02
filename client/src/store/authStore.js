@@ -72,6 +72,9 @@ export const useAuthStore = create((set) => ({
             newsQueue: [],
             currentNewsIndex: 0
         });
+        // Force refresh on logout to clear session/cache
+        const timestamp = new Date().getTime();
+        window.location.href = `/login?v=${timestamp}`;
     },
 
     verifyToken: async () => {

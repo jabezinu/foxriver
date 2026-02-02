@@ -42,6 +42,9 @@ export const useAdminAuthStore = create((set) => ({
         localStorage.removeItem(STORAGE_KEYS.TOKEN);
         localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVE);
         set({ admin: null, token: null, isAuthenticated: false, isCheckingAuth: false });
+        // Force refresh on logout to clear session/cache
+        const timestamp = new Date().getTime();
+        window.location.href = `/login?v=${timestamp}`;
     },
 
     verifyToken: async () => {

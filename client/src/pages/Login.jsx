@@ -64,8 +64,9 @@ export default function Login() {
 
         if (result.success) {
             toast.success(t('success.welcomeBack'));
-            // Force full page refresh on login
-            window.location.href = '/';
+            // Force full page refresh on login with cache busting
+            const timestamp = new Date().getTime();
+            window.location.href = `/?v=${timestamp}`;
         } else {
             toast.error(result.message || t('errors.loginFailed'));
             setFormData(prev => ({ ...prev, captcha: '' }));

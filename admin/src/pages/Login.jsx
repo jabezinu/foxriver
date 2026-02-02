@@ -19,7 +19,9 @@ export default function AdminLogin() {
         const result = await login(formData);
         if (result.success) {
             toast.success('Login successful!');
-            navigate('/');
+            // Force full page refresh on login with cache busting
+            const timestamp = new Date().getTime();
+            window.location.href = `/?v=${timestamp}`;
         } else {
             toast.error(result.error);
         }
