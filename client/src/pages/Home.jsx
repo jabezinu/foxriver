@@ -283,39 +283,51 @@ export default function Home() {
                     
                     {/* Dashboard Cards - 4 per row */}
                     <div className="grid grid-cols-4 gap-2 mb-2">
-                        {/* Featured Tasks Card - Extra Eye-Catching */}
+                        {/* Featured Tasks Card - Ultra Eye-Catching */}
                         <div
                             onClick={() => navigate('/task')}
-                            className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border border-cyan-500/30 shadow-2xl hover:border-cyan-400/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden animate-pulse-slow"
-                            style={{
-                                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(8, 145, 178, 0.3) 100%)'
-                            }}
+                            className="group relative flex flex-col items-center justify-center rounded-2xl p-4 shadow-2xl hover:shadow-[0_0_50px_rgba(6,182,212,0.8)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
                         >
-                            {/* Animated ring effect */}
-                            <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400/50 animate-ping-slow"></div>
+                            {/* Animated Spinning Border Background */}
+                            <div className="absolute inset-[1px] rounded-2xl bg-zinc-950 z-[1]"></div>
+                            <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_20%,#06b6d4_50%,transparent_80%)] animate-spin-slow opacity-80"></div>
                             
-                            {/* Strong glow effect */}
-                            <div className="absolute inset-0 bg-cyan-500/30 opacity-50 group-hover:opacity-70 transition-opacity duration-300 blur-xl"></div>
-                            
-                            {/* Sparkle effects */}
-                            <div className="absolute top-1 right-1 w-2 h-2 bg-cyan-300 rounded-full animate-pulse"></div>
-                            <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse delay-150"></div>
-                            
-                            {/* Icon with enhanced styling */}
-                            <div className="relative p-3 rounded-xl mb-2 transition-all duration-300 group-hover:scale-150 group-hover:rotate-12 bg-cyan-500/40 text-cyan-200 border-2 border-cyan-400/70">
-                                <Zap size={24} strokeWidth={3} className="drop-shadow-[0_0_12px_rgba(6,182,212,1)]" />
+                            {/* Inner Glow & Gradient */}
+                            <div className="absolute inset-[2px] rounded-[14px] z-[2] overflow-hidden"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.4) 0%, rgba(8, 145, 178, 0.4) 100%)'
+                                }}
+                            >
+                                {/* Animated ring effect */}
+                                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400/30 animate-ping-slow"></div>
+                                
+                                {/* Strong glow effect */}
+                                <div className="absolute inset-0 bg-cyan-500/20 opacity-40 group-hover:opacity-60 transition-opacity duration-300 blur-2xl"></div>
+                                
+                                {/* Moving Light Streak */}
+                                <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
+                                    <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.2)_0%,transparent_50%)] animate-pulse-slow"></div>
+                                </div>
+
+                                {/* Content Container */}
+                                <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                                    {/* Icon with enhanced styling - Glassmorphism */}
+                                    <div className="relative p-3.5 rounded-2xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                                        <Zap size={26} strokeWidth={3} className="text-cyan-200 drop-shadow-[0_0_10px_rgba(6,182,212,1)]" />
+                                    </div>
+                                    
+                                    {/* Label with glow */}
+                                    <span className="relative font-black text-white leading-tight text-[13px] text-center drop-shadow-[0_2px_8px_rgba(6,182,212,0.8)] uppercase tracking-tighter">
+                                        Tasks
+                                    </span>
+                                </div>
+
+                                {/* Badge indicator */}
+                                <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary-400 rounded-full animate-bounce shadow-[0_0_15px_rgba(234,179,8,1)] border border-black/20 z-20"></div>
                             </div>
                             
-                            {/* Label with glow */}
-                            <span className="relative font-black text-white leading-tight text-xs text-center drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] uppercase tracking-wider">
-                                Tasks
-                            </span>
-                            
-                            {/* Badge indicator */}
-                            <div className="absolute top-2 right-2 w-2 h-2 bg-primary-400 rounded-full animate-bounce shadow-[0_0_10px_rgba(234,179,8,0.8)]"></div>
-                            
                             {/* Shine effect on hover */}
-                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-[5] pointer-events-none">
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                             </div>
                         </div>
