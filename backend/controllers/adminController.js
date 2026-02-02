@@ -42,7 +42,7 @@ exports.getStats = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/users
 // @access  Private/Admin
 exports.getAllUsers = asyncHandler(async (req, res) => {
-    const { membershipLevel, search } = req.query;
+    const { membershipLevel, search, page = 1, limit = 10 } = req.query;
     const where = { role: 'user' };
 
     if (membershipLevel) {
@@ -53,13 +53,17 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
         where.phone = { [Op.like]: `%${search}%` };
     }
 
-    const users = await User.findAll({
+    const offset = (page - 1) * limit;
+
+    const { count, rows: users } = await User.findAndCountAll({
         where,
         attributes: { exclude: ['password'] },
-        order: [['createdAt', 'DESC']]
+        order: [['createdAt', 'DESC']],
+        limit: Number(limit),
+        offset: Number(offset)
     });
 
-    // Calculate salary for each user
+    // Calculate salary for each user on the current page
     const usersWithSalary = await Promise.all(
         users.map(async (user) => {
             const { salary } = await calculateMonthlySalary(user.id);
@@ -73,6 +77,9 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         count: usersWithSalary.length,
+        totalUsers: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: Number(page),
         users: usersWithSalary
     });
 });

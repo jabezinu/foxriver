@@ -25,6 +25,12 @@ export default function UserManagement() {
     const [historyUser, setHistoryUser] = useState(null);
     const [referenceTreeUserId, setReferenceTreeUserId] = useState(null);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const limit = 10;
+
     // Edit Modal State
     const [editingUser, setEditingUser] = useState(null);
     const [editForm, setEditForm] = useState({
@@ -44,17 +50,22 @@ export default function UserManagement() {
     const [restrictionType, setRestrictionType] = useState('date');
 
     useEffect(() => {
-        fetchUsers();
+        fetchUsers(1);
     }, [filterLevel]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = currentPage) => {
         setLoading(true);
         try {
             const res = await adminUserAPI.getAllUsers({
                 membershipLevel: filterLevel || undefined,
-                search: searchTerm || undefined
+                search: searchTerm || undefined,
+                page,
+                limit
             });
             setUsers(res.data.users);
+            setTotalPages(res.data.totalPages);
+            setTotalUsers(res.data.totalUsers);
+            setCurrentPage(res.data.currentPage);
         } catch (error) {
             toast.error('Failed to load operative data');
             console.error(error);
@@ -65,7 +76,7 @@ export default function UserManagement() {
 
     const handleSearch = (e) => {
         e.preventDefault();
-        fetchUsers();
+        fetchUsers(1);
     };
 
     const handleEdit = (user) => {
@@ -342,6 +353,73 @@ export default function UserManagement() {
                     </div>
                 )}
             </Card>
+
+            {/* Pagination Controls */}
+            {!loading && totalPages > 1 && (
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="text-sm text-gray-500 font-medium">
+                        Showing <span className="text-gray-900 font-bold">{users.length}</span> of <span className="text-gray-900 font-bold">{totalUsers}</span> operatives
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => fetchUsers(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                                currentPage === 1
+                                    ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-500 hover:text-indigo-600'
+                            }`}
+                        >
+                            Previous
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(totalPages)].map((_, i) => {
+                                const pageNum = i + 1;
+                                // Simple logic to show only a few page numbers if there are many
+                                if (
+                                    totalPages <= 7 ||
+                                    pageNum === 1 ||
+                                    pageNum === totalPages ||
+                                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => fetchUsers(pageNum)}
+                                            className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
+                                                currentPage === pageNum
+                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                                                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                } else if (
+                                    (pageNum === 2 && currentPage > 4) ||
+                                    (pageNum === totalPages - 1 && currentPage < totalPages - 3)
+                                ) {
+                                    return <span key={pageNum} className="text-gray-400">...</span>;
+                                }
+                                return null;
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => fetchUsers(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                                currentPage === totalPages
+                                    ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-500 hover:text-indigo-600'
+                            }`}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
