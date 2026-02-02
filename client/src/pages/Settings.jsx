@@ -114,29 +114,6 @@ export default function Settings() {
         }
     };
 
-    const handleSetTransactionPass = async () => {
-        if (formData.transactionPassword.length !== 6) {
-            toast.error('Transaction password must be exactly 6 digits');
-            return;
-        }
-
-        if (profile.hasTransactionPassword && formData.oldPassword === formData.transactionPassword) {
-            toast.error("You didn't change the password");
-            return;
-        }
-
-        try {
-            await userAPI.setTransactionPassword({
-                currentPassword: formData.oldPassword,
-                newPassword: formData.transactionPassword
-            });
-            toast.success('Transaction password updated!');
-            setModalType(null);
-            fetchProfile(); // Refresh profile to get updated hasTransactionPassword
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update transaction password');
-        }
-    };
 
     if (loading) return <Loading />;
 
@@ -163,13 +140,6 @@ export default function Settings() {
             },
             color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
             disabled: profile.membershipLevel === 'Intern'
-        },
-        {
-            label: 'Transaction Password',
-            icon: ShieldCheck,
-            desc: 'Verify withdrawals securely',
-            action: () => setModalType('transPass'),
-            color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
         },
         {
             label: 'Change Password',
@@ -372,52 +342,6 @@ export default function Settings() {
                 </div>
             </Modal>
 
-            {/* Transaction Password Modal */}
-            <Modal isOpen={modalType === 'transPass'} onClose={() => setModalType(null)} title={profile.hasTransactionPassword ? "Change PIN" : "Set PIN"}>
-                <div className="space-y-5">
-                    <p className="text-sm text-zinc-400 mb-2 leading-relaxed">
-                        {profile.hasTransactionPassword
-                            ? "Enter your current 6-digit PIN and the new one to change it."
-                            : "Set a 6-digit numeric PIN for withdrawal authorization."}
-                    </p>
-
-                    {profile.hasTransactionPassword && (
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 mb-2 text-center uppercase">Current PIN</label>
-                            <input
-                                type="password"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                maxLength={6}
-                                className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
-                                value={formData.oldPassword}
-                                onChange={e => setFormData({ ...formData, oldPassword: e.target.value })}
-                            />
-                        </div>
-                    )}
-
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 mb-2 text-center uppercase">
-                            {profile.hasTransactionPassword ? "New PIN" : "6-Digit PIN"}
-                        </label>
-                        <input
-                            type="password"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={6}
-                            className="w-full text-center text-xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
-                            value={formData.transactionPassword}
-                            onChange={e => setFormData({ ...formData, transactionPassword: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="pt-4">
-                        <Button onClick={handleSetTransactionPass} fullWidth className="shadow-glow">
-                            {profile.hasTransactionPassword ? "Update PIN" : "Set PIN"}
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
         </div >
     );
 }

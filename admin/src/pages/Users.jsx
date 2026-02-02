@@ -34,8 +34,7 @@ export default function UserManagement() {
         tasksWallet: '',
         withdrawalRestrictedUntil: '',
         withdrawalRestrictedDays: [],
-        password: '',
-        transactionPassword: ''
+        password: ''
     });
 
     // Restrict All Modal State
@@ -79,8 +78,7 @@ export default function UserManagement() {
             tasksWallet: user.tasksWallet,
             withdrawalRestrictedUntil: user.withdrawalRestrictedUntil ? new Date(user.withdrawalRestrictedUntil).toISOString().split('T')[0] : '',
             withdrawalRestrictedDays: user.withdrawalRestrictedDays || [],
-            password: '',
-            transactionPassword: ''
+            password: ''
         });
     };
 

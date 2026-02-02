@@ -23,8 +23,6 @@ export default function Withdraw() {
 
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [walletType, setWalletType] = useState('income');
-    const [transactionPassword, setTransactionPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [history, setHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
@@ -135,15 +133,11 @@ export default function Withdraw() {
 
 
     const handleWithdraw = async () => {
-        if (!selectedAmount || !transactionPassword) {
-            toast.error('Please select amount and enter transaction password');
+        if (!selectedAmount) {
+            toast.error('Please select amount');
             return;
         }
 
-        if (transactionPassword.length !== 6) {
-            toast.error('Transaction password must be exactly 6 digits');
-            return;
-        }
 
         // Get the correct wallet balance based on wallet type
         const walletBalance = walletType === 'income' ? wallets.incomeWallet :
@@ -159,8 +153,7 @@ export default function Withdraw() {
         try {
             await withdrawalAPI.create({
                 amount: selectedAmount,
-                walletType,
-                transactionPassword
+                walletType
             });
             toast.success('Withdrawal request submitted!');
             // Force reload the webpage after successful withdrawal
@@ -311,30 +304,6 @@ export default function Withdraw() {
                     </div>
                 )}
 
-                {/* Transaction Password */}
-                <Card className="p-6 mb-8 border-zinc-800 bg-zinc-900">
-                    <label className="block text-sm font-bold text-zinc-300 mb-4 text-center">Transaction Password</label>
-                    <div className="relative max-w-[200px] mx-auto">
-                        <input
-                            type={showPassword ? 'text' : 'password'}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={transactionPassword}
-                            onChange={(e) => setTransactionPassword(e.target.value)}
-                            placeholder="••••••"
-                            maxLength={6}
-                            className="w-full text-center text-2xl tracking-[0.5em] py-3 border-b-2 border-zinc-700 focus:border-primary-500 outline-none transition-colors bg-transparent placeholder:tracking-normal font-mono text-white"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute -right-8 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
-                        >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                        </button>
-                    </div>
-                    <p className="text-xs text-center text-zinc-500 mt-4">Enter your 6-digit pin to confirm</p>
-                </Card>
 
                 <Button
                     onClick={handleWithdraw}

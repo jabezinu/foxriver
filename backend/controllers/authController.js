@@ -15,20 +15,24 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res) => {
-    const { phone, password, invitationCode } = req.body;
+    const { phone, password, invitationCode, accountName, bank, accountNumber, accountPhone } = req.body;
 
     // Validate phone number
     if (!isValidEthiopianPhone(phone)) {
         throw new AppError('Please provide a valid Ethiopian phone number (+251XXXXXXXXX)', 400);
     }
 
+    // Validate bank account phone if provided
+    if (accountPhone && !isValidEthiopianPhone(accountPhone)) {
+        throw new AppError('Please provide a valid Ethiopian phone number for bank account', 400);
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ where: { phone }, raw: true });
     if (existingUser) {
-        throw new AppError('User already exists with this phone number', 400);
+        throw new AppError('User already exists', 400);
     }
 
-    // Handle referral if invitation code provided
     let referrerId = null;
     if (invitationCode) {
         const referrer = await User.findOne({ where: { invitationCode }, attributes: ['id'], raw: true });

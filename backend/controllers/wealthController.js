@@ -27,7 +27,7 @@ exports.getWealthFund = asyncHandler(async (req, res) => {
 // @route   POST /api/wealth/invest
 // @access  Private
 exports.createInvestment = asyncHandler(async (req, res) => {
-    const { wealthFundId, amount, fundingSource, transactionPassword } = req.body;
+    const { wealthFundId, amount, fundingSource } = req.body;
 
     if (!wealthFundId || !amount || !fundingSource) {
         throw new AppError('Please provide all required fields', 400);
@@ -42,11 +42,6 @@ exports.createInvestment = asyncHandler(async (req, res) => {
 
     const user = await User.findByPk(req.user.id);
 
-    if (transactionPassword) {
-        if (!user.transactionPassword) throw new AppError('Set transaction password first', 400);
-        const isMatch = await user.matchTransactionPassword(transactionPassword);
-        if (!isMatch) throw new AppError('Invalid transaction password', 400);
-    }
 
     const incomeAmount = parseFloat(fundingSource.incomeWallet) || 0;
     const personalAmount = parseFloat(fundingSource.personalWallet) || 0;

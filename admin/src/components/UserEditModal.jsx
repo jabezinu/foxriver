@@ -4,7 +4,6 @@ import { TIERS } from '../config/constants';
 
 export default function UserEditModal({ user, form, onChange, onClose, onSave }) {
     const [showPassword, setShowPassword] = useState(false);
-    const [showTransactionPassword, setShowTransactionPassword] = useState(false);
 
     if (!user) return null;
 
@@ -89,32 +88,6 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                                 <p className="text-[10px] text-gray-400 mt-1 italic">Only fill to change password</p>
                             </div>
 
-                            <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                    Transaction Password (6 digits)
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showTransactionPassword ? "text" : "password"}
-                                        className="admin-input pr-10"
-                                        placeholder="Enter 6-digit PIN (leave empty to keep current)"
-                                        value={form.transactionPassword || ''}
-                                        maxLength={6}
-                                        onChange={e => {
-                                            const value = e.target.value.replace(/\D/g, '');
-                                            onChange({ ...form, transactionPassword: value });
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowTransactionPassword(!showTransactionPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        {showTransactionPassword ? <HiEyeOff /> : <HiEye />}
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-1 italic">Must be exactly 6 digits</p>
-                            </div>
                         </div>
                     </div>
 

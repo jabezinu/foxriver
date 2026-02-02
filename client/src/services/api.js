@@ -75,7 +75,6 @@ export const userAPI = {
     setBankAccount: (data) => axios.put('/users/bank-account', data),
     confirmBankChange: (confirmed) => axios.post('/users/bank-account/confirm', { confirmed }),
     cancelBankChange: () => axios.delete('/users/bank-account/pending'),
-    setTransactionPassword: (data) => axios.put('/users/transaction-password', data),
     changeLoginPassword: (data) => axios.put('/users/login-password', data),
     getReferralLink: () => axios.get('/users/referral-link'),
     getSystemSettings: () => axios.get('/system/settings'),

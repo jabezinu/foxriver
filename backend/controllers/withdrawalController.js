@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 // @route   POST /api/withdrawals/create
 // @access  Private (Rank 1+)
 exports.createWithdrawal = asyncHandler(async (req, res) => {
-    const { amount, walletType, transactionPassword } = req.body;
+    const { amount, walletType } = req.body;
 
     // Check for withdrawal restriction
     if (req.user.withdrawalRestrictedUntil && new Date(req.user.withdrawalRestrictedUntil) > new Date()) {
@@ -52,25 +52,12 @@ exports.createWithdrawal = asyncHandler(async (req, res) => {
         throw new AppError('Invalid withdrawal amount', 400);
     }
 
-    // Verify transaction password
+    // Verify user and bank account
     const user = await User.findByPk(req.user.id);
 
     // Check if user has set bank account details
     if (!user.bankAccount || !user.bankAccount.isSet) {
         throw new AppError('Please set up your bank account in Settings before making a withdrawal', 400);
-    }
-
-    if (!user.transactionPassword) {
-        throw new AppError('Please set transaction password first', 400);
-    }
-
-    if (transactionPassword.length !== 6) {
-        throw new AppError('Transaction password must be exactly 6 digits', 400);
-    }
-
-    const isMatch = await user.matchTransactionPassword(transactionPassword);
-    if (!isMatch) {
-        throw new AppError('Incorrect transaction password', 401);
     }
 
     // Check if user has sufficient balance

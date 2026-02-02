@@ -22,7 +22,6 @@ export default function WealthDetail() {
         personalWallet: 0,
         tasksWallet: 0
     });
-    const [transactionPassword, setTransactionPassword] = useState('');
     const [investing, setInvesting] = useState(false);
 
     useEffect(() => {
@@ -104,18 +103,13 @@ export default function WealthDetail() {
     };
 
     const handleConfirmInvestment = async () => {
-        if (!transactionPassword) {
-            alert('Please enter your transaction password');
-            return;
-        }
 
         setInvesting(true);
         try {
             await wealthAPI.invest({
                 wealthFundId: id,
                 amount: parseFloat(amount),
-                fundingSource,
-                transactionPassword
+                fundingSource
             });
             
             alert('Investment successful!');
@@ -381,20 +375,6 @@ export default function WealthDetail() {
                                 )}
                             </div>
 
-                            {/* Transaction Password */}
-                            <div className="bg-zinc-800/50 rounded-2xl p-4 border border-zinc-700/50">
-                                <label className="text-sm font-semibold text-white mb-3 block">
-                                    Transaction Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={transactionPassword}
-                                    onChange={(e) => setTransactionPassword(e.target.value)}
-                                    placeholder="Enter 6-digit password"
-                                    maxLength={6}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3.5 text-white text-lg font-semibold tracking-widest focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                                />
-                            </div>
                         </div>
 
                         {/* Action Buttons */}
@@ -402,7 +382,6 @@ export default function WealthDetail() {
                             <button
                                 onClick={() => {
                                     setShowFundingModal(false);
-                                    setTransactionPassword('');
                                 }}
                                 className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-4 rounded-xl transition-all active:scale-95"
                             >
@@ -412,8 +391,7 @@ export default function WealthDetail() {
                                 onClick={handleConfirmInvestment}
                                 disabled={
                                     investing ||
-                                    (fundingSource.incomeWallet + fundingSource.personalWallet + fundingSource.tasksWallet) !== parseFloat(amount) ||
-                                    !transactionPassword
+                                    (fundingSource.incomeWallet + fundingSource.personalWallet + fundingSource.tasksWallet) !== parseFloat(amount)
                                 }
                                 className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-orange-500/20"
                             >

@@ -8,13 +8,6 @@ class User extends Model {
         return await bcrypt.compare(enteredPassword, this.password);
     }
 
-    // Compare transaction password
-    async matchTransactionPassword(enteredPassword) {
-        if (!this.transactionPassword) {
-            return false;
-        }
-        return await bcrypt.compare(enteredPassword, this.transactionPassword);
-    }
 
     // Get referral link
     getReferralLink() {
@@ -97,10 +90,6 @@ User.init({
     tasksWallet: {
         type: DataTypes.DECIMAL(15, 2),
         defaultValue: 0
-    },
-    transactionPassword: {
-        type: DataTypes.STRING,
-        allowNull: true
     },
     bankAccount: {
         type: DataTypes.JSON,
@@ -243,15 +232,6 @@ User.init({
                 user.password = await bcrypt.hash(user.password, salt);
             }
 
-            // Hash transaction password if modified
-            if (user.changed('transactionPassword') && user.transactionPassword) {
-                // Validate 6 digits before hashing
-                if (!user.transactionPassword.startsWith('$2') && !/^\d{6}$/.test(user.transactionPassword)) {
-                    throw new Error('Transaction password must be exactly 6 digits');
-                }
-                const salt = await bcrypt.genSalt(10);
-                user.transactionPassword = await bcrypt.hash(user.transactionPassword, salt);
-            }
         }
     }
 });

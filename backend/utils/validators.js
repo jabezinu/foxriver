@@ -32,11 +32,6 @@ exports.isValidWithdrawalAmount = (amount) => {
     return exports.ALLOWED_WITHDRAWAL_AMOUNTS.includes(Number(amount));
 };
 
-// Validate transaction password (6-digit numeric)
-exports.isValidTransactionPassword = (password) => {
-    const passwordRegex = /^\d{6}$/;
-    return passwordRegex.test(password);
-};
 
 // Generate unique order ID for deposits
 exports.generateOrderId = () => {

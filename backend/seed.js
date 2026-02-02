@@ -6,17 +6,17 @@ const models = require('./models');
 const { Membership, User } = models;
 
 const membershipTiers = [
-    { level: 'Intern', price: 0, canWithdraw: false, canUseTransactionPassword: false, order: 0 },
-    { level: 'Rank 1', price: 3300, canWithdraw: true, canUseTransactionPassword: true, order: 1 },
-    { level: 'Rank 2', price: 9600, canWithdraw: true, canUseTransactionPassword: true, order: 2 },
-    { level: 'Rank 3', price: 27000, canWithdraw: true, canUseTransactionPassword: true, order: 3 },
-    { level: 'Rank 4', price: 78000, canWithdraw: true, canUseTransactionPassword: true, order: 4 },
-    { level: 'Rank 5', price: 220000, canWithdraw: true, canUseTransactionPassword: true, order: 5 },
-    { level: 'Rank 6', price: 590000, canWithdraw: true, canUseTransactionPassword: true, order: 6 },
-    { level: 'Rank 7', price: 1280000, canWithdraw: true, canUseTransactionPassword: true, order: 7 },
-    { level: 'Rank 8', price: 2530000, canWithdraw: true, canUseTransactionPassword: true, order: 8 },
-    { level: 'Rank 9', price: 5000000, canWithdraw: true, canUseTransactionPassword: true, order: 9 },
-    { level: 'Rank 10', price: 9800000, canWithdraw: true, canUseTransactionPassword: true, order: 10 }
+    { level: 'Intern', price: 0, canWithdraw: false, order: 0 },
+    { level: 'Rank 1', price: 3300, canWithdraw: true, order: 1 },
+    { level: 'Rank 2', price: 9600, canWithdraw: true, order: 2 },
+    { level: 'Rank 3', price: 27000, canWithdraw: true, order: 3 },
+    { level: 'Rank 4', price: 78000, canWithdraw: true, order: 4 },
+    { level: 'Rank 5', price: 220000, canWithdraw: true, order: 5 },
+    { level: 'Rank 6', price: 590000, canWithdraw: true, order: 6 },
+    { level: 'Rank 7', price: 1280000, canWithdraw: true, order: 7 },
+    { level: 'Rank 8', price: 2530000, canWithdraw: true, order: 8 },
+    { level: 'Rank 9', price: 5000000, canWithdraw: true, order: 9 },
+    { level: 'Rank 10', price: 9800000, canWithdraw: true, order: 10 }
 ];
 
 const seedDatabase = async () => {

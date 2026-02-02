@@ -97,11 +97,6 @@ Membership.init({
         allowNull: false,
         defaultValue: false
     },
-    canUseTransactionPassword: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
     order: {
         type: DataTypes.INTEGER,
         allowNull: false

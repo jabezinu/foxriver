@@ -55,7 +55,7 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
 
     const users = await User.findAll({
         where,
-        attributes: { exclude: ['password', 'transactionPassword'] },
+        attributes: { exclude: ['password'] },
         order: [['createdAt', 'DESC']]
     });
 
@@ -82,7 +82,7 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 exports.getUserDetails = asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id, {
-        attributes: { exclude: ['password', 'transactionPassword'] },
+        attributes: { exclude: ['password'] },
         include: [{ model: User, as: 'referrer', attributes: ['phone', 'membershipLevel'] }]
     });
 
@@ -98,8 +98,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
 
     // Add password status indicators (not the actual passwords)
     const passwordInfo = {
-        hasPassword: !!user.dataValues.password,
-        hasTransactionPassword: !!user.dataValues.transactionPassword
+        hasPassword: !!user.dataValues.password
     };
 
     res.status(200).json({
@@ -118,7 +117,7 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
 exports.updateUser = asyncHandler(async (req, res) => {
-    const { membershipLevel, incomeWallet, personalWallet, tasksWallet, withdrawalRestrictedUntil, withdrawalRestrictedDays, approveBankChange, password, transactionPassword } = req.body;
+    const { membershipLevel, incomeWallet, personalWallet, tasksWallet, withdrawalRestrictedUntil, withdrawalRestrictedDays, approveBankChange, password } = req.body;
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
@@ -161,19 +160,6 @@ exports.updateUser = asyncHandler(async (req, res) => {
         user.password = password;
     }
 
-    // Handle transaction password updates
-    if (transactionPassword !== undefined) {
-        if (transactionPassword === '' || transactionPassword === null) {
-            // Allow clearing transaction password
-            user.transactionPassword = null;
-        } else if (transactionPassword.trim() !== '') {
-            // Validate 6 digits
-            if (!/^\d{6}$/.test(transactionPassword)) {
-                throw new AppError('Transaction password must be exactly 6 digits', 400);
-            }
-            user.transactionPassword = transactionPassword;
-        }
-    }
 
     // Handle bank change approval
     if (approveBankChange && user.bankChangeStatus === 'pending') {
@@ -442,7 +428,7 @@ exports.processUserSalary = asyncHandler(async (req, res) => {
 exports.getAllAdmins = asyncHandler(async (req, res) => {
     const admins = await User.findAll({
         where: { role: { [Op.in]: ['admin', 'superadmin'] } },
-        attributes: { exclude: ['password', 'transactionPassword'] },
+        attributes: { exclude: ['password'] },
         order: [['createdAt', 'DESC']]
     });
 

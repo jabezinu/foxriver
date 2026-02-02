@@ -29,7 +29,29 @@ exports.registerValidation = [
         .optional()
         .trim()
         .isLength({ min: 3, max: 20 })
-        .withMessage('Invalid invitation code')
+        .withMessage('Invalid invitation code'),
+    // Bank account fields - required during registration
+    body('accountName')
+        .trim()
+        .notEmpty()
+        .withMessage('Account holder name is required')
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Account name must be between 2 and 100 characters'),
+    body('bank')
+        .notEmpty()
+        .withMessage('Bank selection is required')
+        .isIn(['CBE', 'Awash', 'BOA'])
+        .withMessage('Invalid bank selection. Must be CBE, Awash, or BOA'),
+    body('accountNumber')
+        .trim()
+        .notEmpty()
+        .withMessage('Account number is required')
+        .isLength({ min: 5, max: 30 })
+        .withMessage('Account number must be between 5 and 30 characters'),
+    body('accountPhone')
+        .trim()
+        .matches(/^\+251[79]\d{8}$/)
+        .withMessage('Please provide a valid Ethiopian phone number for bank account')
 ];
 
 exports.loginValidation = [
@@ -65,10 +87,7 @@ exports.depositValidation = [
 exports.withdrawalValidation = [
     body('amount')
         .isInt({ min: 100 })
-        .withMessage('Invalid withdrawal amount'),
-    body('transactionPassword')
-        .matches(/^\d{6}$/)
-        .withMessage('Transaction password must be 6 digits')
+        .withMessage('Invalid withdrawal amount')
 ];
 
 // Bank account validation rules
@@ -94,16 +113,6 @@ exports.bankAccountValidation = [
         .withMessage('Please provide a valid Ethiopian phone number')
 ];
 
-// Transaction password validation rules
-exports.transactionPasswordValidation = [
-    body('newPassword')
-        .matches(/^\d{6}$/)
-        .withMessage('Transaction password must be exactly 6 digits'),
-    body('currentPassword')
-        .optional()
-        .matches(/^\d{6}$/)
-        .withMessage('Current password must be 6 digits')
-];
 
 // Profile update validation rules
 exports.profileUpdateValidation = [

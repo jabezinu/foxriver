@@ -28,15 +28,10 @@ exports.getProfile = asyncHandler(async (req, res) => {
     }
 
     const userObj = user.toJSON();
-    const hasTransactionPassword = !!userObj.transactionPassword;
-    delete userObj.transactionPassword;
 
     res.status(200).json({
         success: true,
-        user: {
-            ...userObj,
-            hasTransactionPassword
-        },
+        user: userObj,
         bankChangeInfo
     });
 });
@@ -325,42 +320,6 @@ exports.cancelBankChange = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Set/change transaction password
-// @route   PUT /api/users/transaction-password
-// @access  Private (Rank 1+)
-exports.setTransactionPassword = asyncHandler(async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-
-    if (!isValidTransactionPassword(newPassword)) {
-        throw new AppError('Transaction password must be exactly 6 digits', 400);
-    }
-
-    const user = await User.findByPk(req.user.id);
-
-    // If user has existing transaction password, verify current password
-    if (user.transactionPassword) {
-        if (!currentPassword) {
-            throw new AppError('Please provide current transaction password to change it', 400);
-        }
-
-        if (currentPassword === newPassword) {
-            throw new AppError("You didn't change the password", 400);
-        }
-
-        const isMatch = await user.matchTransactionPassword(currentPassword);
-        if (!isMatch) {
-            throw new AppError('Current transaction password is incorrect', 401);
-        }
-    }
-
-    user.transactionPassword = newPassword;
-    await user.save();
-
-    res.status(200).json({
-        success: true,
-        message: user.transactionPassword ? 'Transaction password updated successfully' : 'Transaction password created successfully'
-    });
-});
 
 // @desc    Change login password
 // @route   PUT /api/users/login-password
