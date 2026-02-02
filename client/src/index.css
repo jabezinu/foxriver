@@ -92,9 +92,9 @@
 
 /* Currency formatting */
 .currency-etb::before {
-  content: 'ETB ';
+  content: "ETB ";
   font-weight: 600;
-  color: #F59E0B;
+  color: #f59e0b;
   /* Primary Gold */
 }
 
@@ -127,7 +127,8 @@
 }
 
 @keyframes gradient-x {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -202,14 +203,15 @@
 }
 
 .text-gradient-gold {
-  background: linear-gradient(to right, #DDD6FE, #8B5CF6, #7C3AED);
+  background: linear-gradient(to right, #ddd6fe, #8b5cf6, #7c3aed);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 /* Task
 s Button Special Animations */
 @keyframes pulse-slow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -232,10 +234,27 @@ s Button Special Animations */
   }
 }
 
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-pulse-slow {
   animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .animate-ping-slow {
   animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-rotate-slow {
+  animation: spin-slow 5s linear infinite;
 }
