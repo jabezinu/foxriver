@@ -182,61 +182,7 @@ export default function Team() {
             </div>
 
             <div className="px-4 py-6 space-y-6">
-                {/* Invitation Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-zinc-900 p-6 text-white shadow-xl border border-zinc-800">
-                    <div className="relative z-10">
-                        <p className="text-xs text-primary-200 font-bold uppercase mb-1 tracking-widest flex items-center gap-2">
-                            <Trophy size={14} className="text-yellow-400" />
-                            Your Rewards
-                        </p>
-                        <h2 className="text-4xl font-black mb-8 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
-                            {formatNumber(commissionTotals.total)}
-                            <span className="text-lg font-bold text-primary-400 ml-2">ETB</span>
-                        </h2>
 
-                        <div className="space-y-3">
-                            <div className="flex gap-2">
-                                <div className="flex-1 bg-black/20 backdrop-blur-md rounded-xl p-3 border border-white/5 flex justify-between items-center overflow-hidden">
-                                    <div className="truncate mr-2">
-                                        <p className="text-[9px] text-zinc-400 font-bold uppercase mb-0.5">Invitation Link</p>
-                                        <p className="font-mono text-xs truncate opacity-90 text-primary-100">
-                                            {window.location.origin}/register?ref={user?.invitationCode}
-                                        </p>
-                                    </div>
-                                </div>
-                                <Button
-                                    onClick={() => setShowInviteModal(true)}
-                                    className="bg-primary-500 hover:bg-primary-600 text-black font-bold min-w-[100px] shadow-glow border-none"
-                                >
-                                    <Share2 size={16} className="mr-2" />
-                                    Invite
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Background Decorative */}
-                    <Users className="absolute -bottom-8 -right-8 text-white/5 rotate-12" size={200} />
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-                </div>
-
-                {/* Team Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                    <Card className="p-4 border-zinc-800 bg-zinc-900">
-                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-3 border border-blue-500/20">
-                            <Users size={20} />
-                        </div>
-                        <p className="text-[10px] uppercase font-bold text-zinc-500 mb-1 tracking-wide">Total Team</p>
-                        <p className="text-2xl font-black text-white">{downline?.total || 0}</p>
-                    </Card>
-                    <Card className="p-4 border-zinc-800 bg-zinc-900">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-3 border border-emerald-500/20">
-                            <Award size={20} />
-                        </div>
-                        <p className="text-[10px] uppercase font-bold text-zinc-500 mb-1 tracking-wide">A-Level</p>
-                        <p className="text-2xl font-black text-emerald-400">{downline?.aLevel.count || 0}</p>
-                    </Card>
-                </div>
 
                 {/* Salary Status */}
                 <Card className="p-6 border-zinc-800 bg-zinc-900 overflow-hidden relative">
@@ -321,7 +267,7 @@ export default function Team() {
                 </Card>
 
                 {/* Level Breakdown */}
-                <div className="space-y-4">
+                <div id="team-section" className="space-y-4">
                     <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Team Levels</h3>
 
                     {['a', 'b', 'c'].map((lvl) => {
