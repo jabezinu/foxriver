@@ -104,6 +104,14 @@ SystemSetting.init({
     rankUpgradeRefundWallet: {
         type: DataTypes.ENUM('income', 'personal'),
         defaultValue: 'personal'
+    },
+    spinWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'income'
+    },
+    depositWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'personal'
     }
 }, {
     sequelize,
