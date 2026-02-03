@@ -54,11 +54,14 @@ exports.createRankUpgradeRequest = asyncHandler(async (req, res) => {
         // Deduct amount from Personal Wallet
         user.personalWallet = parseFloat(user.personalWallet) - parseFloat(amount);
 
-        // refund the previous rank price to the personal wallet if the current level is not 'Intern'
+        // refund the previous rank price to the configured wallet if the current level is not 'Intern'
+        const SystemSetting = require('../models/SystemSetting');
+        const settings = await SystemSetting.findOne();
         let previousRankRefund = 0;
         if (currentMembership.level !== 'Intern') {
              previousRankRefund = parseFloat(currentMembership.price);
-             user.personalWallet = parseFloat(user.personalWallet) + previousRankRefund;
+             const refundWalletField = `${settings?.rankUpgradeRefundWallet || 'personal'}Wallet`;
+             user[refundWalletField] = parseFloat(user[refundWalletField]) + previousRankRefund;
         }
 
         // Update user's membership level

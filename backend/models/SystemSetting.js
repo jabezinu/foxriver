@@ -88,6 +88,22 @@ SystemSetting.init({
     tasksDisabled: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    salaryWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'income'
+    },
+    taskWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'income'
+    },
+    commissionWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'income'
+    },
+    rankUpgradeRefundWallet: {
+        type: DataTypes.ENUM('income', 'personal'),
+        defaultValue: 'personal'
     }
 }, {
     sequelize,

@@ -6,6 +6,7 @@ import PageHeader from '../components/shared/PageHeader';
 import SalaryPanel from '../components/SalaryPanel';
 import ControlTogglePanel from '../components/ControlTogglePanel';
 import SystemInfoPanel from '../components/SystemInfoPanel';
+import WalletAssignmentPanel from '../components/WalletAssignmentPanel';
 
 
 export default function SystemSettings() {
@@ -48,6 +49,18 @@ export default function SystemSettings() {
                 toast.success(`Gateway ${!settings?.frontendDisabled ? 'Severed' : 'Restored'}`);
             }
         } catch (error) { toast.error('Command Failed'); }
+        finally { setUpdating(false); }
+    };
+
+    const updateSettings = async (data) => {
+        setUpdating(true);
+        try {
+            const response = await adminSystemAPI.updateSettings(data);
+            if (response.data.success) {
+                setSettings(response.data.settings || response.data.data);
+                toast.success('Core Protocols Updated');
+            }
+        } catch (error) { toast.error('Uplink Failed'); }
         finally { setUpdating(false); }
     };
 
@@ -108,6 +121,11 @@ export default function SystemSettings() {
                         settings={settings}
                         onToggleFrontend={toggleFrontend}
                         onToggleTasks={toggleTasks}
+                        updating={updating}
+                    />
+                    <WalletAssignmentPanel
+                        settings={settings}
+                        onUpdate={updateSettings}
                         updating={updating}
                     />
                 </div>

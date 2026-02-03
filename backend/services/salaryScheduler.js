@@ -30,8 +30,13 @@ const processSalaryForUser = async (user) => {
         const { salary, breakdown } = await calculateMonthlySalary(user.id);
 
         if (salary > 0) {
-            // Credit income wallet
-            user.incomeWallet = parseFloat(user.incomeWallet) + salary;
+            // Get system settings to check wallet destination
+            const SystemSetting = require('../models/SystemSetting');
+            const settings = await SystemSetting.findOne();
+            
+            // Credit configured wallet
+            const walletField = `${settings?.salaryWallet || 'income'}Wallet`;
+            user[walletField] = parseFloat(user[walletField]) + salary;
             user.lastSalaryDate = now;
             await user.save();
 

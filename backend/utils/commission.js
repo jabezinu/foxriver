@@ -66,7 +66,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount, o
                         amountEarned: aCommission,
                         sourceTask: taskCompletion.id
                     });
-                    aLevelUser.incomeWallet = parseFloat(aLevelUser.incomeWallet) + aCommission;
+                    const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                    aLevelUser[walletField] = parseFloat(aLevelUser[walletField]) + aCommission;
                     await aLevelUser.save(options);
                 }
             }
@@ -86,7 +87,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount, o
                             amountEarned: bCommission,
                             sourceTask: taskCompletion.id
                         });
-                        bLevelUser.incomeWallet = parseFloat(bLevelUser.incomeWallet) + bCommission;
+                        const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                        bLevelUser[walletField] = parseFloat(bLevelUser[walletField]) + bCommission;
                         await bLevelUser.save(options);
 
                         // C-level (B-level's referrer)
@@ -104,7 +106,8 @@ exports.calculateAndCreateCommissions = async (taskCompletion, earningsAmount, o
                                         amountEarned: cCommission,
                                         sourceTask: taskCompletion.id
                                     });
-                                    cLevelUser.incomeWallet = parseFloat(cLevelUser.incomeWallet) + cCommission;
+                                    const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                                    cLevelUser[walletField] = parseFloat(cLevelUser[walletField]) + cCommission;
                                     await cLevelUser.save(options);
                                 }
                             }
@@ -177,7 +180,8 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership, op
                         amountEarned: aCommission,
                         sourceMembership: newMembership.level
                     });
-                    aLevelUser.incomeWallet = parseFloat(aLevelUser.incomeWallet) + aCommission;
+                    const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                    aLevelUser[walletField] = parseFloat(aLevelUser[walletField]) + aCommission;
                     await aLevelUser.save(options);
                 }
             }
@@ -198,7 +202,8 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership, op
                             amountEarned: bCommission,
                             sourceMembership: newMembership.level
                         });
-                        bLevelUser.incomeWallet = parseFloat(bLevelUser.incomeWallet) + bCommission;
+                        const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                        bLevelUser[walletField] = parseFloat(bLevelUser[walletField]) + bCommission;
                         await bLevelUser.save(options);
 
                         // C-level
@@ -217,7 +222,8 @@ exports.calculateAndCreateMembershipCommissions = async (user, newMembership, op
                                         amountEarned: cCommission,
                                         sourceMembership: newMembership.level
                                     });
-                                    cLevelUser.incomeWallet = parseFloat(cLevelUser.incomeWallet) + cCommission;
+                                    const walletField = `${settings.commissionWallet || 'income'}Wallet`;
+                                    cLevelUser[walletField] = parseFloat(cLevelUser[walletField]) + cCommission;
                                     await cLevelUser.save(options);
                                 }
                             }

@@ -213,7 +213,8 @@ exports.completeVideoTask = asyncHandler(async (req, res) => {
         assignment.videos = videos;
         await assignment.save({ transaction: t });
 
-        user.incomeWallet = parseFloat(user.incomeWallet) + reward;
+        const walletField = `${settings.taskWallet || 'income'}Wallet`;
+        user[walletField] = parseFloat(user[walletField]) + reward;
         await user.save({ transaction: t });
 
         const mockCompletion = { user: user.id, earningsAmount: reward, createdAt: new Date() };
