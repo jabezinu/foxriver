@@ -61,39 +61,6 @@ class TransactionService {
                 });
 
                 if (newMembership) {
-                    // Calculate rank upgrade bonus (dynamic percentage for Rank 2 and above)
-                    let upgradeBonus = 0;
-                    const getCurrentRankNumber = (level) => {
-                        if (level === 'Intern') return 0;
-                        const match = level.match(/Rank (\d+)/);
-                        return match ? parseInt(match[1]) : 0;
-                    };
-
-                    const targetRankNumber = getCurrentRankNumber(rankUpgradeRequest.requestedLevel);
-
-                    // Apply dynamic bonus only from Rank 2 and above (not for Intern → Rank 1)
-                    if (targetRankNumber >= 2) {
-                        // Get dynamic bonus percentage from system settings
-                        const { SystemSetting } = require('../models');
-                        const settings = await SystemSetting.findOne();
-                        const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
-
-                        upgradeBonus = parseFloat(deposit.amount) * (parseFloat(bonusPercent) / 100);
-                        user.incomeWallet = parseFloat(user.incomeWallet) + upgradeBonus;
-                        logger.info('Rank upgrade bonus applied', {
-                            userId: user.id,
-                            targetRank: rankUpgradeRequest.requestedLevel,
-                            upgradeAmount: deposit.amount,
-                            bonusPercent: bonusPercent,
-                            bonusAmount: upgradeBonus
-                        });
-                    } else {
-                        logger.info('No bonus applied for upgrade to Rank 1', {
-                            userId: user.id,
-                            targetRank: rankUpgradeRequest.requestedLevel
-                        });
-                    }
-
                     // Update user's membership level
                     user.membershipLevel = rankUpgradeRequest.requestedLevel;
                     user.membershipActivatedAt = new Date();
@@ -113,8 +80,7 @@ class TransactionService {
                         rankUpgradeRequestId: rankUpgradeRequest.id,
                         userId: user.id,
                         newLevel: rankUpgradeRequest.requestedLevel,
-                        amountUsedForUpgrade: deposit.amount,
-                        bonusApplied: upgradeBonus
+                        amountUsedForUpgrade: deposit.amount
                     });
                 }
             }
@@ -253,21 +219,6 @@ class TransactionService {
                     // Revert user level to what it was before this upgrade
                     // Note: This logic assumes the upgrade was from request.currentLevel
                     user.membershipLevel = request.currentLevel;
-
-                    // Reverse bonus if it was applied
-                    const getCurrentRankNumber = (level) => {
-                        if (level === 'Intern') return 0;
-                        const match = level.match(/Rank (\d+)/);
-                        return match ? parseInt(match[1]) : 0;
-                    };
-                    const targetRankNumber = getCurrentRankNumber(request.requestedLevel);
-                    if (targetRankNumber >= 2) {
-                        const { SystemSetting } = require('../models');
-                        const settings = await SystemSetting.findOne({ transaction: t });
-                        const bonusPercent = settings?.rankUpgradeBonusPercent || 15.00;
-                        const upgradeBonus = parseFloat(deposit.amount) * (parseFloat(bonusPercent) / 100);
-                        user.incomeWallet = parseFloat(user.incomeWallet) - upgradeBonus;
-                    }
                     await user.save({ transaction: t });
 
                     // Revert upgrade request status
