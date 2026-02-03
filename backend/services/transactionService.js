@@ -30,6 +30,9 @@ class TransactionService {
             throw new AppError('User not found', 404);
         }
 
+        const { SystemSetting } = require('../models');
+        const settings = await SystemSetting.findOne() || {};
+
         // Use transaction to ensure atomicity
         await sequelize.transaction(async (t) => {
             // Check if this deposit is for a rank upgrade
@@ -37,9 +40,10 @@ class TransactionService {
 
             // Only credit user's personal balance if this is NOT a rank upgrade deposit
             if (!isRankUpgradeDeposit) {
-                user.personalWallet = parseFloat(user.personalWallet) + parseFloat(deposit.amount);
+                const walletField = `${settings.depositWallet || 'personal'}Wallet`;
+                user[walletField] = parseFloat(user[walletField]) + parseFloat(deposit.amount);
                 await user.save({ transaction: t });
-                logger.info('Regular deposit - credited to personal wallet', { depositId, amount: deposit.amount });
+                logger.info(`Regular deposit - credited to ${walletField}`, { depositId, amount: deposit.amount });
             } else {
                 logger.info('Rank upgrade deposit - amount used for upgrade, not credited to wallet', { depositId, amount: deposit.amount });
             }

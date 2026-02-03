@@ -6,7 +6,9 @@ const WalletAssignmentPanel = ({ settings, onUpdate, updating }) => {
         salaryWallet: settings?.salaryWallet || 'income',
         taskWallet: settings?.taskWallet || 'income',
         commissionWallet: settings?.commissionWallet || 'income',
-        rankUpgradeRefundWallet: settings?.rankUpgradeRefundWallet || 'personal'
+        rankUpgradeRefundWallet: settings?.rankUpgradeRefundWallet || 'personal',
+        spinWallet: settings?.spinWallet || 'income',
+        depositWallet: settings?.depositWallet || 'personal'
     });
 
     const handleChange = (field, value) => {
@@ -46,6 +48,18 @@ const WalletAssignmentPanel = ({ settings, onUpdate, updating }) => {
             label: 'Rank Refund Destination', 
             description: 'Where previous rank refunds go during an upgrade.',
             icon: <HiRefresh className="text-xl" />
+        },
+        { 
+            id: 'spinWallet', 
+            label: 'Spin Reward Destination', 
+            description: 'Where lucky wheel win rewards are deposited.',
+            icon: <HiLightningBolt className="text-xl" />
+        },
+        { 
+            id: 'depositWallet', 
+            label: 'Deposit Destination', 
+            description: 'Where approved manual deposits are credited.',
+            icon: <HiCurrencyDollar className="text-xl" />
         }
     ];
 

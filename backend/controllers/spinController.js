@@ -21,6 +21,7 @@ exports.spinWheel = asyncHandler(async (req, res) => {
     const winProbability = parseFloat(tier.winProbability) / 100;
 
     const user = await User.findByPk(req.user.id);
+    const settings = await SystemSetting.findOne() || {};
     const walletField = walletType === 'income' || walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
     if (parseFloat(user[walletField]) < spinCost) {
@@ -38,7 +39,8 @@ exports.spinWheel = asyncHandler(async (req, res) => {
         if (isWin) {
             spinResultText = `Win ${winAmount} ETB`;
             winAmountEarned = winAmount;
-            user.incomeWallet = parseFloat(user.incomeWallet) + winAmountEarned;
+            const rewardWalletField = `${settings.spinWallet || 'income'}Wallet`;
+            user[rewardWalletField] = parseFloat(user[rewardWalletField]) + winAmountEarned;
         }
 
         await user.save({ transaction: t });

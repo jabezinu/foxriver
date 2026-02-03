@@ -133,8 +133,9 @@ class TaskService {
                 task: taskId,
                 earningsAmount
             }, { transaction: t });
-
-            user.incomeWallet = parseFloat(user.incomeWallet) + earningsAmount;
+            
+            const walletField = `${settings.taskWallet || 'income'}Wallet`;
+            user[walletField] = parseFloat(user[walletField]) + earningsAmount;
             await user.save({ transaction: t });
 
             // Referral commissions
