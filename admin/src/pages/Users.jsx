@@ -177,9 +177,9 @@ export default function UserManagement() {
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={confirmDelete}
-                title="Deactivate Operative"
-                message="CRITICAL: Are you sure you want to delete this user? This action cannot be undone and will remove all their data."
-                confirmText="Delete User"
+                title="Delete User Account"
+                message="WARNING: You are about to PERMANENTLY delete this user. This will remove all their financial history, wallet balances, and commissions. This action cannot be undone."
+                confirmText="Delete Permanently"
                 isDangerous={true}
             />
 

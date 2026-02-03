@@ -16,7 +16,6 @@ const {
     Chat,
     Playlist,
     News,
-    QnA,
     sequelize
 } = require('../models');
 const adminService = require('../services/adminService');
@@ -282,8 +281,10 @@ exports.deleteUser = asyncHandler(async (req, res) => {
             Task.update({ uploadedBy: null }, { where: { uploadedBy: userId }, transaction: t }),
             Playlist.update({ addedBy: null }, { where: { addedBy: userId }, transaction: t }),
             News.update({ createdBy: null }, { where: { createdBy: userId }, transaction: t }),
-            QnA.update({ uploadedBy: null }, { where: { uploadedBy: userId }, transaction: t }),
-            User.update({ referrerId: null }, { where: { referrerId: userId }, transaction: t })
+            User.update({ referrerId: null }, { where: { referrerId: userId }, transaction: t }),
+            Deposit.update({ approvedBy: null }, { where: { approvedBy: userId }, transaction: t }),
+            Withdrawal.update({ approvedBy: null }, { where: { approvedBy: userId }, transaction: t }),
+            RankUpgradeRequest.update({ approvedBy: null }, { where: { approvedBy: userId }, transaction: t })
         ]);
 
         // 4. Finally delete the user
