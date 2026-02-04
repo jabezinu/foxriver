@@ -47,7 +47,7 @@ export default function WithdrawalRequests() {
         'Account Name', 'Account Number', 'Admin Notes', 'Disbursed By', 'Disbursed At'
     ];
 
-    const handleGenerateExport = async (selectedColumns, scope, customDate) => {
+    const handleGenerateExport = async (selectedColumns, scope, startDate, endDate) => {
         let dataToExport = withdrawals;
 
         if (scope === 'all') {
@@ -64,22 +64,27 @@ export default function WithdrawalRequests() {
             const loadToast = toast.loading('Synchronizing daily payout matrix...');
             try {
                 const today = new Date();
-                const startDate = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-                const endDate = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-                const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
+                const start = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                const end = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminWithdrawalAPI.getWithdrawals({ startDate: start, endDate: end });
                 dataToExport = res.data.withdrawals;
                 toast.dismiss(loadToast);
             } catch (error) {
                 toast.error('Failed to sync daily matrix', { id: loadToast });
                 return;
             }
-        } else if (scope === 'custom' && customDate) {
-            const loadToast = toast.loading(`Synchronizing payout matrix for ${customDate}...`);
+        } else if (scope === 'custom' && startDate && endDate) {
+            const loadToast = toast.loading(`Synchronizing payout matrix for ${startDate} to ${endDate}...`);
             try {
-                const date = new Date(customDate);
-                const startDate = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-                const endDate = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-                const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+
+                const res = await adminWithdrawalAPI.getWithdrawals({ 
+                    startDate: start.toISOString(), 
+                    endDate: end.toISOString() 
+                });
                 dataToExport = res.data.withdrawals;
                 toast.dismiss(loadToast);
             } catch (error) {
@@ -117,7 +122,7 @@ export default function WithdrawalRequests() {
             return filteredRecord;
         });
 
-        const fileName = scope === 'all' ? 'Withdrawals_Full_Ledger' : (scope === 'today' ? 'Withdrawals_Daily_Report' : (scope === 'custom' ? `Withdrawals_Report_${customDate}` : `Withdrawals_${filterStatus}`));
+        const fileName = scope === 'all' ? 'Withdrawals_Full_Ledger' : (scope === 'today' ? 'Withdrawals_Daily_Report' : (scope === 'custom' ? `Withdrawals_Report_${startDate}_to_${endDate}` : `Withdrawals_${filterStatus}`));
         exportToCSV(exportData, selectedColumns, fileName);
         toast.success('Professional Payout Matrix Exported');
     };
@@ -172,12 +177,18 @@ export default function WithdrawalRequests() {
                 totalCount={totalCount}
                 type="Withdrawals"
                 currentFilter={filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
-                onDateCheck={async (date) => {
-                    const d = new Date(date);
-                    const startDate = new Date(d.setHours(0, 0, 0, 0)).toISOString();
-                    const endDate = new Date(d.setHours(23, 59, 59, 999)).toISOString();
-                    const res = await adminWithdrawalAPI.getWithdrawals({ startDate, endDate });
-                    return res.data.withdrawals.length;
+                onDateCheck={async (start, end) => {
+                    const s = new Date(start);
+                    s.setHours(0, 0, 0, 0);
+                    const e = new Date(end);
+                    e.setHours(23, 59, 59, 999);
+                    const res = await adminWithdrawalAPI.getWithdrawals({ 
+                        startDate: s.toISOString(), 
+                        endDate: e.toISOString() 
+                    });
+                    const withdrawals = res.data.withdrawals;
+                    const total = withdrawals.reduce((sum, wit) => sum + (parseFloat(wit.netAmount) || 0), 0);
+                    return { count: withdrawals.length, total };
                 }}
             />
 

@@ -48,7 +48,7 @@ export default function DepositRequests() {
         'Admin Notes', 'Processed By', 'Processed At'
     ];
 
-    const handleGenerateExport = async (selectedColumns, scope, customDate) => {
+    const handleGenerateExport = async (selectedColumns, scope, startDate, endDate) => {
         let dataToExport = deposits;
 
         if (scope === 'all') {
@@ -65,22 +65,27 @@ export default function DepositRequests() {
             const loadToast = toast.loading('Synchronizing daily financial ledger...');
             try {
                 const today = new Date();
-                const startDate = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-                const endDate = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-                const res = await adminDepositAPI.getDeposits({ startDate, endDate });
+                const start = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                const end = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                const res = await adminDepositAPI.getDeposits({ startDate: start, endDate: end });
                 dataToExport = res.data.deposits;
                 toast.dismiss(loadToast);
             } catch (error) {
                 toast.error('Failed to sync daily ledger', { id: loadToast });
                 return;
             }
-        } else if (scope === 'custom' && customDate) {
-            const loadToast = toast.loading(`Synchronizing ledger for ${customDate}...`);
+        } else if (scope === 'custom' && startDate && endDate) {
+            const loadToast = toast.loading(`Synchronizing ledger for ${startDate} to ${endDate}...`);
             try {
-                const date = new Date(customDate);
-                const startDate = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-                const endDate = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-                const res = await adminDepositAPI.getDeposits({ startDate, endDate });
+                const start = new Date(startDate);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                
+                const res = await adminDepositAPI.getDeposits({ 
+                    startDate: start.toISOString(), 
+                    endDate: end.toISOString() 
+                });
                 dataToExport = res.data.deposits;
                 toast.dismiss(loadToast);
             } catch (error) {
@@ -112,7 +117,7 @@ export default function DepositRequests() {
             return filteredRecord;
         });
 
-        const fileName = scope === 'all' ? 'Deposits_Full_Ledger' : (scope === 'today' ? 'Deposits_Daily_Report' : (scope === 'custom' ? `Deposits_Report_${customDate}` : `Deposits_${filterStatus}`));
+        const fileName = scope === 'all' ? 'Deposits_Full_Ledger' : (scope === 'today' ? 'Deposits_Daily_Report' : (scope === 'custom' ? `Deposits_Report_${startDate}_to_${endDate}` : `Deposits_${filterStatus}`));
         exportToCSV(exportData, selectedColumns, fileName);
         toast.success('Professional Ledger Exported');
     };
@@ -168,12 +173,18 @@ export default function DepositRequests() {
                 totalCount={totalCount}
                 type="Deposits"
                 currentFilter={filterStatus === 'ft_submitted' ? 'Pending' : filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
-                onDateCheck={async (date) => {
-                    const d = new Date(date);
-                    const startDate = new Date(d.setHours(0, 0, 0, 0)).toISOString();
-                    const endDate = new Date(d.setHours(23, 59, 59, 999)).toISOString();
-                    const res = await adminDepositAPI.getDeposits({ startDate, endDate });
-                    return res.data.deposits.length;
+                onDateCheck={async (start, end) => {
+                    const s = new Date(start);
+                    s.setHours(0, 0, 0, 0);
+                    const e = new Date(end);
+                    e.setHours(23, 59, 59, 999);
+                    const res = await adminDepositAPI.getDeposits({ 
+                        startDate: s.toISOString(), 
+                        endDate: e.toISOString() 
+                    });
+                    const deposits = res.data.deposits;
+                    const total = deposits.reduce((sum, dep) => sum + (parseFloat(dep.amount) || 0), 0);
+                    return { count: deposits.length, total };
                 }}
             />
 

@@ -24,8 +24,9 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
     const [selectedColumns, setSelectedColumns] = useState([]);
     const [activePreset, setActivePreset] = useState('full');
     const [exportScope, setExportScope] = useState('single'); // 'single', 'custom', or 'all'
-    const [customDate, setCustomDate] = useState(new Date().toISOString().split('T')[0]);
-    const [customDateCount, setCustomDateCount] = useState(null);
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [customDateStats, setCustomDateStats] = useState({ count: null, total: null });
     const [checkingCount, setCheckingCount] = useState(false);
 
     useEffect(() => {
@@ -33,28 +34,34 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
             setSelectedColumns(columns);
             setActivePreset('full');
             setExportScope('single');
-            checkDate(customDate);
+            checkDateRange(startDate, endDate);
         }
     }, [isOpen, columns]);
 
-    const checkDate = async (date) => {
+    const checkDateRange = async (start, end) => {
         if (!onDateCheck) return;
         setCheckingCount(true);
         try {
-            const count = await onDateCheck(date);
-            setCustomDateCount(count);
+            const stats = await onDateCheck(start, end);
+            setCustomDateStats(stats);
         } catch (error) {
             console.error(error);
-            setCustomDateCount('?');
+            setCustomDateStats({ count: '?', total: '?' });
         } finally {
             setCheckingCount(false);
         }
     };
 
-    const handleDateChange = (e) => {
+    const handleStartDateChange = (e) => {
         const date = e.target.value;
-        setCustomDate(date);
-        checkDate(date);
+        setStartDate(date);
+        checkDateRange(date, endDate);
+    };
+
+    const handleEndDateChange = (e) => {
+        const date = e.target.value;
+        setEndDate(date);
+        checkDateRange(startDate, date);
     };
 
     const toggleColumn = (col) => {
@@ -75,11 +82,12 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
     };
 
     const handleExport = () => {
-        onExport(selectedColumns, exportScope, customDate);
+        onExport(selectedColumns, exportScope, startDate, endDate);
         onClose();
     };
 
-    const displayCount = exportScope === 'all' ? totalCount : (exportScope === 'custom' ? (customDateCount ?? 0) : dataCount);
+    const displayCount = exportScope === 'all' ? totalCount : (exportScope === 'custom' ? (customDateStats.count ?? 0) : dataCount);
+    const displayTotal = exportScope === 'custom' ? (customDateStats.total ?? 0) : null;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Export ${type} Data`}>
@@ -124,19 +132,42 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
                 {/* Date Picker for Custom Scope */}
                 {exportScope === 'custom' && (
                     <div className="bg-white border border-gray-100 rounded-2xl p-4 animate-fadeIn">
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Choose Target Date</label>
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
-                                {checkingCount ? 'Checking...' : `${customDateCount ?? 0} Total Records (All Statuses)`}
-                            </span>
+                        <div className="flex justify-between items-center mb-4">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Choose Target Range</label>
+                            <div className="text-right">
+                                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">
+                                    {checkingCount ? 'Checking...' : `${customDateStats.count ?? 0} Total Records`}
+                                </p>
+                                {!checkingCount && customDateStats.total !== null && (
+                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">
+                                        Total: {customDateStats.total.toLocaleString()} ETB
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                        <input
-                            type="date"
-                            value={customDate}
-                            onChange={handleDateChange}
-                            max={new Date().toISOString().split('T')[0]}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={handleStartDateChange}
+                                    max={endDate || new Date().toISOString().split('T')[0]}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">End Date</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={handleEndDateChange}
+                                    min={startDate}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                />
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -145,9 +176,14 @@ export default function ExportModal({ isOpen, onClose, onExport, columns, dataCo
                     <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
                         <HiOutlineDocumentDownload className="text-2xl" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                         <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Exporting</p>
-                        <p className="text-xl font-black text-indigo-900 tracking-tighter">{displayCount} Records</p>
+                        <div className="flex items-baseline justify-between">
+                            <p className="text-xl font-black text-indigo-900 tracking-tighter">{displayCount} Records</p>
+                            {displayTotal !== null && (
+                                <p className="text-sm font-black text-emerald-600 tracking-tighter">{displayTotal.toLocaleString()} ETB</p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
