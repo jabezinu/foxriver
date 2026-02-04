@@ -51,6 +51,7 @@ export default function ReferralSettingsForm({ settings, onChange, onSave, savin
                                         type="number"
                                         value={settings.maxReferralsPerUser}
                                         onChange={(e) => onChange({ ...settings, maxReferralsPerUser: Number(e.target.value) })}
+                                        onWheel={(e) => e.target.blur()}
                                         className="admin-input pr-10 font-black text-indigo-600"
                                         placeholder="0 for unlimited"
                                         required
@@ -132,6 +133,7 @@ function ScaleInput({ label, value, onChange }) {
                     type="number"
                     value={value}
                     onChange={(e) => onChange(Number(e.target.value))}
+                    onWheel={(e) => e.target.blur()}
                     className="admin-input pr-10 font-black text-indigo-600"
                     required
                 />
@@ -163,6 +165,7 @@ function SalaryRule({ title, thresholdLabel, threshold, amount, onThresholdChang
                         className="admin-input py-2 text-xs font-black"
                         value={threshold}
                         onChange={(e) => onThresholdChange(Number(e.target.value))}
+                        onWheel={(e) => e.target.blur()}
                         required
                     />
                 </div>
@@ -173,6 +176,7 @@ function SalaryRule({ title, thresholdLabel, threshold, amount, onThresholdChang
                         className="admin-input py-2 text-xs font-black"
                         value={amount}
                         onChange={(e) => onAmountChange(Number(e.target.value))}
+                        onWheel={(e) => e.target.blur()}
                         required
                     />
                 </div>

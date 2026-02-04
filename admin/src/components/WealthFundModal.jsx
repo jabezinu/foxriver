@@ -75,6 +75,7 @@ export default function WealthFundModal({ isOpen, fund, form, onChange, onClose,
                                     type="number"
                                     value={form.days}
                                     onChange={(e) => onChange({ ...form, days: e.target.value })}
+                                    onWheel={(e) => e.target.blur()}
                                     className="admin-input pl-10"
                                     min="1"
                                     required
@@ -103,6 +104,7 @@ export default function WealthFundModal({ isOpen, fund, form, onChange, onClose,
                                 step="0.01"
                                 value={form.dailyProfit}
                                 onChange={(e) => onChange({ ...form, dailyProfit: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 className="admin-input text-emerald-600 font-bold"
                                 min="0"
                                 required
@@ -115,6 +117,7 @@ export default function WealthFundModal({ isOpen, fund, form, onChange, onClose,
                                 type="number"
                                 value={form.minimumDeposit}
                                 onChange={(e) => onChange({ ...form, minimumDeposit: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 className="admin-input"
                                 min="0"
                                 required

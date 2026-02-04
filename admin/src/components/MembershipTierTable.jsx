@@ -53,6 +53,7 @@ export default function MembershipTierTable({ tiers, editingPrices, onEditPrice,
                                                 type="number"
                                                 value={editingPrices[tier.id]}
                                                 onChange={(e) => onPriceChange(tier.id, e.target.value)}
+                                                onWheel={(e) => e.target.blur()}
                                                 disabled={isSaving || isIntern}
                                                 className="w-28 admin-input py-1 px-2 text-xs font-black"
                                                 min="0"

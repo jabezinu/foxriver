@@ -41,6 +41,7 @@ export default function SlotTierModal({ isOpen, tier, form, onChange, onClose, o
                                 name="betAmount"
                                 value={form.betAmount}
                                 onChange={e => onChange({ ...form, betAmount: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 required
                                 min="1"
                                 className="admin-input"
@@ -53,6 +54,7 @@ export default function SlotTierModal({ isOpen, tier, form, onChange, onClose, o
                                 name="winAmount"
                                 value={form.winAmount}
                                 onChange={e => onChange({ ...form, winAmount: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 required
                                 min="1"
                                 className="admin-input"
@@ -68,6 +70,7 @@ export default function SlotTierModal({ isOpen, tier, form, onChange, onClose, o
                                 name="winProbability"
                                 value={form.winProbability}
                                 onChange={e => onChange({ ...form, winProbability: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 required
                                 min="0"
                                 max="100"
@@ -82,6 +85,7 @@ export default function SlotTierModal({ isOpen, tier, form, onChange, onClose, o
                                 name="order"
                                 value={form.order}
                                 onChange={e => onChange({ ...form, order: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                                 min="0"
                                 className="admin-input"
                             />

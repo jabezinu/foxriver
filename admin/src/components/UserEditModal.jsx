@@ -38,6 +38,7 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                                 className="admin-input font-bold text-green-600"
                                 value={form.incomeWallet}
                                 onChange={e => onChange({ ...form, incomeWallet: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                             />
                         </div>
                         <div>
@@ -48,6 +49,7 @@ export default function UserEditModal({ user, form, onChange, onClose, onSave })
                                 className="admin-input font-bold text-blue-600"
                                 value={form.personalWallet}
                                 onChange={e => onChange({ ...form, personalWallet: e.target.value })}
+                                onWheel={(e) => e.target.blur()}
                             />
                         </div>
                     </div>
