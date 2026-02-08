@@ -18,8 +18,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // target: 'http://localhost:5002',
-        target: 'https://nov-be.novis2026.net',
+        target: 'http://localhost:5002',
+        // target: 'https://nov-be.novis2026.net',
+        // target: 'https://nov-bee.novis2026.net',
         changeOrigin: true,
         secure: false,
       }
