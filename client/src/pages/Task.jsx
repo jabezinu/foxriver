@@ -179,40 +179,41 @@ export default function Task() {
             </Card> */}
 
             {/* Earnings Progress Card */}
-            <Card className="p-5 bg-gradient-to-r from-emerald-900/20 to-primary-900/20 border-emerald-800/30 shadow-lg shadow-black/20 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                            <TrendingUp size={16} />
+            <Card className="p-6 bg-zinc-900 border-2 border-yellow-500/50 shadow-[0_0_40px_rgba(234,179,8,0.2)] mb-8 relative overflow-hidden rounded-[2.5rem]">
+                <div className="absolute inset-0 bg-yellow-500/5 pointer-events-none"></div>
+                <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center border-2 border-yellow-500/20 shadow-lg">
+                            <TrendingUp size={20} strokeWidth={2.5} />
                         </div>
-                        <h3 className="font-bold text-white text-sm uppercase tracking-wide">Today's Progress</h3>
+                        <h3 className="font-black text-white text-base uppercase tracking-tighter">Today's Progress</h3>
                     </div>
                     <div className="text-right">
-                        <p className="text-emerald-400 font-bold text-lg">{formatNumber(earningsStats.todayEarnings)} ETB</p>
-                        <p className="text-xs text-zinc-500">of {formatNumber(earningsStats.totalPossibleEarnings)} ETB</p>
+                        <p className="text-yellow-400 font-black text-2xl drop-shadow-md">{formatNumber(earningsStats.todayEarnings)} ETB</p>
+                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-tight">of {formatNumber(earningsStats.totalPossibleEarnings)} ETB</p>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm mb-3">
+                <div className="flex items-center justify-between text-sm mb-4 relative z-10">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5">
-                            <CheckCircle size={14} className="text-emerald-400" />
-                            <span className="text-zinc-300">{earningsStats.completedTasks} completed</span>
+                            <CheckCircle size={16} className="text-emerald-400" strokeWidth={2.5} />
+                            <span className="text-zinc-300 font-bold">{earningsStats.completedTasks} completed</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <Target size={14} className="text-primary-400" />
-                            <span className="text-zinc-300">{earningsStats.remainingTasks} remaining</span>
+                            <Target size={16} className="text-yellow-500" strokeWidth={2.5} />
+                            <span className="text-zinc-300 font-bold">{earningsStats.remainingTasks} remaining</span>
                         </div>
                     </div>
-                    <div className="text-zinc-400 text-xs">
-                        {tasks.length > 0 ? Math.round((earningsStats.completedTasks / tasks.length) * 100) : 0}% complete
+                    <div className="text-white font-black text-sm">
+                        {tasks.length > 0 ? Math.round((earningsStats.completedTasks / tasks.length) * 100) : 0}%
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden border border-zinc-700 relative z-10">
                     <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-primary-500 transition-all duration-500 ease-out"
+                        className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-700 ease-out shadow-[0_0_15px_rgba(234,179,8,0.5)]"
                         style={{
                             width: tasks.length > 0 ? `${(earningsStats.completedTasks / tasks.length) * 100}%` : '0%'
                         }}
@@ -220,17 +221,17 @@ export default function Task() {
                 </div>
             </Card>
 
-            <h3 className="font-bold text-white mb-5 flex items-center gap-2 text-sm uppercase tracking-wide px-1">
-                <div className="w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-500/20">
-                    <Video size={16} />
+            <h3 className="font-black text-white mb-6 flex items-center gap-3 text-base uppercase tracking-widest px-1">
+                <div className="w-10 h-10 rounded-2xl bg-yellow-500/20 text-yellow-500 flex items-center justify-center border-2 border-yellow-500/30 shadow-lg shadow-yellow-500/20">
+                    <Video size={20} strokeWidth={3} />
                 </div>
-                Today's Tasks
+                Active Missions
             </h3>
 
             {/* Task List */}
             <div className="space-y-4">
                 {tasks.length === 0 ? (
-                    <div className="text-center py-16 bg-zinc-900 rounded-3xl border-2 border-dashed border-zinc-800 mx-1">
+                    <div className="text-center py-16 bg-zinc-800 rounded-3xl border-2 border-dashed border-zinc-700 mx-1">
                         <div className="w-16 h-16 bg-zinc-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-800">
                             <Clock className="text-zinc-600" size={24} />
                         </div>
@@ -239,81 +240,101 @@ export default function Task() {
                     </div>
                 ) : (
                     tasks.map((task) => (
-                        <Card key={task._id} className={`p-4 flex items-center gap-4 transition-all border-zinc-800 group ${internRestriction && !internRestriction.canEarn
-                            ? 'bg-zinc-900/50 opacity-60'
-                            : 'hover:bg-zinc-800/80 bg-zinc-900'
-                            }`}>
-                            <div className="relative">
-                                <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted
-                                    ? 'bg-zinc-950 text-zinc-600 border border-zinc-800'
-                                    : internRestriction && !internRestriction.canEarn
-                                        ? 'bg-zinc-950/50 text-zinc-700 border border-zinc-800'
-                                        : 'bg-primary-500/10 text-primary-500 border border-primary-500/20'
-                                    }`}>
-                                    <Video size={32} strokeWidth={1.5} className={
-                                        internRestriction && !internRestriction.canEarn
-                                            ? ''
-                                            : 'group-hover:scale-110 transition-transform'
-                                    } />
-                                </div>
-                                {(task.isCompleted || (internRestriction && !internRestriction.canEarn)) &&
-                                    <div className="absolute inset-0 bg-black/40 rounded-2xl" />
-                                }
-                            </div>
+                        <div 
+                            key={task._id} 
+                            onClick={!task.isCompleted && (!internRestriction || internRestriction.canEarn) ? () => handleViewVideo(task) : undefined}
+                            className={`
+                                group relative p-[2.5px] rounded-[2rem] overflow-hidden transition-all duration-500 mb-6
+                                ${!task.isCompleted && (!internRestriction || internRestriction.canEarn) 
+                                    ? 'hover:shadow-[0_25px_60px_rgba(234,179,8,0.5)] cursor-pointer active:scale-[0.98]' 
+                                    : 'opacity-90 shadow-2xl'}
+                            `}
+                        >
+                            {/* Animated Spinning Border */}
+                            {!task.isCompleted && (!internRestriction || internRestriction.canEarn) && (
+                                <div className="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_25%,#fbbf24_50%,transparent_75%)] animate-spin-slow opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
+                            )}
 
-                            <div className="flex-1 min-w-0">
-                                <p className={`font-bold text-sm leading-tight mb-2 truncate transition-colors ${internRestriction && !internRestriction.canEarn
-                                    ? 'text-zinc-500'
-                                    : 'text-zinc-200 group-hover:text-primary-400'
-                                    }`}>
-                                    {task.title}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${internRestriction && !internRestriction.canEarn
-                                        ? 'bg-zinc-950/50 text-zinc-600 border-zinc-800'
-                                        : 'bg-zinc-950 text-zinc-400 border-zinc-800'
+                            {/* Main Card Fill (Electric Glass) */}
+                            <div className={`
+                                relative z-10 flex items-center gap-5 p-6 rounded-[calc(2rem-2px)] h-full transition-all duration-500 overflow-hidden
+                                ${task.isCompleted 
+                                    ? 'bg-zinc-900/80 border border-zinc-800 opacity-70' 
+                                    : internRestriction && !internRestriction.canEarn
+                                        ? 'bg-zinc-800/60 border border-zinc-700 opacity-50'
+                                        : 'bg-orange-500/[0.08] backdrop-blur-2xl border-2 border-orange-500/40 shadow-[0_0_40px_rgba(249,115,22,0.15)] group-hover:bg-orange-500/15'}
+                            `}>
+                                {/* Supercharged Orange Illumination */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-orange-400/40 via-orange-400/5 to-transparent pointer-events-none opacity-100"></div>
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none"></div>
+
+                                <div className="relative z-20">
+                                    <div className={`w-20 h-20 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${task.isCompleted
+                                        ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                                        : internRestriction && !internRestriction.canEarn
+                                            ? 'bg-zinc-800/50 text-zinc-700 border border-zinc-700'
+                                            : 'bg-yellow-500 text-zinc-950 border-2 border-white/30 shadow-[0_0_20px_rgba(234,179,8,0.5)]'
                                         }`}>
-                                        <span>
-                                            {internRestriction && !internRestriction.canEarn
-                                                ? 'No Earnings'
-                                                : `+${formatNumber(task.earnings)} ETB`
-                                            }
-                                        </span>
+                                        <Video size={36} strokeWidth={3} className={
+                                            internRestriction && !internRestriction.canEarn
+                                                ? ''
+                                                : 'group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 drop-shadow-xl'
+                                        } />
                                     </div>
                                     {task.isCompleted && (
-                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-900/30 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-800/50">
-                                            <CheckCircle size={8} />
-                                            <span>Earned</span>
-                                        </div>
-                                    )}
-                                    {internRestriction && !internRestriction.canEarn && (
-                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-900/30 text-red-400 text-[9px] font-bold uppercase tracking-wider border border-red-800/50">
-                                            <X size={8} />
-                                            <span>Disabled</span>
+                                        <div className="absolute -top-3 -right-3 bg-emerald-500 text-zinc-950 rounded-full p-1.5 shadow-2xl border-4 border-zinc-900">
+                                            <CheckCircle size={18} strokeWidth={4} />
                                         </div>
                                     )}
                                 </div>
-                            </div>
 
-                            <div className="flex-shrink-0">
-                                {task.isCompleted ? (
-                                    <div className="flex flex-col items-center gap-1 text-emerald-500">
-                                        <CheckCircle size={28} fill="currentColor" className="text-zinc-950" />
+                                <div className="flex-1 min-w-0 relative z-20">
+                                    <p className={`font-black text-xl leading-tight mb-1 truncate transition-colors ${internRestriction && !internRestriction.canEarn
+                                        ? 'text-zinc-500'
+                                        : task.isCompleted ? 'text-zinc-400' : 'text-white'
+                                        }`}>
+                                        {task.title}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[12px] font-black uppercase tracking-wider border-2 ${internRestriction && !internRestriction.canEarn
+                                            ? 'bg-zinc-900/50 text-zinc-600 border-zinc-800'
+                                            : task.isCompleted ? 'bg-zinc-800 text-zinc-500 border-zinc-700' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
+                                            }`}>
+                                            <span className="text-zinc-500 uppercase text-[10px]">Income:</span>
+                                            <span className="text-yellow-400">
+                                                {internRestriction && !internRestriction.canEarn
+                                                    ? 'Locked'
+                                                    : `+${formatNumber(task.earnings)} ETB`
+                                                }
+                                            </span>
+                                        </div>
                                     </div>
-                                ) : internRestriction && !internRestriction.canEarn ? (
-                                    <div className="h-10 w-10 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-600 cursor-not-allowed">
-                                        <X size={18} />
+                                </div>
+
+                                <div className="flex-shrink-0 relative z-20">
+                                    {task.isCompleted ? (
+                                        <div className="w-14 h-14 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500 border-2 border-emerald-500/30">
+                                            <CheckCircle size={28} strokeWidth={3} />
+                                        </div>
+                                    ) : internRestriction && !internRestriction.canEarn ? (
+                                        <div className="w-14 h-14 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-600 border border-zinc-700 opacity-50">
+                                            <X size={24} strokeWidth={3} />
+                                        </div>
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-zinc-950 text-white shadow-2xl group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 group-hover:bg-black border-4 border-white/20">
+                                            <Play size={28} fill="currentColor" strokeWidth={0} className="ml-1.5" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Animated Shine Overlay */}
+                                {!task.isCompleted && (!internRestriction || internRestriction.canEarn) && (
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none rounded-[2rem] overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-20 translate-x-[-250%] group-hover:translate-x-[250%] transition-transform duration-1000 ease-in-out"></div>
                                     </div>
-                                ) : (
-                                    <Button
-                                        onClick={() => handleViewVideo(task)}
-                                        className="h-10 px-4 rounded-full flex items-center justify-center gap-2 shadow-glow border-none bg-primary-500 hover:bg-primary-600 text-black group-hover:scale-105 transition-transform"
-                                    >
-                                        <Play size={16} fill="currentColor" className="ml-0.5" />
-                                    </Button>
                                 )}
                             </div>
-                        </Card>
+                        </div>
                     ))
                 )}
             </div>

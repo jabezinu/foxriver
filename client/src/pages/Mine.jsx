@@ -178,69 +178,73 @@ export default function Mine() {
             </div>
 
             <div className="px-5 pt-6 pb-2">
-                {/* User Info Card */}
-                <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-6 border border-zinc-800">
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            {profile.profilePhoto ? (
-                                <img
-                                    src={getProfileImageUrl()}
-                                    alt="Profile"
-                                    className="w-20 h-20 rounded-2xl object-cover shadow-glow"
-                                />
-                            ) : (
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-white text-3xl font-black shadow-glow">
-                                    {profile.name ? profile.name.charAt(0).toUpperCase() : profile.phone.slice(-1)}
-                                </div>
-                            )}
-                            <label
-                                htmlFor="photo-upload"
-                                className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-600 transition-colors shadow-lg border-2 border-zinc-900"
-                            >
-                                {uploadingPhoto ? (
-                                    <img 
-                                        src={logo} 
-                                        alt="Uploading" 
-                                        className="w-4 h-4 object-contain animate-pulse"
-                                    />
+                {/* User Info Card (Luminous Orange Glass) */}
+                <div className="group relative p-[2.5px] rounded-[2.5rem] overflow-hidden mb-8">
+                    <div className="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_25%,#f97316_50%,transparent_75%)] animate-spin-slow opacity-70 group-hover:opacity-100 transition-all duration-500 pointer-events-none"></div>
+                    <div className="relative z-10 bg-orange-500/[0.08] backdrop-blur-3xl rounded-[calc(2.5rem-2px)] p-6 shadow-[0_0_50px_rgba(249,115,22,0.15)] border-2 border-orange-500/40 overflow-hidden group-hover:bg-orange-500/15 transition-all duration-500">
+                        {/* Supercharged Orange Illumination */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-400/40 via-orange-400/5 to-transparent pointer-events-none opacity-100"></div>
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none"></div>
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="relative">
+                                {profile.profilePhoto ? (
+                                    <div className="p-1 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 shadow-lg">
+                                        <img
+                                            src={getProfileImageUrl()}
+                                            alt="Profile"
+                                            className="w-20 h-20 rounded-xl object-cover border-2 border-black/20"
+                                        />
+                                    </div>
                                 ) : (
-                                    <Camera size={16} className="text-white" />
+                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center text-zinc-950 text-3xl font-black shadow-[0_0_20px_rgba(234,179,8,0.3)] border-2 border-white/20">
+                                        {profile.name ? profile.name.charAt(0).toUpperCase() : profile.phone.slice(-1)}
+                                    </div>
                                 )}
-                            </label>
-                            <input
-                                id="photo-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoUpload}
-                                className="hidden"
-                                disabled={uploadingPhoto}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <h2 className="text-2xl font-bold text-white mb-1">
-                                {profile.name || 'Set your name'}
-                            </h2>
-                            <p className="text-sm text-zinc-400 mb-2">{profile.phone}</p>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800 text-primary-500 text-xs font-bold uppercase tracking-wider border border-zinc-700">
-                                <User size={12} fill="currentColor" />
-                                <span>{profile.membershipLevel} Member</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <button
-                                onClick={() => setShowProfileModal(true)}
-                                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-all"
-                            >
-                                <Edit2 size={20} />
-                            </button>
-                            {profile.profilePhoto && (
-                                <button
-                                    onClick={handleDeletePhoto}
-                                    className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded-full transition-all"
+                                <label
+                                    htmlFor="photo-upload"
+                                    className="absolute -bottom-1 -right-1 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-yellow-400 transition-all shadow-xl border-2 border-black/50 text-zinc-950"
                                 >
-                                    <Trash2 size={20} />
+                                    {uploadingPhoto ? (
+                                        <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent animate-spin rounded-full"></div>
+                                    ) : (
+                                        <Camera size={16} strokeWidth={3} />
+                                    )}
+                                </label>
+                                <input
+                                    id="photo-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoUpload}
+                                    className="hidden"
+                                    disabled={uploadingPhoto}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-2xl font-black text-white tracking-tight leading-none mb-1.5 drop-shadow-sm">
+                                    {profile.name || 'Set your name'}
+                                </h2>
+                                <p className="text-sm font-bold text-zinc-500 mb-3 tracking-wide">{profile.phone}</p>
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase tracking-widest border border-yellow-500/20 shadow-inner">
+                                    <User size={12} strokeWidth={3} />
+                                    <span>{profile.membershipLevel} Founder</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => setShowProfileModal(true)}
+                                    className="p-2.5 bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition-all shadow-xl"
+                                >
+                                    <Edit2 size={18} strokeWidth={2.5} />
                                 </button>
-                            )}
+                                {profile.profilePhoto && (
+                                    <button
+                                        onClick={handleDeletePhoto}
+                                        className="p-2.5 bg-red-500/5 border border-red-500/10 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                    >
+                                        <Trash2 size={18} strokeWidth={2.5} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -293,100 +297,81 @@ export default function Mine() {
                     </Card>
                 )}
 
-                {/* Wallets */}
-                <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">My Assets</h3>
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                    <Card className="p-3 border-zinc-800 hover:border-primary-500/30 transition-shadow bg-zinc-900">
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 border border-emerald-500/20">
-                                <Wallet size={18} />
+                {/* Wallets (Electric Glass) */}
+                <h3 className="text-[10px] font-black text-zinc-500 px-2 uppercase tracking-[0.2em] mb-4">Capital Allocation</h3>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <Card className="p-5 border-2 border-orange-500/30 bg-orange-500/[0.08] backdrop-blur-3xl rounded-[2rem] relative overflow-hidden group shadow-[0_10px_30px_rgba(0,0,0,0.3)]">
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/50 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="flex items-start justify-between mb-3 relative z-10">
+                            <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20 shadow-inner">
+                                <Wallet size={20} strokeWidth={2.5} />
                             </div>
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Available</span>
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-1">Liquid</span>
                         </div>
-                        <p className="text-lg font-bold text-emerald-400">{formatNumber(wallet.incomeWallet)}</p>
-                        <p className="text-xs text-zinc-500 font-medium">Income</p>
+                        <p className="text-xl font-black text-white leading-none mb-1 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{formatNumber(wallet.incomeWallet)}</p>
+                        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-tighter">Income Wallet</p>
                     </Card>
 
-                    <Card className="p-3 border-zinc-800 hover:border-blue-500/30 transition-shadow bg-zinc-900">
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500 border border-blue-500/20">
-                                <Briefcase size={18} />
+                    <Card className="p-4 border border-white/10 bg-zinc-950/40 backdrop-blur-xl rounded-3xl relative overflow-hidden group shadow-2xl">
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-yellow-500/0 via-yellow-500/50 to-yellow-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="flex items-start justify-between mb-3 relative z-10">
+                            <div className="p-2.5 bg-yellow-500/10 rounded-xl text-yellow-500 border border-yellow-500/20 shadow-inner">
+                                <Briefcase size={20} strokeWidth={2.5} />
                             </div>
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Fixed</span>
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-1">Locked</span>
                         </div>
-                        <p className="text-lg font-bold text-blue-400">{formatNumber(wallet.personalWallet)}</p>
-                        <p className="text-xs text-zinc-500 font-medium">Personal</p>
+                        <p className="text-xl font-black text-white leading-none mb-1 drop-shadow-[0_0_10px_rgba(234,179,8,0.3)]">{formatNumber(wallet.personalWallet)}</p>
+                        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-tighter">Personal Assets</p>
                     </Card>
                 </div>
 
-                {/* Quick Actions */}
-                <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">Financial Management</h3>
+                {/* Quick Actions (Electric Glass) */}
+                <h3 className="text-[10px] font-black text-zinc-500 px-1 uppercase tracking-[0.2em] mb-4">Banking HUB</h3>
                 <div className="space-y-3 mb-8">
-                    <div
-                        onClick={() => navigate('/transaction-status')}
-                        className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
-                    >
-                        <div className="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-500 group-hover:scale-110 transition-transform border border-primary-500/20">
-                            <Clock size={24} />
+                    {[
+                        { icon: Clock, label: 'Transaction Ledger', sub: 'Historical records of all movements', color: 'text-yellow-500', bg: 'bg-yellow-500/10', path: '/transaction-status' },
+                        { icon: ArrowDownLeft, label: 'Deposit Log', sub: 'Inbound capital verification', color: 'text-emerald-500', bg: 'bg-emerald-500/10', path: '/deposit' },
+                        { icon: ArrowUpRight, label: 'Withdrawal Log', sub: 'Outbound payout status', color: 'text-violet-500', bg: 'bg-violet-500/10', path: '/withdraw' }
+                    ].map((btn, i) => (
+                        <div
+                            key={i}
+                            onClick={() => navigate(btn.path)}
+                            className="group relative bg-orange-500/[0.08] backdrop-blur-2xl border-2 border-orange-500/30 rounded-[2rem] p-5 flex items-center gap-5 transition-all cursor-pointer hover:bg-orange-500/15 active:scale-[0.98] shadow-lg overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-orange-400/30 via-transparent to-transparent pointer-events-none"></div>
+                            <div className={`w-14 h-14 rounded-2xl ${btn.bg} flex items-center justify-center ${btn.color} border border-white/5 transition-transform group-hover:scale-110 shadow-inner`}>
+                                <btn.icon size={28} strokeWidth={2.5} />
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-black text-white text-base tracking-tight leading-none mb-1.5">{btn.label}</p>
+                                <p className="text-xs font-bold text-zinc-600 uppercase tracking-tighter">{btn.sub}</p>
+                            </div>
+                            <ChevronRight className="text-zinc-700 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" size={24} strokeWidth={3} />
                         </div>
-                        <div className="flex-1">
-                            <p className="font-bold text-white text-sm">Transaction Status</p>
-                            <p className="text-xs text-zinc-500">Track all deposits & withdrawals</p>
-                        </div>
-                        <ChevronRight className="text-zinc-600" size={20} />
-                    </div>
-
-                    <div
-                        onClick={() => navigate('/deposit')}
-                        className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
-                    >
-                        <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform border border-green-500/20">
-                            <ArrowDownLeft size={24} />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-bold text-white text-sm">Deposit History</p>
-                            <p className="text-xs text-zinc-500">View all your top-up records</p>
-                        </div>
-                        <ChevronRight className="text-zinc-600" size={20} />
-                    </div>
-
-                    <div
-                        onClick={() => navigate('/withdraw')}
-                        className="group bg-zinc-900 rounded-2xl p-4 flex items-center gap-4 border border-zinc-800 shadow-sm hover:border-primary-500/30 transition-all cursor-pointer active:scale-[0.98]"
-                    >
-                        <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 group-hover:scale-110 transition-transform border border-violet-500/20">
-                            <ArrowUpRight size={24} />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-bold text-white text-sm">Withdrawal History</p>
-                            <p className="text-xs text-zinc-500">Track payout status</p>
-                        </div>
-                        <ChevronRight className="text-zinc-600" size={20} />
-                    </div>
+                    ))}
                 </div>
 
-                {/* Team Banner */}
+                {/* Team Banner - Intense Luminous Orange Glass */}
                 <div
                     onClick={() => navigate('/team')}
-                    className="relative overflow-hidden rounded-3xl bg-zinc-900 p-6 text-white shadow-xl cursor-pointer group border border-zinc-800"
+                    className="group relative overflow-hidden rounded-[2.5rem] bg-orange-500/[0.12] backdrop-blur-3xl p-7 border-2 border-orange-500/50 shadow-[0_0_60px_rgba(249,115,22,0.15)] cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
+                    <div className="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_25%,#f97316_50%,transparent_75%)] animate-spin-slow opacity-80 group-hover:opacity-100 transition-all duration-500 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400/60 via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                    
                     <div className="relative z-10 flex items-center justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider mb-2 text-primary-400">
-                                <Users size={12} />
-                                <span>Team Center</span>
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-yellow-500 text-zinc-950 text-[10px] font-black uppercase tracking-[0.1em] mb-4 shadow-xl border border-white/30">
+                                <Users size={14} strokeWidth={3} />
+                                <span>Collaborators hub</span>
                             </div>
-                            <h4 className="text-2xl font-bold mb-1">My Referral Team</h4>
-                            <p className="text-zinc-400 text-sm">Check commissions & members</p>
+                            <h4 className="text-2xl font-black text-white tracking-tight mb-1">Affiliate Network</h4>
+                            <p className="text-zinc-500 font-bold text-sm uppercase tracking-tighter">Scale your passive revenue</p>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors border border-white/10">
-                            <ChevronRight size={24} />
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-yellow-500 group-hover:text-zinc-950 transition-all border border-white/10 backdrop-blur-md shadow-2xl">
+                            <ChevronRight size={28} strokeWidth={3} />
                         </div>
                     </div>
-
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600 rounded-full blur-3xl opacity-10 -mr-10 -mt-10" />
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-600 rounded-full blur-2xl opacity-10 -ml-10 -mb-10" />
                 </div>
 
                 {/* App Validity Information */}

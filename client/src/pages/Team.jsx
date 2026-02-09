@@ -184,20 +184,21 @@ export default function Team() {
             <div className="px-4 py-6 space-y-6">
 
 
-                {/* Salary Status */}
-                <Card className="p-6 border-zinc-800 bg-zinc-900 overflow-hidden relative">
+                {/* Salary Status - Luminous Orange Glass */}
+                <Card className="p-6 border-2 border-orange-500/50 bg-orange-500/[0.08] backdrop-blur-3xl overflow-hidden relative rounded-[2.5rem] shadow-[0_0_40px_rgba(249,115,22,0.15)]">
+                    <div className="absolute inset-0 bg-yellow-500/[0.03] pointer-events-none"></div>
                     <div className="flex justify-between items-start mb-6 relative z-10">
                         <div>
-                            <p className="text-xs uppercase font-bold text-zinc-500 mb-1 tracking-widest flex items-center gap-1.5">
-                                <Target size={14} />
+                            <p className="text-xs uppercase font-black text-yellow-500 mb-1 tracking-widest flex items-center gap-1.5">
+                                <Target size={14} strokeWidth={3} />
                                 Salary Status
                             </p>
-                            <h3 className="text-2xl font-black text-white">
+                            <h3 className="text-2xl font-black text-white drop-shadow-md">
                                 {salaryData?.salary > 0 ? formatNumber(salaryData.salary) : '0'}
-                                <span className="text-sm font-bold text-zinc-500 ml-1">ETB / Month</span>
+                                <span className="text-sm font-bold text-zinc-400 ml-1 uppercase">ETB / Month</span>
                             </h3>
                         </div>
-                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${salaryData?.salary > 0 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+                        <div className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-wider border-2 ${salaryData?.salary > 0 ? 'bg-yellow-500 text-zinc-950 border-white/40 shadow-[0_0_20px_rgba(234,179,8,0.5)]' : 'bg-zinc-800 text-zinc-500 border-zinc-700'
                             }`}>
                             {salaryData?.salary > 0 ? 'Eligible' : 'Ineligible'}
                         </div>
@@ -207,61 +208,61 @@ export default function Team() {
                         {/* Rule 4 Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-end text-xs">
-                                <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.direct10?.threshold || 10} Direct Invites</span>
-                                <span className="font-bold text-cyan-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct10?.threshold || 10}</span>
+                                <span className="font-bold text-zinc-400">{salaryData?.breakdown?.settings?.direct10?.threshold || 10} Direct Invites</span>
+                                <span className="font-black text-yellow-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct10?.threshold || 10}</span>
                             </div>
-                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
                                 <div
-                                    className="h-full bg-cyan-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                                    className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(234,179,8,0.5)]"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct10?.threshold || 10)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct10?.amount || 10000)} ETB/month</p>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Earn {formatNumber(salaryData?.breakdown?.settings?.direct10?.amount || 10000)} ETB/month</p>
                         </div>
 
                         {/* Rule 1 Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-end text-xs">
-                                <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.direct15?.threshold || 15} Direct Invites</span>
-                                <span className="font-bold text-primary-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct15?.threshold || 15}</span>
+                                <span className="font-bold text-zinc-400">{salaryData?.breakdown?.settings?.direct15?.threshold || 15} Direct Invites</span>
+                                <span className="font-black text-yellow-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct15?.threshold || 15}</span>
                             </div>
-                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
                                 <div
-                                    className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(234,179,8,0.5)]"
+                                    className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(234,179,8,0.4)]"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct15?.threshold || 15)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct15?.amount || 15000)} ETB/month</p>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Earn {formatNumber(salaryData?.breakdown?.settings?.direct15?.amount || 15000)} ETB/month</p>
                         </div>
 
                         {/* Rule 2 Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-end text-xs">
-                                <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
-                                <span className="font-bold text-violet-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
+                                <span className="font-bold text-zinc-400">{salaryData?.breakdown?.settings?.direct20?.threshold || 20} Direct Invites</span>
+                                <span className="font-black text-yellow-500">{downline?.aLevel.count || 0} / {salaryData?.breakdown?.settings?.direct20?.threshold || 20}</span>
                             </div>
-                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
                                 <div
-                                    className="h-full bg-violet-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                                    className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(234,179,8,0.3)]"
                                     style={{ width: `${Math.min(((downline?.aLevel.count || 0) / (salaryData?.breakdown?.settings?.direct20?.threshold || 20)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.direct20?.amount || 20000)} ETB/month</p>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Earn {formatNumber(salaryData?.breakdown?.settings?.direct20?.amount || 20000)} ETB/month</p>
                         </div>
 
                         {/* Rule 3 Progress */}
-                        <div className="space-y-2 pt-2 border-t border-zinc-800">
+                        <div className="space-y-2 pt-4 border-t border-zinc-800">
                             <div className="flex justify-between items-end text-xs">
-                                <span className="font-bold text-zinc-400 opacity-80">{salaryData?.breakdown?.settings?.network40?.threshold || 40} Total Team</span>
-                                <span className="font-bold text-emerald-500">{downline?.total || 0} / {salaryData?.breakdown?.settings?.network40?.threshold || 40}</span>
+                                <span className="font-bold text-zinc-400">{salaryData?.breakdown?.settings?.network40?.threshold || 40} Total Team</span>
+                                <span className="font-black text-yellow-500">{downline?.total || 0} / {salaryData?.breakdown?.settings?.network40?.threshold || 40}</span>
                             </div>
-                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden border border-zinc-700">
                                 <div
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                    className="h-full bg-gradient-to-r from-yellow-500 to-amber-600 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(234,179,8,0.6)]"
                                     style={{ width: `${Math.min(((downline?.total || 0) / (salaryData?.breakdown?.settings?.network40?.threshold || 40)) * 100, 100)}%` }}
                                 />
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-medium">Earn {formatNumber(salaryData?.breakdown?.settings?.network40?.amount || 48000)} ETB/month</p>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Earn {formatNumber(salaryData?.breakdown?.settings?.network40?.amount || 48000)} ETB/month</p>
                         </div>
                     </div>
                 </Card>
@@ -289,97 +290,106 @@ export default function Team() {
                         const totalCount = levelData?.totalCount || 0; // All users including Interns
 
                         return (
-                            <Card key={lvl} className={`overflow-hidden transition-all duration-300 border-zinc-800 bg-zinc-900 ${isExpanded ? 'ring-1 ring-primary-500/30 shadow-glow' : ''}`}>
-                                <div
-                                    className={`p-4 flex items-center justify-between cursor-pointer ${isExpanded ? 'bg-zinc-800/50' : 'bg-zinc-900 hover:bg-zinc-800/30'}`}
-                                    onClick={() => setExpandedLevel(isExpanded ? null : lvl)}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${levelColors[lvl]} flex items-center justify-center text-white font-black text-xl shadow-lg shadow-black/30`}>
-                                            {lvl.toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-white text-sm">{label}</p>
-                                            <div className="inline-flex items-center gap-1 bg-zinc-950/50 border border-zinc-800 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-400 uppercase mt-1">
-                                                <span>Referral Commission:</span>
-                                                <span className="text-primary-400">{percent}</span>
+                            <div key={lvl} className={`group relative p-[2px] rounded-3xl overflow-hidden transition-all duration-500 ${isExpanded ? 'shadow-[0_0_40px_rgba(234,179,8,0.2)]' : ''}`}>
+                                {/* Animated Spinning Border for expanded level */}
+                                {isExpanded && (
+                                    <div className="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_25%,#fbbf24_50%,transparent_75%)] animate-spin-slow opacity-30 pointer-events-none"></div>
+                                )}
+                                
+                                <Card className={`relative z-10 overflow-hidden transition-all duration-300 border-2 border-orange-500/40 bg-orange-500/[0.08] backdrop-blur-3xl rounded-[calc(2rem-px)] h-full ${isExpanded ? 'bg-orange-500/15 shadow-[0_0_50px_rgba(249,115,22,0.2)]' : 'hover:bg-orange-500/15'}`}>
+                                    {/* Supercharged Orange Illumination */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400/40 via-orange-400/5 to-transparent pointer-events-none opacity-100"></div>
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] pointer-events-none"></div>
+                                    <div
+                                        className={`p-5 flex items-center justify-between cursor-pointer relative z-10 ${isExpanded ? 'bg-yellow-500/10' : 'bg-transparent hover:bg-white/5'}`}
+                                        onClick={() => setExpandedLevel(isExpanded ? null : lvl)}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-2xl bg-yellow-500 flex items-center justify-center text-zinc-950 font-black text-xl shadow-lg border-2 border-white/30`}>
+                                                {lvl.toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-white text-base tracking-tight leading-none mb-1.5">{label}</p>
+                                                <div className="inline-flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase text-yellow-500 shadow-sm">
+                                                    <span className="opacity-60 text-zinc-400">Revenue:</span>
+                                                    <span>{percent}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-3">
                                                 <div className="text-right">
-                                                    <p className="text-lg font-black text-white">{totalCount}</p>
-                                                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide">Total</p>
+                                                    <p className="text-xl font-black text-white leading-none">{totalCount}</p>
+                                                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">Founders</p>
                                                 </div>
                                                 {commissionEligibleCount !== totalCount && (
-                                                    <div className="text-right">
-                                                        <p className="text-sm font-bold text-primary-400">({commissionEligibleCount})</p>
-                                                        <p className="text-[8px] font-bold text-primary-500 uppercase tracking-wide">Eligible</p>
+                                                    <div className="text-right border-l border-white/10 pl-3">
+                                                        <p className="text-sm font-black text-yellow-500 leading-none">{commissionEligibleCount}</p>
+                                                        <p className="text-[8px] font-black text-zinc-600 uppercase tracking-wide mt-1">Paid</p>
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
-                                        {isExpanded ? <ChevronUp className="text-zinc-500" size={20} /> : <ChevronDown className="text-zinc-500" size={20} />}
-                                    </div>
-                                </div>
-                                {isExpanded && (
-                                    <div className="px-4 pb-4 animate-slide-up">
-                                        <div className="border-t border-zinc-800 pt-3">
-                                            {commissionEligibleCount !== totalCount && (
-                                                <div className="mb-3 p-2 bg-zinc-950/50 rounded-lg border border-zinc-800">
-                                                    <p className="text-[10px] text-zinc-400 font-medium">
-                                                        <span className="text-primary-400 font-bold">{commissionEligibleCount}</span> of <span className="text-white font-bold">{totalCount}</span> members are commission-eligible (Rank 1+)
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {renderUserList(levelData?.users)}
+                                            {isExpanded ? <ChevronUp className="text-yellow-500" size={20} strokeWidth={3} /> : <ChevronDown className="text-zinc-600 group-hover:text-white transition-colors" size={20} strokeWidth={3} />}
                                         </div>
                                     </div>
-                                )}
-                            </Card>
+                                    {isExpanded && (
+                                        <div className="px-5 pb-5 animate-slide-up relative z-10">
+                                            <div className="border-t border-white/10 pt-4">
+                                                {commissionEligibleCount !== totalCount && (
+                                                    <div className="mb-4 p-3 bg-yellow-500/5 rounded-2xl border border-yellow-500/10">
+                                                        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-tight">
+                                                            <span className="text-yellow-500">{commissionEligibleCount}</span> / <span className="text-white">{totalCount}</span> partners have activated accounts.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {renderUserList(levelData?.users)}
+                                            </div>
+                                        </div>
+                                    )}
+                                </Card>
+                            </div>
                         );
                     })}
                 </div>
 
                 {/* Recent Commissions */}
-                <Card className="overflow-hidden border-zinc-800 bg-zinc-900">
-                    <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-                        <h3 className="font-bold text-zinc-200 text-sm flex items-center gap-2">
-                            <DollarSign className="text-primary-500" size={18} />
-                            Recent Income
+                <Card className="overflow-hidden border-yellow-500/20 bg-[#0a0a0c] rounded-[2rem] shadow-2xl relative">
+                    <div className="absolute inset-0 bg-yellow-500/[0.02] pointer-events-none"></div>
+                    <div className="p-5 border-b border-yellow-500/10 flex justify-between items-center bg-yellow-500/[0.03] relative z-10">
+                        <h3 className="font-black text-white text-sm uppercase tracking-widest flex items-center gap-2.5">
+                            <DollarSign className="text-yellow-500" size={20} strokeWidth={3} />
+                            Revenue Stream
                         </h3>
                     </div>
-                    <div className="p-2">
+                    <div className="p-3 relative z-10">
                         {commissions.length === 0 ? (
                             <div className="py-12 text-center">
-                                <div className="w-16 h-16 bg-zinc-950/50 rounded-full flex items-center justify-center mx-auto mb-3 border border-zinc-800">
-                                    <DollarSign className="text-zinc-600" size={24} />
+                                <div className="w-16 h-16 bg-yellow-500/5 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-yellow-500/10 shadow-inner">
+                                    <DollarSign className="text-yellow-600/40" size={28} strokeWidth={2.5} />
                                 </div>
-                                <p className="text-xs text-zinc-500 font-medium">No commissions earned yet</p>
+                                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">Awaiting Commissions</p>
                             </div>
                         ) : (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                                 {commissions && commissions.length > 0 && commissions.slice(0, 10).map((comm, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 hover:bg-zinc-800 rounded-xl transition-colors border border-transparent hover:border-zinc-800">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm text-white ${comm.level === 'A' ? 'bg-primary-600 shadow-primary-500/20' : comm.level === 'B' ? 'bg-emerald-600 shadow-emerald-500/20' : 'bg-blue-600 shadow-blue-500/20'
+                                    <div key={idx} className="flex items-center justify-between p-4 bg-yellow-500/[0.04] border border-yellow-500/10 hover:border-yellow-500/30 hover:bg-yellow-500/[0.08] rounded-2xl transition-all duration-300">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-xl text-white border border-white/20 ${comm.level === 'A' ? 'bg-primary-600' : comm.level === 'B' ? 'bg-emerald-600' : 'bg-blue-600'
                                                 }`}>
                                                 {comm.level}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-white leading-none mb-1">
-                                                    {comm.downlineUser?.phone ? comm.downlineUser.phone.slice(-4) : 'User'} Upgrade
+                                                <p className="text-xs font-black text-white leading-none mb-1.5 uppercase tracking-tight">
+                                                    {comm.downlineUser?.phone ? `*** ${comm.downlineUser.phone.slice(-4)}` : 'User'} Upgrade
                                                 </p>
-                                                <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">
-                                                    {new Date(comm.createdAt).toLocaleString()}
+                                                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                                                    {new Date(comm.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-black text-emerald-400">+{formatNumber(comm.amountEarned)}</p>
-                                            <p className="text-[9px] font-bold text-zinc-500 uppercase">ETB</p>
+                                            <p className="text-base font-black text-yellow-500 shadow-yellow-500/20 drop-shadow-sm">+{formatNumber(comm.amountEarned)}</p>
+                                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-tighter">ETB</p>
                                         </div>
                                     </div>
                                 ))}

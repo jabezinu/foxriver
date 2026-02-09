@@ -48,37 +48,42 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
     </div>
 );
 
-const DashboardCard = ({ icon: Icon, label, color, gradient, onClick }) => (
+const DashboardCard = ({ icon: Icon, label, color, gradient, onClick, isFeatured = false }) => (
     <div
         onClick={onClick}
-        className="group relative flex flex-col items-center justify-center rounded-3xl p-4 border-2 border-white/20 shadow-2xl hover:border-white/50 hover:shadow-[0_20px_60px_rgba(255,255,255,0.15)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
-        style={{
-            background: gradient || 'linear-gradient(135deg, rgba(63, 63, 70, 0.98) 0%, rgba(82, 82, 91, 0.98) 100%)'
-        }}
+        className={`group relative p-[2px] rounded-[2rem] overflow-hidden transition-all duration-500 mb-2 cursor-pointer active:scale-95 aspect-square ${isFeatured ? 'active:scale-98' : ''}`}
     >
-        {/* Color-specific glow effect */}
-        <div className={`absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500 ${color.split(' ')[0]}`}></div>
-        
-        {/* Subtle inner shadow match */}
-        <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)] pointer-events-none"></div>
-        
-        {/* Icon with enhanced styling and brighter background */}
-        <div className={`relative p-4 rounded-2xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-6 ${color.replace('300', '100')} backdrop-blur-xl shadow-2xl border-2 border-white/20`}
-            style={{
-                backgroundColor: `${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.6').replace('400', '0.6')}`,
-            }}
-        >
-            <Icon size={28} strokeWidth={3} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-        </div>
-        
-        {/* Label with better visibility */}
-        <span className="relative font-black text-white leading-tight text-[11px] text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase tracking-tight">
-            {label}
-        </span>
-        
-        {/* Stronger shine effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+        {/* Hyper-Speed Spinning Border - Orange Charged */}
+        <div 
+            className={`absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_25%,#f97316_50%,transparent_75%)] animate-spin opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}
+            style={{ animationDuration: isFeatured ? '1.5s' : '2.5s' }}
+        ></div>
+
+        {/* Main Card Fill (Luminous Orange Glass) */}
+        <div className="relative z-10 flex flex-col items-center justify-center p-4 rounded-[calc(2rem-2px)] h-full bg-orange-500/[0.08] backdrop-blur-3xl border-2 border-orange-500/40 shadow-[0_0_40px_rgba(249,115,22,0.15)] group-hover:bg-orange-500/15 transition-all duration-500 overflow-hidden">
+            {/* Supercharged Orange Illumination */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-400/30 via-transparent to-transparent pointer-events-none opacity-100"></div>
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none"></div>
+
+            {/* Content Pod */}
+            <div className={`relative p-3.5 rounded-2xl mb-2 transition-all duration-700 group-hover:scale-135 group-hover:rotate-12 ${color.split(' ')[0].replace('/30', '')} text-zinc-950 shadow-[0_0_20px_currentColor] border-2 border-white/60 overflow-hidden`}>
+                <div className="absolute inset-0 bg-white/40 animate-pulse"></div>
+                <Icon size={isFeatured ? 28 : 24} strokeWidth={3} className="relative z-10 drop-shadow-lg" />
+            </div>
+            
+            {/* Label - Dark High Contrast for Orange BG */}
+            <span className={`font-black text-white leading-tight ${isFeatured ? 'text-[12px]' : 'text-[10px]'} text-center uppercase tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] z-10`}>
+                {label}
+            </span>
+
+            {/* Moving Shine Overlay */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400/20 to-transparent -skew-x-20 translate-x-[-250%] group-hover:translate-x-[250%] transition-transform duration-1000 ease-in-out"></div>
+            </div>
+
+            {isFeatured && (
+                <div className="absolute top-3 right-3 w-3 h-3 bg-orange-400 rounded-full animate-ping shadow-[0_0_20px_rgba(249,115,22,1)] border-2 border-zinc-950 z-20"></div>
+            )}
         </div>
     </div>
 );
@@ -299,54 +304,14 @@ export default function Home() {
                     
                     {/* Dashboard Cards - 4 per row */}
                     <div className="grid grid-cols-4 gap-2 mb-2">
-                        {/* Featured Tasks Card - Ultra Eye-Catching */}
-                            <div
-                                onClick={() => navigate('/task')}
-                                className="group relative flex flex-col items-center justify-center rounded-2xl p-4 shadow-2xl hover:shadow-[0_0_50px_rgba(234,179,8,0.8)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
-                            >
-                                {/* Animated Spinning Border Background */}
-                                <div className="absolute inset-[1px] rounded-2xl bg-zinc-800 z-[1]"></div>
-                                <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_20%,#eab308_50%,transparent_80%)] animate-spin-slow opacity-80"></div>
-                                
-                                {/* Inner Glow & Gradient */}
-                                <div className="absolute inset-[2px] rounded-[14px] z-[2] overflow-hidden"
-                                    style={{
-                                        background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.4) 0%, rgba(202, 138, 4, 0.4) 100%)'
-                                    }}
-                                >
-                                    {/* Animated ring effect */}
-                                    <div className="absolute inset-0 rounded-2xl border-2 border-yellow-400/30 animate-ping-slow"></div>
-                                    
-                                    {/* Strong glow effect */}
-                                    <div className="absolute inset-0 bg-yellow-500/20 opacity-40 group-hover:opacity-60 transition-opacity duration-300 blur-2xl"></div>
-                                    
-                                    {/* Moving Light Streak */}
-                                    <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
-                                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.2)_0%,transparent_50%)] animate-pulse-slow"></div>
-                                    </div>
-
-                                    {/* Content Container */}
-                                    <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                                        {/* Icon with enhanced styling - Glassmorphism */}
-                                        <div className="relative p-3.5 rounded-2xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 bg-white/10 backdrop-blur-md border border-white/30 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
-                                            <DollarSign size={26} strokeWidth={3} className="text-yellow-200 drop-shadow-[0_0_10px_rgba(234,179,8,1)] animate-rotate-slow" />
-                                        </div>
-                                        
-                                        {/* Label with glow */}
-                                        <span className="relative font-black text-white leading-tight text-[13px] text-center drop-shadow-[0_2px_8px_rgba(234,179,8,0.8)] uppercase tracking-tighter">
-                                            Tasks
-                                        </span>
-                                    </div>
-
-                                    {/* Badge indicator */}
-                                    <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-bounce shadow-[0_0_15px_rgba(234,179,8,1)] border border-black/20 z-20"></div>
-                                </div>
-                            
-                            {/* Shine effect on hover */}
-                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-[5] pointer-events-none">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                            </div>
-                        </div>
+                        {/* Featured Tasks Card - Now unified through component */}
+                        <DashboardCard
+                            icon={DollarSign}
+                            label="Tasks"
+                            color="bg-yellow-400 text-zinc-950"
+                            onClick={() => navigate('/task')}
+                            isFeatured={true}
+                        />
                         
                         <DashboardCard
                             icon={Download}
