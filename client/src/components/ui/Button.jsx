@@ -13,11 +13,11 @@ export const Button = ({
     const baseStyles = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-900';
 
     const variants = {
-        primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-glow hover:shadow-glow-strong hover:from-primary-400 hover:to-primary-500 focus:ring-primary-500',
-        secondary: 'bg-zinc-800 text-white shadow-md border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 focus:ring-zinc-600',
-        outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-500/10 focus:ring-primary-500',
-        ghost: 'text-zinc-400 hover:bg-zinc-800 hover:text-white focus:ring-zinc-700',
-        danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-red-500/30 focus:ring-red-600',
+        primary: 'bg-gradient-to-r from-violet-400 to-violet-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:from-violet-300 hover:to-violet-500 focus:ring-violet-500 uppercase tracking-wider',
+        secondary: 'bg-zinc-800 text-white shadow-lg border border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600 focus:ring-zinc-600 uppercase tracking-widest',
+        outline: 'border-2 border-violet-400 text-violet-400 hover:bg-violet-500/10 focus:ring-violet-500 uppercase tracking-widest',
+        ghost: 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white focus:ring-zinc-700',
+        danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg hover:shadow-red-500/40 focus:ring-red-600 uppercase tracking-wider',
     };
 
     const sizes = {

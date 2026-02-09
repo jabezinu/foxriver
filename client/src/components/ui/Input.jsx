@@ -18,15 +18,15 @@ export const Input = ({
             <div className="relative">
                 <input
                     className={`
-            w-full px-4 py-3.5 rounded-xl border-2 bg-zinc-950
+            w-full px-4 py-3.5 rounded-xl border-2 bg-zinc-900
             placeholder-zinc-600 text-white
             transition-all duration-300
-            focus:outline-none focus:ring-1 focus:ring-offset-0
+            focus:outline-none focus:ring-4 focus:ring-violet-500/10
             disabled:bg-zinc-900 disabled:text-zinc-600 disabled:border-zinc-800
             ${icon ? 'pl-11' : ''}
             ${error
-                            ? 'border-red-900/50 focus:border-red-500 focus:ring-red-900/50'
-                            : 'border-zinc-800 focus:border-primary-500 focus:ring-primary-500/20'
+                            ? 'border-red-900/50 focus:border-red-500 focus:ring-red-900/10'
+                            : 'border-zinc-800 focus:border-violet-400 focus:ring-violet-500/10'
                         }
             ${className}
           `}
