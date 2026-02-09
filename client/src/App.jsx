@@ -90,12 +90,12 @@ function App() {
     }
   }, []);
 
-  // Fetch latest popup news when user logs in
+  // Fetch latest popup news when user logs in or on refresh
   useEffect(() => {
-    if (isAuthenticated && shouldShowNewsPopup) {
+    if (isAuthenticated) {
       fetchPopupNews();
     }
-  }, [isAuthenticated, shouldShowNewsPopup]);
+  }, [isAuthenticated]);
 
   const fetchPopupNews = async () => {
     try {

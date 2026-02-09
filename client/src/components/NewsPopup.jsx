@@ -44,15 +44,6 @@ export default function NewsPopup({ news, onClose, onNext, currentIndex = 0, tot
 
                 {/* Scrollable content */}
                 <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-3 sm:pb-4">
-                    {news.imageUrl && (
-                        <div className="mb-3">
-                            <img 
-                                src={news.imageUrl} 
-                                alt={news.title}
-                                className="w-full h-40 object-cover rounded-2xl border border-zinc-800"
-                            />
-                        </div>
-                    )}
 
                     <div className="bg-zinc-950 rounded-2xl p-4 border border-zinc-800">
                         <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">

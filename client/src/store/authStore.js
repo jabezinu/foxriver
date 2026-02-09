@@ -27,7 +27,7 @@ export const useAuthStore = create((set) => ({
                 isAuthenticated: true, 
                 loading: false, 
                 isInitializing: false,
-                shouldShowNewsPopup: true // Trigger news popup on login
+                isInitializing: false
             });
             return { success: true };
         } catch (error) {
@@ -49,7 +49,7 @@ export const useAuthStore = create((set) => ({
                 token, 
                 isAuthenticated: true, 
                 loading: false,
-                shouldShowNewsPopup: true // Trigger news popup on register
+                loading: false
             });
             return { success: true };
         } catch (error) {
@@ -122,13 +122,15 @@ export const useAuthStore = create((set) => ({
             set({ 
                 newsQueue: newsArray, 
                 currentNewsIndex: 0,
-                latestNews: newsArray[0]
+                latestNews: newsArray[0],
+                shouldShowNewsPopup: true
             });
         } else {
             set({ 
                 newsQueue: [], 
                 currentNewsIndex: 0,
-                latestNews: null
+                latestNews: null,
+                shouldShowNewsPopup: false
             });
         }
     },

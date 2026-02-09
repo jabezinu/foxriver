@@ -1,5 +1,5 @@
 import React from 'react';
-import { HiX, HiSave, HiNewspaper, HiPencil, HiLightningBolt } from 'react-icons/hi';
+import { HiX, HiSave, HiNewspaper, HiPencil, HiLightningBolt, HiPhotograph } from 'react-icons/hi';
 
 export default function NewsModal({ isOpen, onClose, editingId, formData, onChange, onSubmit, submitting }) {
     if (!isOpen) return null;
@@ -38,15 +38,16 @@ export default function NewsModal({ isOpen, onClose, editingId, formData, onChan
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Full Intelligence Content</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Intelligence Content</label>
                             <textarea
                                 required
                                 value={formData.content}
                                 onChange={(e) => onChange({ ...formData, content: e.target.value })}
-                                className="admin-input pl-6 pt-5 min-h-[200px] text-sm font-medium leading-relaxed resize-none"
-                                placeholder="Detailed briefing message for all network agents..."
+                                className="admin-input pl-6 pt-5 min-h-[150px] text-sm font-medium leading-relaxed resize-none"
+                                placeholder="Detailed briefing message..."
                             />
                         </div>
+
 
                         <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50 group cursor-pointer hover:bg-indigo-50 transition-colors">
                             <label className="flex items-center gap-4 cursor-pointer">

@@ -84,9 +84,7 @@ export const adminMessageAPI = {
 
 export const adminNewsAPI = {
     getAll: () => axios.get(API_ENDPOINTS.NEWS),
-    create: (data) => axios.post(API_ENDPOINTS.NEWS, data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    create: (data) => axios.post(API_ENDPOINTS.NEWS, data),
     update: (id, data) => axios.put(`${API_ENDPOINTS.NEWS}/${id}`, data),
     delete: (id) => axios.delete(`${API_ENDPOINTS.NEWS}/${id}`),
 };
