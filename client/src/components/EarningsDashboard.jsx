@@ -153,7 +153,7 @@ const EarningsDashboard = () => {
                     <h3 className="text-sm font-bold text-zinc-400 mb-4 px-1 uppercase tracking-wider">
                         Monthly Salary
                     </h3>
-                    <Card className="p-4 border-zinc-800 bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-500/30">
+                <Card className="p-6 border-2 border-purple-400 bg-gradient-to-r from-purple-800/40 to-pink-800/40 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 border border-purple-500/20">
@@ -198,7 +198,7 @@ const EarningsDashboard = () => {
             </div>
 
             {/* Total Lifetime Earnings */}
-            <Card className="p-6 border-zinc-800 bg-gradient-to-r from-primary-900/20 to-violet-900/20 border-primary-500/30">
+            <Card className="p-8 border-2 border-primary-400 bg-gradient-to-r from-primary-800/40 to-violet-800/40 shadow-[0_0_40px_rgba(139,92,246,0.25)]">
                 <div className="text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-sm font-bold uppercase tracking-wider mb-4">
                         <DollarSign size={16} />

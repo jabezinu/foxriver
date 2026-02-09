@@ -24,8 +24,8 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
         onClick={item.path ? () => navigate(item.path) : item.action}
         className={`
             group relative flex flex-col items-center justify-center 
-            bg-zinc-900 rounded-2xl p-4 
-            border border-zinc-800 shadow-sm
+            bg-zinc-800 rounded-2xl p-4 
+            border border-zinc-700 shadow-sm
             hover:shadow-glow hover:border-primary-500/30 hover:-translate-y-0.5
             transition-all duration-300 active:scale-95 cursor-pointer 
             ${isLarge ? 'flex-row gap-4 justify-start px-6 py-5' : 'aspect-square'}
@@ -51,9 +51,9 @@ const MenuItem = ({ item, navigate, isLarge = false }) => (
 const DashboardCard = ({ icon: Icon, label, color, gradient, onClick }) => (
     <div
         onClick={onClick}
-        className="group relative flex flex-col items-center justify-center rounded-2xl p-4 border border-zinc-800/50 shadow-2xl hover:border-white/10 hover:-translate-y-1.5 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
+        className="group relative flex flex-col items-center justify-center rounded-3xl p-4 border-2 border-white/20 shadow-2xl hover:border-white/50 hover:shadow-[0_20px_60px_rgba(255,255,255,0.15)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
         style={{
-            background: gradient || 'linear-gradient(135deg, rgba(24, 24, 27, 0.95) 0%, rgba(39, 39, 42, 0.95) 100%)'
+            background: gradient || 'linear-gradient(135deg, rgba(63, 63, 70, 0.98) 0%, rgba(82, 82, 91, 0.98) 100%)'
         }}
     >
         {/* Color-specific glow effect */}
@@ -63,13 +63,12 @@ const DashboardCard = ({ icon: Icon, label, color, gradient, onClick }) => (
         <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)] pointer-events-none"></div>
         
         {/* Icon with enhanced styling and brighter background */}
-        <div className={`relative p-3.5 rounded-2xl mb-2 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${color.replace('300', '200')} backdrop-blur-md shadow-lg`}
+        <div className={`relative p-4 rounded-2xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-6 ${color.replace('300', '100')} backdrop-blur-xl shadow-2xl border-2 border-white/20`}
             style={{
-                backgroundColor: `${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.4').replace('400', '0.4')}`,
-                border: `1px solid ${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.5').replace('400', '0.5')}`
+                backgroundColor: `${color.split(' ')[1].replace('text-', 'rgba(').replace('300', '0.6').replace('400', '0.6')}`,
             }}
         >
-            <Icon size={24} strokeWidth={2.5} className="drop-shadow-md" />
+            <Icon size={28} strokeWidth={3} className="drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
         </div>
         
         {/* Label with better visibility */}
@@ -276,9 +275,9 @@ export default function Home() {
             {/* Hero Section */}
             <div className="px-5 pt-6 pb-2">
                 {/* Total Balance Hero Section */}
-                <div className="bg-gradient-to-br from-primary-600 via-primary-500 to-violet-400 rounded-[2rem] p-6 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden mb-6">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none"></div>
+                <div className="bg-gradient-to-br from-violet-400 via-primary-500 to-emerald-400 rounded-[2.5rem] p-8 text-white shadow-[0_20px_50px_rgba(139,92,246,0.3)] relative overflow-hidden mb-8 border-4 border-white/20">
+                    <div className="absolute top-0 right-0 w-72 h-72 bg-white/30 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/20 rounded-full -ml-10 -mb-10 blur-xl pointer-events-none animate-pulse"></div>
 
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-2 opacity-80">
@@ -306,7 +305,7 @@ export default function Home() {
                                 className="group relative flex flex-col items-center justify-center rounded-2xl p-4 shadow-2xl hover:shadow-[0_0_50px_rgba(234,179,8,0.8)] hover:-translate-y-2 transition-all duration-500 active:scale-95 cursor-pointer aspect-square overflow-hidden"
                             >
                                 {/* Animated Spinning Border Background */}
-                                <div className="absolute inset-[1px] rounded-2xl bg-zinc-950 z-[1]"></div>
+                                <div className="absolute inset-[1px] rounded-2xl bg-zinc-800 z-[1]"></div>
                                 <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_20%,#eab308_50%,transparent_80%)] animate-spin-slow opacity-80"></div>
                                 
                                 {/* Inner Glow & Gradient */}
