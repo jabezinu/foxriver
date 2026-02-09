@@ -1,23 +1,17 @@
 import React from 'react';
 
 const variants = {
-    indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    red: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    yellow: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    gray: 'bg-zinc-800 text-zinc-400 border-zinc-700',
+    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    green: 'bg-green-50 text-green-600 border-green-100',
+    red: 'bg-red-50 text-red-600 border-red-100',
+    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-100',
+    purple: 'bg-purple-50 text-purple-600 border-purple-100',
+    gray: 'bg-gray-50 text-gray-500 border-gray-100',
 };
 
-const sizes = {
-    sm: 'px-2 py-0.5 text-[9px]',
-    md: 'px-2.5 py-0.5 text-[10px]',
-    lg: 'px-3 py-1 text-xs'
-};
-
-export default function Badge({ children, variant = 'indigo', size = 'md', className = '' }) {
+export default function Badge({ children, variant = 'indigo', className = '' }) {
     return (
-        <span className={`inline-flex items-center rounded-full font-bold uppercase border ${variants[variant] || variants.indigo} ${sizes[size] || sizes.md} ${className}`}>
+        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${variants[variant] || variants.indigo} ${className}`}>
             {children}
         </span>
     );
