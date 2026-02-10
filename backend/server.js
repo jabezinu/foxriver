@@ -27,18 +27,7 @@ setTimeout(() => {
 // Run database schema check and fixes on startup
 setTimeout(() => {
     const { runStartupDatabaseCheck } = require('./scripts/startup-database-check');
-    runStartupDatabaseCheck().then(success => {
-        if (success) {
-            if (process.env.NODE_ENV === 'development' || process.env.BANK_TEST_ON_STARTUP === 'true') {
-                setTimeout(() => {
-                    const { testBankAccountAPI } = require('./scripts/test-bank-account-api');
-                    testBankAccountAPI().catch(err => {
-                        logger.warn('Bank account API test failed:', err.message);
-                    });
-                }, 1000);
-            }
-        }
-    }).catch(err => {
+    runStartupDatabaseCheck().catch(err => {
         logger.error('Database schema check failed:', err.message);
         logger.warn('Bank account functionality may not work properly');
     });
@@ -137,78 +126,27 @@ app.get('/api/database-check', async (req, res) => {
 });
 
 // Bank account API test route (for manual testing)
-app.get('/api/test-bank-account', async (req, res) => {
-    try {
-        const { testBankAccountAPI } = require('./scripts/test-bank-account-api');
-        const result = await testBankAccountAPI();
-        
-        res.json({
-            status: result ? 'OK' : 'FAILED',
-            message: result ? 'Bank account API test passed' : 'Bank account API test failed',
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: 'ERROR',
-            message: 'Bank account API test error',
-            error: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
+app.get('/api/test-bank-account', (req, res) => {
+    res.status(410).json({
+        status: 'DEPRECATED',
+        message: 'This endpoint has been removed in production'
+    });
 });
 
 // Debug endpoint to check user bank account data
-app.get('/api/debug/user-bank-account/:userId', async (req, res) => {
-    try {
-        const User = require('./models/User');
-        const user = await User.findByPk(req.params.userId);
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        res.json({
-            userId: user.id,
-            bankAccount: user.bankAccount,
-            bankAccountType: typeof user.bankAccount,
-            bankAccountRaw: user.getDataValue('bankAccount'),
-            pendingBankAccount: user.pendingBankAccount,
-            bankChangeStatus: user.bankChangeStatus
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+app.get('/api/debug/user-bank-account/:userId', (req, res) => {
+    res.status(410).json({
+        status: 'DEPRECATED',
+        message: 'Debug endpoints have been removed in production'
+    });
 });
 
 // Debug endpoint to run bank account diagnosis
-app.get('/api/debug/diagnose-bank-accounts', async (req, res) => {
-    try {
-        const { diagnoseBankAccountIssue } = require('./scripts/diagnose-bank-account-issue');
-        
-        // Capture console output
-        const originalLog = console.log;
-        const logs = [];
-        console.log = (...args) => {
-            logs.push(args.join(' '));
-            originalLog(...args);
-        };
-        
-        await diagnoseBankAccountIssue();
-        
-        // Restore console.log
-        console.log = originalLog;
-        
-        res.json({
-            status: 'completed',
-            logs: logs,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            error: error.message,
-            stack: error.stack 
-        });
-    }
+app.get('/api/debug/diagnose-bank-accounts', (req, res) => {
+    res.status(410).json({
+        status: 'DEPRECATED',
+        message: 'Debug endpoints have been removed in production'
+    });
 });
 
 // 404 handler (must be before error handler)
