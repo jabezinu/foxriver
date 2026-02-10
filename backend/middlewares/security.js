@@ -32,8 +32,6 @@ exports.apiLimiter = rateLimit({
         return req.path.startsWith('/uploads') || 
                req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/);
     },
-    // Skip rate limiting for authenticated users (they have other protections)
-    skipSuccessfulRequests: false,
     skipFailedRequests: true // Don't count failed requests
 });
 

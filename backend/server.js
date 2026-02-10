@@ -29,8 +29,6 @@ setTimeout(() => {
     const { runStartupDatabaseCheck } = require('./scripts/startup-database-check');
     runStartupDatabaseCheck().then(success => {
         if (success) {
-            // If database check passed, optionally run bank account API test
-            // Only run in development or if BANK_TEST_ON_STARTUP is set
             if (process.env.NODE_ENV === 'development' || process.env.BANK_TEST_ON_STARTUP === 'true') {
                 setTimeout(() => {
                     const { testBankAccountAPI } = require('./scripts/test-bank-account-api');
@@ -46,7 +44,7 @@ setTimeout(() => {
     });
 }, 2500);
 
-// Add database indexes automatically on startup (runs once, safe to run multiple times)
+// Add database indexes automatically on startup
 setTimeout(() => {
     const { addAllIndexes } = require('./scripts/addIndexes');
     addAllIndexes().catch(err => {
@@ -67,8 +65,7 @@ app.use(sanitizeInput);
 // Compression middleware
 app.use(compression());
 
-// CORS configuration - Allow all origins (development mode)
-// WARNING: In production, restrict this to specific domains
+// CORS configuration
 const corsOptions = {
     origin: true, // Allow all origins
     credentials: true,

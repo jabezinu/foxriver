@@ -29,9 +29,6 @@ exports.protect = async (req, res, next) => {
             });
         }
 
-        // Keep as Sequelize instance to allow method usage
-        // req.user = req.user.toJSON();
-
         next();
     } catch (error) {
         return res.status(401).json({
@@ -129,7 +126,6 @@ exports.optionalProtect = async (req, res, next) => {
 
         if (req.user) {
             // Keep as Sequelize instance to allow method usage
-            // req.user = req.user.toJSON();
         }
     } catch (error) {
         // Ignore token errors and continue without user

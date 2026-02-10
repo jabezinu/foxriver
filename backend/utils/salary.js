@@ -2,6 +2,7 @@ const User = require('../models/User');
 const SystemSetting = require('../models/SystemSetting');
 const Membership = require('../models/Membership');
 const { Op } = require('sequelize');
+const logger = require('../config/logger');
 
 /**
  * Calculate monthly salary based on downline counts
@@ -132,7 +133,7 @@ exports.calculateMonthlySalary = async (userId) => {
 
         return { salary, breakdown };
     } catch (error) {
-        console.error('Error calculating monthly salary:', error);
+        logger.error('Error calculating monthly salary:', { error: error.message });
         throw error;
     }
 };

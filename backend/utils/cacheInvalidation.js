@@ -1,5 +1,6 @@
 const cache = require('./cache');
 const { User } = require('../models');
+const logger = require('../config/logger');
 
 /**
  * Invalidate referral-related cache for a user and their referral chain
@@ -23,7 +24,7 @@ const invalidateReferralCache = async (userId, options = {}) => {
             cache.delete(`salary:${userId}`);
         }
     } catch (error) {
-        console.error('Error invalidating cache for user:', userId, error);
+        logger.error('Error invalidating cache for user', { userId, error: error.message });
     }
 };
 
@@ -54,7 +55,7 @@ const invalidateReferralChainCache = async (userId) => {
             }
         }
     } catch (error) {
-        console.error('Error invalidating referral chain cache for user:', userId, error);
+        logger.error('Error invalidating referral chain cache for user', { userId, error: error.message });
     }
 };
 

@@ -8,7 +8,6 @@ class User extends Model {
         return await bcrypt.compare(enteredPassword, this.password);
     }
 
-
     // Get referral link
     getReferralLink() {
         return `${process.env.CLIENT_URL}/register?ref=${this.invitationCode}`;
@@ -218,7 +217,6 @@ User.init({
         { fields: ['phone'] }, // Essential for login
         { fields: ['invitationCode'] }, // Essential for referrals
         { fields: ['referrerId'] } // Essential for referral queries
-        // Removed membershipLevel and role indexes to reduce total index count
     ],
     hooks: {
         beforeSave: async (user) => {
@@ -227,7 +225,6 @@ User.init({
                 const salt = await bcrypt.genSalt(10);
                 user.password = await bcrypt.hash(user.password, salt);
             }
-
         }
     }
 });

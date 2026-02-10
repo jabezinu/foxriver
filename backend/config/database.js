@@ -28,22 +28,18 @@ const connectDB = async () => {
         await sequelize.authenticate();
         logger.info(`MySQL Connected: ${sequelize.config.host}`);
 
-        // For development, use alter: true but with error handling
-        // For production, use force: false to avoid schema changes
         const syncOptions = process.env.NODE_ENV === 'production' 
             ? { force: false } 
-            : { alter: false }; // Changed from alter: true to avoid index issues
+            : { alter: false };
 
         try {
             await sequelize.sync(syncOptions);
             logger.info('Database synchronized');
         } catch (syncError) {
             logger.warn('Database sync failed, continuing without sync', { error: syncError.message });
-            // Continue without sync - the database should already exist
         }
     } catch (error) {
         logger.error('MySQL connection failed', { error: error.message });
-        // Retry connection after 5 seconds
         setTimeout(connectDB, 5000);
     }
 };

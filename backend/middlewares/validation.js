@@ -76,12 +76,7 @@ exports.depositValidation = [
                 throw new Error('Amount must be one of the allowed values');
             }
             return true;
-        }),
-    body('paymentMethod')
-        .notEmpty()
-        .withMessage('Payment method is required')
-        .isMongoId()
-        .withMessage('Invalid payment method ID')
+        })
 ];
 
 // Withdrawal validation rules
@@ -131,7 +126,7 @@ exports.profileUpdateValidation = [
 // MongoDB ID validation
 exports.mongoIdValidation = [
     param('id')
-        .isMongoId()
+        .isInt()
         .withMessage('Invalid ID format')
 ];
 
