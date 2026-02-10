@@ -11,7 +11,7 @@ class User extends Model {
 
     // Get referral link
     getReferralLink() {
-        return `${process.env.CLIENT_URL || 'http://localhost:5173'}/register?ref=${this.invitationCode}`;
+        return `${process.env.CLIENT_URL}/register?ref=${this.invitationCode}`;
     }
 
     // Check if Intern user can earn (within 4 days of membership activation)

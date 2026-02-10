@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // target: 'http://localhost:5002',
-        target: 'https://backend-novis.novis2026.cloud',
+        target: 'http://localhost:5002',
+        // target: 'https://backend-novis.novis2026.cloud',
         changeOrigin: true,
         secure: false,
       }
