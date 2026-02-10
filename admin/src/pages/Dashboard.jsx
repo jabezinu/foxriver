@@ -35,15 +35,27 @@ ChartJS.register(
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [lastStatsFetch, setLastStatsFetch] = useState(0);
 
     useEffect(() => {
         fetchStats();
     }, []);
 
-    const fetchStats = async () => {
+    const fetchStats = async (force = false) => {
+        const now = Date.now();
+        const CACHE_DURATION = 60000; // 1 minute cache
+        
+        // Use cached stats if available and not forced
+        if (!force && stats && (now - lastStatsFetch) < CACHE_DURATION) {
+            setLoading(false);
+            return;
+        }
+        
+        setLoading(true);
         try {
             const res = await adminStatsAPI.getStats();
             setStats(res.data.stats);
+            setLastStatsFetch(now);
         } catch (error) {
             toast.error('Failed to load dashboard statistics');
             console.error(error);

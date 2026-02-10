@@ -29,27 +29,47 @@ export default function SystemSettings() {
     };
 
     const toggleTasks = async () => {
+        const newValue = !settings?.tasksDisabled;
+        
+        // Optimistic update
+        setSettings({ ...settings, tasksDisabled: newValue });
         setUpdating(true);
+        
         try {
-            const response = await adminSystemAPI.updateSettings({ tasksDisabled: !settings?.tasksDisabled });
+            const response = await adminSystemAPI.updateSettings({ tasksDisabled: newValue });
             if (response.data.success) {
                 setSettings(response.data.settings || response.data.data);
-                toast.success(`Protocol ${!settings?.tasksDisabled ? 'Halted' : 'Resumed'}`);
+                toast.success(`Protocol ${newValue ? 'Halted' : 'Resumed'}`);
             }
-        } catch (error) { toast.error('Command Failed'); }
-        finally { setUpdating(false); }
+        } catch (error) {
+            // Revert on error
+            setSettings(settings);
+            toast.error('Command Failed');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const toggleFrontend = async () => {
+        const newValue = !settings?.frontendDisabled;
+        
+        // Optimistic update
+        setSettings({ ...settings, frontendDisabled: newValue });
         setUpdating(true);
+        
         try {
-            const response = await adminSystemAPI.updateSettings({ frontendDisabled: !settings?.frontendDisabled });
+            const response = await adminSystemAPI.updateSettings({ frontendDisabled: newValue });
             if (response.data.success) {
                 setSettings(response.data.settings || response.data.data);
-                toast.success(`Gateway ${!settings?.frontendDisabled ? 'Severed' : 'Restored'}`);
+                toast.success(`Gateway ${newValue ? 'Severed' : 'Restored'}`);
             }
-        } catch (error) { toast.error('Command Failed'); }
-        finally { setUpdating(false); }
+        } catch (error) {
+            // Revert on error
+            setSettings(settings);
+            toast.error('Command Failed');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const updateSettings = async (data) => {

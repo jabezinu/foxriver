@@ -60,13 +60,16 @@ export const useUserStore = create((set, get) => ({
         try {
             const response = await userAPI.getProfile();
             const newProfile = response.data.user;
+            const bankChangeInfo = response.data.bankChangeInfo;
 
             set(state => ({
                 profile: newProfile,
                 lastProfileFetch: Date.now(),
                 loading: { ...state.loading, profile: false }
             }));
-            return newProfile;
+            
+            // Return profile with bankChangeInfo attached for convenience
+            return { ...newProfile, bankChangeInfo };
         } catch (error) {
             console.error('Failed to fetch profile:', error);
             set(state => ({
@@ -137,6 +140,23 @@ export const useUserStore = create((set, get) => ({
             fetchTasks(true)
         ]);
         return true;
+    },
+
+    // Invalidate specific cache fields
+    invalidateCache: (fields = []) => {
+        set(state => {
+            const updates = {};
+            if (fields.length === 0 || fields.includes('profile')) {
+                updates.lastProfileFetch = 0;
+            }
+            if (fields.length === 0 || fields.includes('wallet')) {
+                updates.lastWalletFetch = 0;
+            }
+            if (fields.length === 0 || fields.includes('tasks')) {
+                updates.lastTasksFetch = 0;
+            }
+            return updates;
+        });
     },
 
     // Reset store (useful for logout)

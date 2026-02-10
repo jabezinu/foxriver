@@ -6,7 +6,6 @@ import ReactPlayer from 'react-player';
 import Loading from '../components/Loading';
 import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { getServerUrl } from '../config/api.config';
 
 import { useUserStore } from '../store/userStore';
@@ -77,8 +76,10 @@ export default function Task() {
         if (isCompleting || !activeVideo) return;
 
         setIsCompleting(true);
+        const completedTaskId = activeVideo.id; // Capture the ID before clearing state
+        
         try {
-            const response = await taskAPI.completeTask(activeVideo.id);
+            const response = await taskAPI.completeTask(completedTaskId);
             if (response.data.success) {
                 const newEarnings = earningsStats.todayEarnings + response.data.earningsAmount;
                 toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
@@ -87,8 +88,16 @@ export default function Task() {
                 setActiveVideo(null);
                 setCountdown(null);
 
-                // Force refresh tasks to update status and earnings
-                await fetchTasks(true);
+                // Update local task state instead of full refetch
+                // This avoids unnecessary API call and provides instant feedback
+                useUserStore.setState(state => ({
+                    tasks: state.tasks.map(t => 
+                        t._id === completedTaskId 
+                            ? { ...t, isCompleted: true }
+                            : t
+                    ),
+                    lastTasksFetch: Date.now() // Reset cache timer
+                }));
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to complete task');

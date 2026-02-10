@@ -153,7 +153,7 @@ const SlotMachineButton = ({ onClick }) => (
 export default function Home() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const { wallet, fetchWallet, syncData, loading: storeLoading } = useUserStore();
+    const { wallet, fetchWallet, fetchProfile, syncData, loading: storeLoading } = useUserStore();
 
     // Local loading state just for initial mount if we want to show a spinner
     // However, with the new store, we might want to just show the skeleton or cached data immediately.
@@ -167,13 +167,19 @@ export default function Home() {
 
     useEffect(() => {
         const init = async () => {
+            // Fetch profile once and extract both bank change info and invitation code
+            const profileData = await fetchProfile();
+            if (profileData?.bankChangeInfo) {
+                setBankChangeInfo(profileData.bankChangeInfo);
+            }
+            if (profileData?.invitationCode) {
+                setInvitationCode(profileData.invitationCode);
+            }
             await fetchWallet();
-            await checkBankChangeStatus();
-            await fetchInvitationCode();
             setIsInitialLoad(false);
         };
         init();
-    }, [fetchWallet]);
+    }, [fetchProfile, fetchWallet]);
 
     const fetchInvitationCode = async () => {
         try {
