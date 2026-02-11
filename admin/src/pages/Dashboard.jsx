@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminStatsAPI } from '../services/api';
+import { useStatsStore } from '../store/statsStore';
 import {
     HiUsers, HiCurrencyDollar, HiCheckCircle, HiBriefcase,
     HiVideoCamera, HiTrendingUp, HiTrendingDown
@@ -33,52 +33,32 @@ ChartJS.register(
 );
 
 export default function Dashboard() {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [lastStatsFetch, setLastStatsFetch] = useState(0);
+    const { stats, loading, fetchStats } = useStatsStore();
 
     useEffect(() => {
         fetchStats();
     }, []);
 
-    const fetchStats = async (force = false) => {
-        const now = Date.now();
-        const CACHE_DURATION = 60000; // 1 minute cache
-        
-        // Use cached stats if available and not forced
-        if (!force && stats && (now - lastStatsFetch) < CACHE_DURATION) {
-            setLoading(false);
-            return;
-        }
-        
-        setLoading(true);
-        try {
-            const res = await adminStatsAPI.getStats();
-            setStats(res.data.stats);
-            setLastStatsFetch(now);
-        } catch (error) {
-            toast.error('Failed to load dashboard statistics');
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+    const handleRefresh = async () => {
+        await fetchStats(true);
+        toast.success('Dashboard refreshed');
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Initializing Dashboard...</div>;
+    if (loading || !stats) return <div className="p-8 text-center text-gray-500">Initializing Dashboard...</div>;
 
     const statCards = [
-        { label: 'Total Users', value: formatNumber(stats.users.total), icon: HiUsers, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Deposit Requests', value: formatNumber(stats.deposits.pending), icon: HiCurrencyDollar, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-        { label: 'Withdrawal Requests', value: formatNumber(stats.withdrawals.pending), icon: HiBriefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { label: 'Revenue (Total Approved)', value: `${formatNumber(stats.deposits.totalAmount)} ETB`, icon: HiCheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
+        { label: 'Total Users', value: formatNumber(stats.users?.total || 0), icon: HiUsers, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Deposit Requests', value: formatNumber(stats.deposits?.pending || 0), icon: HiCurrencyDollar, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+        { label: 'Withdrawal Requests', value: formatNumber(stats.withdrawals?.pending || 0), icon: HiBriefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Revenue (Total Approved)', value: `${formatNumber(stats.deposits?.totalAmount || 0)} ETB`, icon: HiCheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
     ];
 
     // Chart Data
     const userLevelData = {
-        labels: stats.users.byLevel.map(l => l.membershipLevel),
+        labels: (stats.users?.byLevel || []).map(l => l.membershipLevel),
         datasets: [{
             label: 'Users by Level',
-            data: stats.users.byLevel.map(l => l.count),
+            data: (stats.users?.byLevel || []).map(l => l.count),
             backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6', '#ec4899', '#f97316'],
             borderWidth: 0,
         }]
@@ -87,7 +67,7 @@ export default function Dashboard() {
     const depositStatusData = {
         labels: ['Pending', 'Approved'],
         datasets: [{
-            data: [stats.deposits.pending, stats.deposits.approved],
+            data: [stats.deposits?.pending || 0, stats.deposits?.approved || 0],
             backgroundColor: ['#f59e0b', '#10b981'],
             hoverOffset: 4
         }]
@@ -100,7 +80,7 @@ export default function Dashboard() {
                     <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
                     <p className="text-sm text-gray-500">Real-time system health and user analytics.</p>
                 </div>
-                <button onClick={fetchStats} className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider w-full md:w-auto justify-center">
+                <button onClick={handleRefresh} className="admin-btn-secondary flex items-center gap-2 text-xs font-bold uppercase tracking-wider w-full md:w-auto justify-center">
                     <HiTrendingUp />
                     Refresh Stats
                 </button>
@@ -162,7 +142,7 @@ export default function Dashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {stats.recentUsers.map((user) => (
+                            {(stats.recentUsers || []).map((user) => (
                                 <tr key={user.id} className="table-row">
                                     <td className="px-4 py-4 text-sm font-bold text-gray-800 tracking-tight">{user.phone}</td>
                                     <td className="px-4 py-4">

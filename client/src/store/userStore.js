@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { userAPI, taskAPI } from '../services/api';
+import { userAPI, taskAPI, wealthAPI } from '../services/api';
 
 export const useUserStore = create((set, get) => ({
     wallet: { incomeWallet: 0, personalWallet: 0 },
@@ -88,6 +88,10 @@ export const useUserStore = create((set, get) => ({
     earningsStats: null,
     lastTasksFetch: 0,
 
+    // Wealth Funds State
+    wealthFunds: [],
+    lastWealthFundsFetch: 0,
+
     fetchTasks: async (force = false) => {
         const { lastTasksFetch, loading, isStale, tasks } = get();
         // Since tasks change daily or on completion, maybe 5 mins cache is okay, 
@@ -142,6 +146,28 @@ export const useUserStore = create((set, get) => ({
         return true;
     },
 
+    fetchWealthFunds: async (force = false) => {
+        const { lastWealthFundsFetch, isStale, wealthFunds } = get();
+        // Cache wealth funds for 10 minutes
+        if (!force && !isStale(lastWealthFundsFetch, 10 * 60 * 1000)) {
+            return wealthFunds;
+        }
+
+        try {
+            const response = await wealthAPI.getFunds();
+            const funds = response.data.data || [];
+
+            set({
+                wealthFunds: funds,
+                lastWealthFundsFetch: Date.now()
+            });
+            return funds;
+        } catch (error) {
+            console.error('Failed to fetch wealth funds:', error);
+            return wealthFunds;
+        }
+    },
+
     // Invalidate specific cache fields
     invalidateCache: (fields = []) => {
         set(state => {
@@ -165,6 +191,7 @@ export const useUserStore = create((set, get) => ({
             wallet: { incomeWallet: 0, personalWallet: 0 },
             profile: null,
             tasks: [],
+            wealthFunds: [],
             dailyStats: { dailyIncome: 0, perVideoIncome: 0 },
             internRestriction: null,
             isSunday: false,
@@ -172,6 +199,7 @@ export const useUserStore = create((set, get) => ({
             lastWalletFetch: 0,
             lastProfileFetch: 0,
             lastTasksFetch: 0,
+            lastWealthFundsFetch: 0,
             loading: { wallet: false, profile: false, tasks: false },
             error: null
         });

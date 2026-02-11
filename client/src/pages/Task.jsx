@@ -102,8 +102,8 @@ export default function Task() {
                     wallet: {
                         ...state.wallet,
                         incomeWallet: state.wallet.incomeWallet + (response.data.earningsAmount || earningsAmount)
-                    },
-                    lastTasksFetch: Date.now() // Reset cache timer
+                    }
+                    // Don't reset lastTasksFetch - keep cache valid
                 }));
             }
         } catch (error) {

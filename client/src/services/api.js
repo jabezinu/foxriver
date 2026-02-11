@@ -5,8 +5,6 @@ import API_CONFIG from '../config/api.config';
 axios.defaults.baseURL = API_CONFIG.baseURL;
 axios.defaults.timeout = API_CONFIG.timeout;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
-axios.defaults.headers.common['Cache-Control'] = 'no-cache';
-axios.defaults.headers.common['Pragma'] = 'no-cache';
 
 // Request interceptor to add token
 axios.interceptors.request.use(
@@ -14,14 +12,6 @@ axios.interceptors.request.use(
         const token = localStorage.getItem('foxriver_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        // Selective cache busting: only for endpoints that need fresh data
-        const CACHE_BUST_ENDPOINTS = ['/tasks/daily', '/video-tasks/daily', '/users/wallet', '/spin/history'];
-        const shouldBustCache = CACHE_BUST_ENDPOINTS.some(ep => config.url.includes(ep));
-        
-        if (config.method === 'get' && shouldBustCache) {
-            config.params = { ...config.params, _t: Date.now() };
         }
 
         return config;

@@ -2,32 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import Card from '../components/ui/Card';
-import { wealthAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useUserStore } from '../store/userStore';
 import { getServerUrl } from '../config/api.config';
 import logo from '../assets/logo.png';
 
 export default function Wealth() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const [funds, setFunds] = useState([]);
+    const { wealthFunds, fetchWealthFunds, loading: storeLoading } = useUserStore();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchFunds();
-    }, []);
-
-    const fetchFunds = async () => {
-        try {
-            const response = await wealthAPI.getFunds();
-            setFunds(response.data.data || []);
-        } catch (error) {
-            console.error('Error fetching funds:', error);
-            setFunds([]);
-        } finally {
+        const init = async () => {
+            await fetchWealthFunds();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, []);
 
     const calculateProgress = (fund) => {
         // Mock progress calculation - you can customize this
@@ -79,10 +71,10 @@ export default function Wealth() {
                             className="w-16 h-16 object-contain animate-pulse mx-auto"
                         />
                     </Card>
-                ) : funds.length > 0 ? (
+                ) : wealthFunds.length > 0 ? (
                     <>
                         <h3 className="text-lg font-bold text-white mb-4">Storage Period</h3>
-                        {funds.map((fund) => {
+                        {wealthFunds.map((fund) => {
                             const progress = calculateProgress(fund);
                             return (
                                 <Card

@@ -181,28 +181,6 @@ export default function Home() {
         init();
     }, [fetchProfile, fetchWallet]);
 
-    const fetchInvitationCode = async () => {
-        try {
-            const res = await userAPI.getProfile();
-            if (res.data.user?.invitationCode) {
-                setInvitationCode(res.data.user.invitationCode);
-            }
-        } catch (error) {
-            console.error('Failed to fetch invitation code:', error);
-        }
-    };
-
-    const checkBankChangeStatus = async () => {
-        try {
-            const res = await userAPI.getProfile();
-            if (res.data.bankChangeInfo) {
-                setBankChangeInfo(res.data.bankChangeInfo);
-            }
-        } catch (error) {
-            console.error('Failed to check bank change status:', error);
-        }
-    };
-
     const handleSync = async () => {
         setIsSyncing(true);
         try {
@@ -439,8 +417,8 @@ export default function Home() {
             {/* Bank Change Confirmation Modal */}
             <BankChangeConfirmation
                 bankChangeInfo={bankChangeInfo}
-                onConfirmed={checkBankChangeStatus}
-                onDeclined={checkBankChangeStatus}
+                onConfirmed={() => fetchProfile(true)}
+                onDeclined={() => fetchProfile(true)}
             />
 
             {/* Invite Modal */}
