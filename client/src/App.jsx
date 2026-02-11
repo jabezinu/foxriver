@@ -4,6 +4,7 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import { newsAPI, systemAPI } from './services/api';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { WalletProvider } from './contexts/WalletContext';
 import logo from './assets/logo.png';
 
 // Lazy load pages for better performance
@@ -158,12 +159,13 @@ function App() {
 
   return (
     <SettingsProvider>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}
-      >
+      <WalletProvider>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
         <Toaster
           position="top-center"
           reverseOrder={false}
@@ -224,6 +226,7 @@ function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+    </WalletProvider>
     </SettingsProvider>
   );
 }

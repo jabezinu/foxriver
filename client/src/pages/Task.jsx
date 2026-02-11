@@ -77,6 +77,7 @@ export default function Task() {
 
         setIsCompleting(true);
         const completedTaskId = activeVideo.id; // Capture the ID before clearing state
+        const earningsAmount = dailyStats.perVideoIncome; // Get earnings for this task
         
         try {
             const response = await taskAPI.completeTask(completedTaskId);
@@ -88,14 +89,20 @@ export default function Task() {
                 setActiveVideo(null);
                 setCountdown(null);
 
-                // Update local task state instead of full refetch
-                // This avoids unnecessary API call and provides instant feedback
+                // Update local task state AND wallet instantly (Optimistic Update)
+                // This avoids unnecessary API calls and provides instant feedback
                 useUserStore.setState(state => ({
+                    // Update task completion status
                     tasks: state.tasks.map(t => 
                         t._id === completedTaskId 
                             ? { ...t, isCompleted: true }
                             : t
                     ),
+                    // Update wallet balance instantly
+                    wallet: {
+                        ...state.wallet,
+                        incomeWallet: state.wallet.incomeWallet + (response.data.earningsAmount || earningsAmount)
+                    },
                     lastTasksFetch: Date.now() // Reset cache timer
                 }));
             }

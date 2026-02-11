@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Wallet, ShieldCheck, Eye, EyeOff, History, ExternalLink } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUserStore } from '../store/userStore';
+import { useWallet } from '../contexts/WalletContext';
 import { withdrawalAPI } from '../services/api';
 import { formatNumber } from '../utils/formatNumber';
 import Button from '../components/ui/Button';
@@ -14,6 +15,7 @@ export default function Withdraw() {
     const navigate = useNavigate();
     // Use store data
     const { wallet, profile, fetchWallet, fetchProfile } = useUserStore();
+    const { executeWithOptimisticUpdate } = useWallet();
 
     const [loading, setLoading] = useState(true);
     // wallets state is replaced by store wallet
@@ -124,11 +126,6 @@ export default function Withdraw() {
     }, [fetchWallet, fetchProfile]);
 
     // Derived values using store wallet
-    // Renaming usages of 'wallets' to 'wallet' in the rest of the file via this replacer? 
-    // No, I need to do that separately or mapping it here.
-    // Let's alias it for minimal diffs if possible, or just update usages.
-    // Updating usages is better practice. I will do it in next steps.
-    // For now, let's just alias it.
     const wallets = wallet;
 
 
@@ -138,9 +135,8 @@ export default function Withdraw() {
             return;
         }
 
-
         // Get the correct wallet balance based on wallet type
-        const walletBalance = walletType === 'income' ? wallets.incomeWallet : wallets.personalWallet;
+        const walletBalance = walletType === 'income' ? wallet.incomeWallet : wallet.personalWallet;
 
         if (walletBalance < selectedAmount) {
             toast.error('Insufficient balance in selected wallet');
@@ -149,13 +145,24 @@ export default function Withdraw() {
 
         setSubmitting(true);
         try {
-            await withdrawalAPI.create({
-                amount: selectedAmount,
-                walletType
-            });
+            // Calculate optimistic update
+            const deduction = walletType === 'income' 
+                ? { incomeWallet: -selectedAmount }
+                : { personalWallet: -selectedAmount };
+
+            // Execute with optimistic update
+            await executeWithOptimisticUpdate(
+                () => withdrawalAPI.create({
+                    amount: selectedAmount,
+                    walletType
+                }),
+                deduction,
+                { syncAfter: true, syncDelay: 1500 }
+            );
+
             toast.success('Withdrawal request submitted!');
-            // Force reload the webpage after successful withdrawal
-            window.location.href = '/';
+            // Navigate to transaction status instead of full reload
+            setTimeout(() => navigate('/transaction-status'), 500);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Withdrawal failed');
         } finally {

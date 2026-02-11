@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { membershipAPI, rankUpgradeAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-hot-toast';
 import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, Wallet, Check, ChevronDown } from 'lucide-react';
 import Loading from '../components/Loading';
@@ -13,32 +14,22 @@ import Modal from '../components/Modal';
 export default function RankUpgrade() {
     const navigate = useNavigate();
     const { user, updateUser } = useAuthStore();
+    const { wallet, executeWithOptimisticUpdate } = useWallet();
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedTier, setSelectedTier] = useState(null);
     const [confirmLoading, setConfirmLoading] = useState(false);
 
-    const [walletBalances, setWalletBalances] = useState({
-        personalWallet: 0,
-        incomeWallet: 0
-    });
-
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [tiersRes, systemRes, walletRes] = await Promise.all([
+                const [tiersRes, systemRes] = await Promise.all([
                     membershipAPI.getTiers(),
-                    userAPI.getSystemSettings(),
-                    userAPI.getWallet()
+                    userAPI.getSystemSettings()
                 ]);
 
                 setTiers(tiersRes.data.tiers);
-
-
-
-                // Set wallet balances
-                setWalletBalances(walletRes.data.wallet);
             } catch (error) {
                 toast.error('Failed to fetch data');
                 console.error(error);
@@ -63,8 +54,8 @@ export default function RankUpgrade() {
         }
 
         // Check balance and show toast if insufficient
-        if (walletBalances.personalWallet < tier.price) {
-            toast.error(`Insufficient Balance. You need ${formatNumber(tier.price)} ETB but have ${formatNumber(walletBalances.personalWallet)} ETB`);
+        if (wallet.personalWallet < tier.price) {
+            toast.error(`Insufficient Balance. You need ${formatNumber(tier.price)} ETB but have ${formatNumber(wallet.personalWallet)} ETB`);
             return;
         }
 
@@ -79,36 +70,43 @@ export default function RankUpgrade() {
         }
 
         // Check if user has sufficient balance in Personal Wallet
-        if (walletBalances.personalWallet < selectedTier.price) {
-            toast.error(`Insufficient Personal Wallet balance. You need ${formatNumber(selectedTier.price)} ETB but have ${formatNumber(walletBalances.personalWallet)} ETB`);
+        if (wallet.personalWallet < selectedTier.price) {
+            toast.error(`Insufficient Personal Wallet balance. You need ${formatNumber(selectedTier.price)} ETB but have ${formatNumber(wallet.personalWallet)} ETB`);
             return;
         }
 
         setConfirmLoading(true);
         try {
-            const res = await rankUpgradeAPI.createRequest({
-                newLevel: selectedTier.level,
-                amount: selectedTier.price,
-                walletType: 'personal' // Only Personal Wallet is allowed
+            // Calculate optimistic update
+            // Get current tier to calculate refund
+            const currentTier = tiers.find(t => t.level === user?.membershipLevel);
+            const refundAmount = currentTier && currentTier.level !== 'Intern' ? currentTier.price : 0;
+            const netDeduction = selectedTier.price - refundAmount;
+
+            // Execute with optimistic update
+            await executeWithOptimisticUpdate(
+                () => rankUpgradeAPI.createRequest({
+                    newLevel: selectedTier.level,
+                    amount: selectedTier.price,
+                    walletType: 'personal'
+                }),
+                {
+                    personalWallet: -netDeduction
+                },
+                { syncAfter: true, syncDelay: 1000 }
+            );
+
+            // Update user membership level
+            updateUser({
+                ...user,
+                membershipLevel: selectedTier.level
             });
 
-            if (res.data.success) {
-                // Update user data and wallet balances
-                updateUser({
-                    ...user,
-                    membershipLevel: selectedTier.level,
-                    personalWallet: res.data.newWalletBalances.personalWallet,
-                    incomeWallet: res.data.newWalletBalances.incomeWallet
-                });
+            setShowModal(false);
+            toast.success('Rank upgraded successfully!');
 
-                setWalletBalances(res.data.newWalletBalances);
-                setShowModal(false);
-
-                toast.success(res.data.message);
-
-                // Navigate back to home or tier list
-                navigate('/tier-list');
-            }
+            // Navigate back to tier list
+            setTimeout(() => navigate('/tier-list'), 500);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to upgrade rank');
         } finally {
@@ -250,11 +248,11 @@ export default function RankUpgrade() {
                                     {canUpgrade && !isHidden ? (
                                         <Button
                                             onClick={() => handleUpgradeClick(tier)}
-                                            className={`w-full shadow-glow ${walletBalances.personalWallet < tier.price
+                                            className={`w-full shadow-glow ${wallet.personalWallet < tier.price
                                                 ? 'bg-zinc-800 text-zinc-100 opacity-90'
                                                 : 'bg-primary-500 hover:bg-primary-600 text-black'} font-bold`}
                                         >
-                                            <Zap size={16} className={`mr-2 ${walletBalances.personalWallet < tier.price ? 'text-primary-400 fill-primary-400/20' : 'fill-black text-black'}`} />
+                                            <Zap size={16} className={`mr-2 ${wallet.personalWallet < tier.price ? 'text-primary-400 fill-primary-400/20' : 'fill-black text-black'}`} />
                                             Upgrade with Personal Wallet
                                         </Button>
                                     ) : isCurrent ? (
@@ -326,7 +324,7 @@ export default function RankUpgrade() {
                                         </div>
                                         <div>
                                             <span className="block font-semibold text-sm text-white">Personal Wallet</span>
-                                            <span className="text-xs text-zinc-400">Available: {formatNumber(walletBalances.personalWallet)} ETB</span>
+                                            <span className="text-xs text-zinc-400">Available: {formatNumber(wallet.personalWallet)} ETB</span>
                                         </div>
                                     </div>
                                     <div className="bg-blue-500/10 p-1.5 rounded-lg">
@@ -359,8 +357,8 @@ export default function RankUpgrade() {
                             <Button
                                 onClick={handleConfirmUpgrade}
                                 loading={confirmLoading}
-                                disabled={confirmLoading || walletBalances.personalWallet < selectedTier.price}
-                                className={`flex-[2] shadow-glow ${walletBalances.personalWallet < selectedTier.price ? 'opacity-80 bg-zinc-800 text-zinc-100' : ''}`}
+                                disabled={confirmLoading || wallet.personalWallet < selectedTier.price}
+                                className={`flex-[2] shadow-glow ${wallet.personalWallet < selectedTier.price ? 'opacity-80 bg-zinc-800 text-zinc-100' : ''}`}
                             >
                                 Confirm Upgrade
                             </Button>
