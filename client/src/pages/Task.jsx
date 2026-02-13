@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { taskAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { Play, CheckCircle, Video, X, Clock, TrendingUp, Target } from 'lucide-react';
 import ReactPlayer from 'react-player';
@@ -8,10 +7,11 @@ import { formatNumber } from '../utils/formatNumber';
 import Card from '../components/ui/Card';
 import { getServerUrl } from '../config/api.config';
 
+import { useTaskStore } from '../store/taskStore';
 import { useUserStore } from '../store/userStore';
 
 export default function Task() {
-    // Use store data
+    // Use task store for task data and API calls
     const {
         tasks,
         fetchTasks,
@@ -19,12 +19,15 @@ export default function Task() {
         internRestriction,
         isSunday,
         earningsStats: storeEarningsStats,
-        loading: { tasks: loading } // Map store loading.tasks to local loading
-    } = useUserStore();
+        loading,
+        completeTask
+    } = useTaskStore();
+
+    // Use user store for wallet updates
+    const { wallet } = useUserStore();
 
     const [activeVideo, setActiveVideo] = useState(null);
     const [countdown, setCountdown] = useState(null);
-    const [isCompleting, setIsCompleting] = useState(false);
 
     // Derived or local earnings stats if not provided by backend
     // The store has earningsStats, but if it is null, we calculate locally.
@@ -73,45 +76,37 @@ export default function Task() {
     };
 
     const handleAutoResolve = async () => {
-        if (isCompleting || !activeVideo) return;
+        if (!activeVideo) return;
 
-        setIsCompleting(true);
-        const completedTaskId = activeVideo.id; // Capture the ID before clearing state
-        const earningsAmount = dailyStats.perVideoIncome; // Get earnings for this task
+        const completedTaskId = activeVideo.id;
         
         try {
-            const response = await taskAPI.completeTask(completedTaskId);
-            if (response.data.success) {
-                const newEarnings = earningsStats.todayEarnings + response.data.earningsAmount;
-                toast.success(`Task completed! Earned ${formatNumber(response.data.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
+            const result = await completeTask(completedTaskId);
+            
+            if (result.success) {
+                const newEarnings = earningsStats.todayEarnings + result.earningsAmount;
+                toast.success(`Task completed! Earned ${formatNumber(result.earningsAmount)} ETB (Total today: ${formatNumber(newEarnings)} ETB)`);
 
                 // Close video and redirect back to tasks
                 setActiveVideo(null);
                 setCountdown(null);
 
-                // Update local task state AND wallet instantly (Optimistic Update)
-                // This avoids unnecessary API calls and provides instant feedback
+                // Update wallet instantly (Optimistic Update)
                 useUserStore.setState(state => ({
-                    // Update task completion status
-                    tasks: state.tasks.map(t => 
-                        t._id === completedTaskId 
-                            ? { ...t, isCompleted: true }
-                            : t
-                    ),
-                    // Update wallet balance instantly
                     wallet: {
                         ...state.wallet,
-                        incomeWallet: state.wallet.incomeWallet + (response.data.earningsAmount || earningsAmount)
+                        incomeWallet: state.wallet.incomeWallet + (result.earningsAmount || dailyStats.perVideoIncome)
                     }
-                    // Don't reset lastTasksFetch - keep cache valid
                 }));
+            } else {
+                toast.error(result.message);
+                setActiveVideo(null);
+                setCountdown(null);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to complete task');
+            toast.error('Failed to complete task');
             setActiveVideo(null);
             setCountdown(null);
-        } finally {
-            setIsCompleting(false);
         }
     };
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { earningsAPI } from '../services/api';
+import { useEffect } from 'react';
+import { useEarningsStore } from '../store/earningsStore';
 import { toast } from 'react-hot-toast';
 import { 
     TrendingUp, 
@@ -17,24 +17,17 @@ import EarningsCard from './EarningsCard';
 import { formatNumber } from '../utils/formatNumber';
 
 const EarningsDashboard = () => {
-    const [earnings, setEarnings] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { earnings, loading, error, fetchEarnings } = useEarningsStore();
 
     useEffect(() => {
         fetchEarnings();
-    }, []);
+    }, [fetchEarnings]);
 
-    const fetchEarnings = async () => {
-        try {
-            const response = await earningsAPI.getSummary();
-            setEarnings(response.data.earnings);
-        } catch (error) {
-            toast.error('Failed to load earnings data');
-            console.error('Earnings fetch error:', error);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
         }
-    };
+    }, [error]);
 
     if (loading) {
         return (

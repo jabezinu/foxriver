@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { userAPI, depositAPI, bankAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, CreditCard, Check, ChevronDown, History, Copy, Upload, Image, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,12 +11,27 @@ import { formatNumber } from '../utils/formatNumber';
 import logo from '../assets/logo.png';
 
 import { useUserStore } from '../store/userStore';
+import { useDepositStore } from '../store/depositStore';
 
 export default function Deposit() {
     const navigate = useNavigate();
     const { wallet, fetchWallet } = useUserStore();
+    const {
+        methods,
+        history,
+        amounts,
+        restrictedAmounts,
+        currentDeposit,
+        submitting,
+        loadingMethods,
+        loadingHistory,
+        loadingAmounts,
+        initializeDeposit,
+        createDeposit,
+        submitFT
+    } = useDepositStore();
 
-    // Initial loading state mapping
+    // Initial loading state
     const [loading, setLoading] = useState(true);
 
     // We can derive balance from store wallet
@@ -26,41 +40,18 @@ export default function Deposit() {
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
     const [step, setStep] = useState(1); // 1: Amount, 2: FT submission
-    const [currentDeposit, setCurrentDeposit] = useState(null);
     const [ftNumber, setFtNumber] = useState('');
     const [screenshot, setScreenshot] = useState(null);
     const [screenshotPreview, setScreenshotPreview] = useState(null);
-    const [methods, setMethods] = useState([]);
-    const [history, setHistory] = useState([]);
-    const [loadingHistory, setLoadingHistory] = useState(false);
-    const [amounts, setAmounts] = useState([]);
-    const [restrictedAmounts, setRestrictedAmounts] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const init = async () => {
             try {
-                // Fetch wallet, banks, and allowed amounts in parallel
-                const [_, bankRes, amountsRes] = await Promise.all([
+                await Promise.all([
                     fetchWallet(),
-                    bankAPI.getBanks(),
-                    depositAPI.getAllowedAmounts()
+                    initializeDeposit()
                 ]);
-
-                const bankMethods = bankRes.data.data.map(bank => ({
-                    id: bank._id || bank.id,
-                    name: bank.bankName,
-                    account: bank.accountNumber,
-                    holder: bank.accountHolderName
-                }));
-                setMethods(bankMethods);
-                setAmounts(amountsRes.data.allowedAmounts);
-                
-                // Set restricted amounts if user context is available
-                if (amountsRes.data.userContext && amountsRes.data.userContext.restrictedAmounts) {
-                    setRestrictedAmounts(amountsRes.data.userContext.restrictedAmounts);
-                }
             } catch (error) {
                 toast.error('Failed to load data');
                 console.error(error);
@@ -69,21 +60,8 @@ export default function Deposit() {
             }
         };
 
-        const fetchHistory = async () => {
-            setLoadingHistory(true);
-            try {
-                const res = await depositAPI.getUserDeposits();
-                setHistory(res.data.deposits);
-            } catch (error) {
-                console.error('Failed to load history', error);
-            } finally {
-                setLoadingHistory(false);
-            }
-        };
-
-        fetchData();
-        fetchHistory();
-    }, [fetchWallet]);
+        init();
+    }, []);
 
     // Clear selected amount if it becomes restricted
     useEffect(() => {
@@ -106,18 +84,15 @@ export default function Deposit() {
             return;
         }
 
-        setSubmitting(true);
-        try {
-            const res = await depositAPI.create({
-                amount: selectedAmount,
-                paymentMethod
-            });
-            setCurrentDeposit(res.data.deposit);
+        const result = await createDeposit({
+            amount: selectedAmount,
+            paymentMethod
+        });
+
+        if (result.success) {
             setStep(2);
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to create deposit');
-        } finally {
-            setSubmitting(false);
+        } else {
+            toast.error(result.message);
         }
     };
 
@@ -132,20 +107,18 @@ export default function Deposit() {
             return;
         }
 
-        setSubmitting(true);
-        try {
-            const formData = new FormData();
-            formData.append('depositId', currentDeposit._id);
-            formData.append('transactionFT', ftNumber);
-            formData.append('screenshot', screenshot);
+        const formData = new FormData();
+        formData.append('depositId', currentDeposit._id);
+        formData.append('transactionFT', ftNumber);
+        formData.append('screenshot', screenshot);
 
-            await depositAPI.submitFT(formData);
+        const result = await submitFT(formData);
+
+        if (result.success) {
             toast.success('Transaction submitted! Awaiting approval.');
             navigate('/');
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to submit transaction');
-        } finally {
-            setSubmitting(false);
+        } else {
+            toast.error(result.message);
         }
     };
 
