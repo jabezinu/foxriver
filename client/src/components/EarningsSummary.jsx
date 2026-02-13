@@ -1,28 +1,22 @@
 import { useState, useEffect } from 'react';
-import { earningsAPI } from '../services/api';
+import { useEarningsStore } from '../store/earningsStore';
 import { toast } from 'react-hot-toast';
 import { TrendingUp, DollarSign, Clock, Calendar } from 'lucide-react';
 import { formatNumber } from '../utils/formatNumber';
 import EarningsCard from './EarningsCard';
 
 const EarningsSummary = () => {
-    const [earnings, setEarnings] = useState(null);
+    const { earnings, fetchEarnings, loading: storeLoading } = useEarningsStore();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchEarnings();
-    }, []);
-
-    const fetchEarnings = async () => {
-        try {
-            const response = await earningsAPI.getSummary();
-            setEarnings(response.data.earnings);
-        } catch (error) {
-            console.error('Earnings fetch error:', error);
-        } finally {
+        const init = async () => {
+            await fetchEarnings();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchEarnings]);
+
 
     if (loading) {
         return (

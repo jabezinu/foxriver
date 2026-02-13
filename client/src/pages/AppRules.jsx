@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Info, TrendingUp, Users, Award, DollarSign, Video, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSystemStore } from '../store/systemStore';
 import Loading from '../components/Loading';
 
 export default function AppRules() {
     const navigate = useNavigate();
-    const { settings, loading } = useSettings();
+    const { settings, loading, fetchSettings } = useSystemStore();
+
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
     const [expandedSection, setExpandedSection] = useState(null);
 
     const toggleSection = (section) => {

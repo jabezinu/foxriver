@@ -4,22 +4,27 @@ import { TrendingUp, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { useAuthStore } from '../store/authStore';
 import { useUserStore } from '../store/userStore';
+import { useWealthStore } from '../store/wealthStore';
 import { getServerUrl } from '../config/api.config';
 import logo from '../assets/logo.png';
 
 export default function Wealth() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const { wealthFunds, fetchWealthFunds, loading: storeLoading } = useUserStore();
+    const { fetchWallet } = useUserStore();
+    const { funds: wealthFunds, fetchFunds: fetchWealthFunds, loading: storeLoading } = useWealthStore();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const init = async () => {
-            await fetchWealthFunds();
+            await Promise.all([
+                fetchWealthFunds(),
+                fetchWallet()
+            ]);
             setLoading(false);
         };
         init();
-    }, []);
+    }, [fetchWealthFunds, fetchWallet]);
 
     const calculateProgress = (fund) => {
         // Mock progress calculation - you can customize this

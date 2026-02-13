@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
-import { newsAPI, systemAPI } from './services/api';
-import { SettingsProvider } from './contexts/SettingsContext';
+import { useNewsStore } from './store/newsStore';
+import { useSystemStore } from './store/systemStore';
 import { WalletProvider } from './contexts/WalletContext';
 import logo from './assets/logo.png';
 
@@ -70,13 +70,20 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const { verifyToken, isAuthenticated, shouldShowNewsPopup, latestNews, setNewsQueue, hideNewsPopup, showNextNews, newsQueue, currentNewsIndex } = useAuthStore();
-  const [frontendDisabled, setFrontendDisabled] = useState(false);
-  const [systemSettingsLoading, setSystemSettingsLoading] = useState(true);
+  const { fetchPopupNews } = useNewsStore();
+  const { settings, fetchSettings, loading: settingsLoading } = useSystemStore();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    verifyToken();
-    checkSystemSettings();
-  }, [verifyToken]);
+    const init = async () => {
+      await Promise.all([
+        verifyToken(),
+        fetchSettings()
+      ]);
+      setIsReady(true);
+    };
+    init();
+  }, [verifyToken, fetchSettings]);
 
   // Handle Telegram browser aggressive caching
   useEffect(() => {
@@ -94,20 +101,14 @@ function App() {
   // Fetch latest popup news when user logs in or on refresh
   useEffect(() => {
     if (isAuthenticated) {
-      fetchPopupNews();
+      fetchLatestPopupNews();
     }
   }, [isAuthenticated]);
 
-  const fetchPopupNews = async () => {
-    try {
-      const response = await newsAPI.getPopupNews();
-      if (response.data.success && response.data.news) {
-        // Backend now returns an array of news
-        const newsArray = Array.isArray(response.data.news) ? response.data.news : [response.data.news];
-        setNewsQueue(newsArray);
-      }
-    } catch (error) {
-      console.error('Failed to fetch popup news:', error);
+  const fetchLatestPopupNews = async () => {
+    const news = await fetchPopupNews();
+    if (news && news.length > 0) {
+      setNewsQueue(news);
     }
   };
 
@@ -119,24 +120,9 @@ function App() {
     showNextNews();
   };
 
-  const checkSystemSettings = async () => {
-    try {
-      const response = await systemAPI.getSettings();
-
-      if (response.data.success) {
-        setFrontendDisabled(response.data.settings?.frontendDisabled || false);
-      }
-    } catch (error) {
-      console.error('Failed to check system settings:', error);
-      // Don't block the app if system settings fail to load
-      setFrontendDisabled(false);
-    } finally {
-      setSystemSettingsLoading(false);
-    }
-  };
 
   // Show white page if frontend is disabled
-  if (!systemSettingsLoading && frontendDisabled) {
+  if (isReady && settings?.frontendDisabled) {
     return (
       <div className="min-h-screen bg-white">
         {/* Completely white page - no content */}
@@ -145,7 +131,7 @@ function App() {
   }
 
   // Show loading spinner while checking system settings
-  if (systemSettingsLoading) {
+  if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-950">
         <img 
@@ -158,8 +144,7 @@ function App() {
   }
 
   return (
-    <SettingsProvider>
-      <WalletProvider>
+    <WalletProvider>
         <BrowserRouter
           future={{
             v7_startTransition: true,
@@ -227,7 +212,6 @@ function App() {
         </Suspense>
       </BrowserRouter>
     </WalletProvider>
-    </SettingsProvider>
   );
 }
 

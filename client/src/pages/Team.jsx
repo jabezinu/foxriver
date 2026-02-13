@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { referralAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { useSettings } from '../contexts/SettingsContext';
+import { useReferralStore } from '../store/referralStore';
+import { useSystemStore } from '../store/systemStore';
 import { toast } from 'react-hot-toast';
 import { getServerUrl } from '../config/api.config';
 import {
@@ -27,50 +27,46 @@ import Modal from '../components/Modal';
 export default function Team() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const { settings } = useSettings();
+    const { settings, fetchSettings } = useSystemStore();
+    const { 
+        downline, 
+        commissions, 
+        commissionTotals, 
+        salaryData, 
+        loading: storeLoading, 
+        fetchTeamData 
+    } = useReferralStore();
+
     const [loading, setLoading] = useState(true);
-    const [downline, setDownline] = useState(null);
-    const [commissions, setCommissions] = useState([]);
-    const [commissionTotals, setCommissionTotals] = useState({ A: 0, B: 0, C: 0, total: 0 });
-    const [salaryData, setSalaryData] = useState(null);
     const [expandedLevel, setExpandedLevel] = useState('a'); // 'a', 'b', 'c', or null
     const [showInviteModal, setShowInviteModal] = useState(false);
 
     useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async (forceRefresh = false) => {
-        try {
-            // Add a small delay to prevent rapid successive calls
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            const [downlineRes, commissionRes, salaryRes] = await Promise.all([
-                referralAPI.getDownline(),
-                referralAPI.getCommissions(),
-                referralAPI.getSalary()
-            ]);
-            
-            // Set data with fallbacks
-            setDownline(downlineRes.data.downline || null);
-            setCommissions(commissionRes.data.commissions || []);
-            setCommissionTotals(commissionRes.data.totals || { A: 0, B: 0, C: 0, total: 0 });
-            setSalaryData(salaryRes.data || null);
-            
-            if (forceRefresh) {
-                toast.success('Team data refreshed');
-            }
-        } catch (error) {
-            // Check if it's a rate limit error
-            if (error.response?.status === 429) {
-                toast.error('Too many requests. Please wait a moment and try again.');
-            } else {
-                toast.error('Failed to load team data');
-            }
-            console.error(error);
-        } finally {
+        const init = async () => {
+            await fetchTeamData();
             setLoading(false);
+        };
+        init();
+    }, [fetchTeamData]);
+
+    // The user's provided change for useEffect, assuming it replaces the existing one
+    useEffect(() => {
+        fetchProfile();
+        fetchCommissions();
+        fetchSalary();
+        fetchDownline();
+        fetchSettings();
+    }, [fetchProfile, fetchCommissions, fetchSalary, fetchDownline, fetchSettings]);
+
+    const handleRefresh = async () => {
+        setLoading(true);
+        const result = await fetchTeamData(true);
+        if (result.success) {
+            toast.success('Team data refreshed');
+        } else {
+            toast.error(result.message || 'Failed to refresh data');
         }
+        setLoading(false);
     };
 
     const handleCopyLink = () => {
@@ -170,7 +166,7 @@ export default function Team() {
                 </button>
                 <h1 className="text-xl font-bold text-white flex-1">My Team</h1>
                 <button
-                    onClick={() => fetchData(true)}
+                    onClick={handleRefresh}
                     disabled={loading}
                     className="p-2 rounded-full text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
                     title="Refresh team data"

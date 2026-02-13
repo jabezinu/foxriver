@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { Wallet, Briefcase, ChevronRight, User, Settings, Users, ArrowUpRight, ArrowDownLeft, Clock, AlertTriangle, Edit2, Camera, Trash2, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -16,8 +15,15 @@ import logo from '../assets/logo.png';
 
 export default function Mine() {
     const navigate = useNavigate();
-    const { user: authUser } = useAuthStore();
-    const { profile, wallet, fetchProfile, fetchWallet } = useUserStore();
+    const { 
+        profile, 
+        wallet, 
+        fetchProfile, 
+        fetchWallet, 
+        updateProfile, 
+        uploadProfilePhoto, 
+        deleteProfilePhoto 
+    } = useUserStore();
 
     // Local state for UI interactions only
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -60,15 +66,14 @@ export default function Mine() {
         }
 
         setUpdating(true);
-        try {
-            await userAPI.updateProfile({ name: profileName.trim() });
+        const result = await updateProfile({ name: profileName.trim() });
+        setUpdating(false);
+        
+        if (result.success) {
             toast.success('Profile updated successfully');
             setShowProfileModal(false);
-            refreshData();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update profile');
-        } finally {
-            setUpdating(false);
+        } else {
+            toast.error(result.message || 'Failed to update profile');
         }
     };
 
@@ -76,42 +81,38 @@ export default function Mine() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             toast.error('Please select an image file');
             return;
         }
 
-        // Validate file size (5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error('Image size must be less than 5MB');
             return;
         }
 
         setUploadingPhoto(true);
-        try {
-            const formData = new FormData();
-            formData.append('photo', file);
+        const formData = new FormData();
+        formData.append('photo', file);
 
-            await userAPI.uploadProfilePhoto(formData);
+        const result = await uploadProfilePhoto(formData);
+        setUploadingPhoto(false);
+
+        if (result.success) {
             toast.success('Profile photo updated successfully');
-            refreshData();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to upload photo');
-        } finally {
-            setUploadingPhoto(false);
+        } else {
+            toast.error(result.message || 'Failed to upload photo');
         }
     };
 
     const handleDeletePhoto = async () => {
         if (!confirm('Are you sure you want to delete your profile photo?')) return;
 
-        try {
-            await userAPI.deleteProfilePhoto();
+        const result = await deleteProfilePhoto();
+        if (result.success) {
             toast.success('Profile photo deleted successfully');
-            refreshData();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to delete photo');
+        } else {
+            toast.error(result.message || 'Failed to delete photo');
         }
     };
 
@@ -126,8 +127,7 @@ export default function Mine() {
     };
 
     // Calculate Intern restriction info
-    // Use profile if available, otherwise authUser
-    const currentUser = profile || authUser;
+    const currentUser = profile;
 
     const getInternRestrictionInfo = () => {
         if (!currentUser || currentUser.membershipLevel !== 'Intern') return null;

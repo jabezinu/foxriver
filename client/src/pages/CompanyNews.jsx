@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { newsAPI } from '../services/api';
+import { useNewsStore } from '../store/newsStore';
 import { ChevronLeft, MailOpen, CheckCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -8,24 +8,17 @@ import Button from '../components/ui/Button';
 
 export default function CompanyNews() {
     const navigate = useNavigate();
-    const [news, setNews] = useState([]);
+    const { news, fetchNews, loading: storeLoading } = useNewsStore();
     const [loading, setLoading] = useState(true);
     const [activeNews, setActiveNews] = useState(null);
 
     useEffect(() => {
-        fetchNews();
-    }, []);
-
-    const fetchNews = async () => {
-        try {
-            const res = await newsAPI.getNews();
-            setNews(res.data.news);
-        } catch (error) {
-            console.error(error);
-        } finally {
+        const init = async () => {
+            await fetchNews();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchNews]);
 
     if (loading) return <Loading />;
 

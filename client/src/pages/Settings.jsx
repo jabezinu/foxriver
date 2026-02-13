@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { userAPI } from '../services/api';
+import { useUserStore } from '../store/userStore';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Landmark, Lock, ShieldCheck, LogOut, User, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,9 +13,16 @@ import { getServerUrl } from '../config/api.config';
 
 export default function Settings() {
     const navigate = useNavigate();
-    const { logout, user, updateUser } = useAuthStore();
+    const { logout } = useAuthStore();
+    const { 
+        profile, 
+        fetchProfile, 
+        setBankAccount, 
+        cancelBankChange: storeCancelBankChange,
+        changeLoginPassword: storeChangeLoginPassword,
+        loading: storeLoading 
+    } = useUserStore();
     const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState(null);
     const [bankChangeInfo, setBankChangeInfo] = useState(null);
 
     const [modalType, setModalType] = useState(null); // bank, transPass, loginPass
@@ -31,44 +38,35 @@ export default function Settings() {
     });
 
     useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    const fetchProfile = async () => {
-        try {
-            const res = await userAPI.getProfile();
-            setProfile(res.data.user);
-            setBankChangeInfo(res.data.bankChangeInfo);
-            setFormData(prev => ({
-                ...prev,
-                bankName: res.data.user.bankAccount?.bank || '',
-                accountNumber: res.data.user.bankAccount?.accountNumber || '',
-                accountName: res.data.user.bankAccount?.accountName || '',
-                bankPhone: res.data.user.bankAccount?.phone || ''
-            }));
-        } catch (error) {
-            console.error('Failed to fetch profile:', error);
-        } finally {
+        const init = async () => {
+            const data = await fetchProfile();
+            if (data) {
+                setBankChangeInfo(data.bankChangeInfo);
+                setFormData(prev => ({
+                    ...prev,
+                    bankName: data.bankAccount?.bank || '',
+                    accountNumber: data.bankAccount?.accountNumber || '',
+                    accountName: data.bankAccount?.accountName || '',
+                    bankPhone: data.bankAccount?.phone || ''
+                }));
+            }
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchProfile]);
 
     const handleUpdateBank = async () => {
-        try {
-            const res = await userAPI.setBankAccount({
-                bank: formData.bankName,
-                accountNumber: formData.accountNumber,
-                accountName: formData.accountName,
-                phone: formData.bankPhone
-            });
-            
+        const res = await setBankAccount({
+            bank: formData.bankName,
+            accountNumber: formData.accountNumber,
+            accountName: formData.accountName,
+            phone: formData.bankPhone
+        });
+        
+        if (res.success) {
             if (res.data.noChanges) {
                 toast.success(res.data.message || 'No changes detected');
-                setModalType(null);
-                return; // Don't need to fetch profile since nothing changed
-            }
-            
-            if (res.data.isPending) {
+            } else if (res.data.isPending) {
                 toast.success(res.data.message || 'Bank account change requested!');
                 setBankChangeInfo({
                     needsConfirmation: true,
@@ -79,21 +77,18 @@ export default function Settings() {
             } else {
                 toast.success(res.data.message || 'Bank account updated!');
             }
-            
             setModalType(null);
-            fetchProfile();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Update failed.');
+        } else {
+            toast.error(res.message);
         }
     };
 
     const handleCancelBankChange = async () => {
-        try {
-            await userAPI.cancelBankChange();
-            toast.success('Bank account change request cancelled');
-            fetchProfile();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to cancel request');
+        const res = await storeCancelBankChange();
+        if (res.success) {
+            toast.success(res.message || 'Bank account change request cancelled');
+        } else {
+            toast.error(res.message);
         }
     };
 
@@ -102,15 +97,15 @@ export default function Settings() {
             toast.error('Passwords do not match');
             return;
         }
-        try {
-            await userAPI.changeLoginPassword({
-                currentPassword: formData.oldPassword,
-                newPassword: formData.newPassword
-            });
-            toast.success('Login password updated!');
+        const res = await storeChangeLoginPassword({
+            currentPassword: formData.oldPassword,
+            newPassword: formData.newPassword
+        });
+        if (res.success) {
+            toast.success(res.message || 'Login password updated!');
             setModalType(null);
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update password');
+        } else {
+            toast.error(res.message);
         }
     };
 

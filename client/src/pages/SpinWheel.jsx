@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { spinAPI, slotTierAPI } from '../services/api';
+import { useSpinStore } from '../store/spinStore';
+import { useUserStore } from '../store/userStore';
 import { ArrowLeft, TrendingUp, Trophy, Zap, Sparkles } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 const SpinWheel = () => {
     const navigate = useNavigate();
+    const { wallet, fetchWallet } = useUserStore();
+    const { 
+        history, 
+        stats, 
+        tiers, 
+        monthlyWinners, 
+        loading: storeLoading, 
+        fetchHistory, 
+        fetchTiers, 
+        fetchMonthlyWinners, 
+        spin 
+    } = useSpinStore();
+
     const [spinning, setSpinning] = useState(false);
-    const [personalBalance, setPersonalBalance] = useState(0);
-    const [incomeBalance, setIncomeBalance] = useState(0);
-    const [history, setHistory] = useState([]);
-    const [stats, setStats] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const [reels, setReels] = useState([0, 0, 0]);
@@ -19,8 +29,9 @@ const SpinWheel = () => {
     const [showWalletModal, setShowWalletModal] = useState(false);
     const [selectedTier, setSelectedTier] = useState(null);
     const [selectedWallet, setSelectedWallet] = useState(null);
-    const [tiers, setTiers] = useState([]);
-    const [monthlyWinners, setMonthlyWinners] = useState([]);
+
+    const personalBalance = wallet.personalWallet;
+    const incomeBalance = wallet.incomeWallet;
 
     // Slot machine symbols
     const symbols = [
@@ -32,53 +43,17 @@ const SpinWheel = () => {
     ];
 
     useEffect(() => {
-        fetchBalance();
-        fetchHistory();
-        fetchTiers();
-        fetchMonthlyWinners();
-    }, []);
+        const init = async () => {
+            await Promise.all([
+                fetchWallet(),
+                fetchHistory(),
+                fetchTiers(),
+                fetchMonthlyWinners()
+            ]);
+        };
+        init();
+    }, [fetchWallet, fetchHistory, fetchTiers, fetchMonthlyWinners]);
 
-    const fetchMonthlyWinners = async () => {
-        try {
-            const response = await spinAPI.getMonthlyWinners();
-            if (response.data.success) {
-                setMonthlyWinners(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching monthly winners:', error);
-        }
-    };
-
-    const fetchTiers = async () => {
-        try {
-            const response = await slotTierAPI.getTiers();
-            if (response.data.success) {
-                setTiers(response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching tiers:', error);
-        }
-    };
-
-    const fetchBalance = async () => {
-        try {
-            const response = await spinAPI.getBalance();
-            setPersonalBalance(response.data.wallet.personalWallet);
-            setIncomeBalance(response.data.wallet.incomeWallet);
-        } catch (error) {
-            console.error('Error fetching balance:', error);
-        }
-    };
-
-    const fetchHistory = async () => {
-        try {
-            const response = await spinAPI.getHistory();
-            setHistory(response.data.data.spins);
-            setStats(response.data.data.stats);
-        } catch (error) {
-            console.error('Error fetching history:', error);
-        }
-    };
 
     const handlePlayClick = () => {
         setShowTierModal(true);
@@ -115,8 +90,10 @@ const SpinWheel = () => {
         setShowResult(false);
 
         try {
-            const response = await spinAPI.spin({ walletType, tierId: tier._id });
-            const { result, amountWon, balanceAfter, incomeBalanceAfter } = response.data.data;
+            const spinResponse = await spin({ walletType, tierId: tier._id });
+            if (!spinResponse.success) throw new Error(spinResponse.message);
+            
+            const { result, amountWon, balanceAfter, incomeBalanceAfter } = spinResponse.data;
 
             const spinDuration = 2000;
             const spinInterval = 50;
@@ -170,8 +147,7 @@ const SpinWheel = () => {
                             toast.error('No match! Try again!');
                         }
 
-                        fetchHistory();
-                        fetchBalance();
+                        fetchWallet(true);
                     }, 500);
                 }
             }, spinInterval);

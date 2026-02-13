@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { membershipAPI, rankUpgradeAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
+import { useUserStore } from '../store/userStore';
+import { useRankUpgradeStore } from '../store/rankUpgradeStore';
 import { useWallet } from '../contexts/WalletContext';
 import { toast } from 'react-hot-toast';
 import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, Wallet, Check, ChevronDown } from 'lucide-react';
@@ -14,31 +15,28 @@ import Modal from '../components/Modal';
 export default function RankUpgrade() {
     const navigate = useNavigate();
     const { user, updateUser } = useAuthStore();
-    const { wallet, executeWithOptimisticUpdate } = useWallet();
-    const [tiers, setTiers] = useState([]);
+    const { wallet: storeWallet, fetchWallet } = useUserStore();
+    const { tiers, fetchTiers, createUpgradeRequest, loading: storeLoading } = useRankUpgradeStore();
+    const { executeWithOptimisticUpdate } = useWallet();
+
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedTier, setSelectedTier] = useState(null);
     const [confirmLoading, setConfirmLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [tiersRes, systemRes] = await Promise.all([
-                    membershipAPI.getTiers(),
-                    userAPI.getSystemSettings()
-                ]);
+    // Synchronize local wallet with store wallet for components that expect 'wallet' variable
+    const wallet = storeWallet;
 
-                setTiers(tiersRes.data.tiers);
-            } catch (error) {
-                toast.error('Failed to fetch data');
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
+    useEffect(() => {
+        const init = async () => {
+            await Promise.all([
+                fetchTiers(),
+                fetchWallet()
+            ]);
+            setLoading(false);
         };
-        fetchData();
-    }, []);
+        init();
+    }, [fetchTiers, fetchWallet]);
 
     const isHigherLevel = (tierLevel) => {
         const levels = ['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'];
@@ -85,11 +83,15 @@ export default function RankUpgrade() {
 
             // Execute with optimistic update
             await executeWithOptimisticUpdate(
-                () => rankUpgradeAPI.createRequest({
-                    newLevel: selectedTier.level,
-                    amount: selectedTier.price,
-                    walletType: 'personal'
-                }),
+                async () => {
+                    const result = await createUpgradeRequest({
+                        newLevel: selectedTier.level,
+                        amount: selectedTier.price,
+                        walletType: 'personal'
+                    });
+                    if (!result.success) throw new Error(result.message);
+                    return result;
+                },
                 {
                     personalWallet: -netDeduction
                 },

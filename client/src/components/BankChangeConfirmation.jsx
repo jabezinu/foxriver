@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { userAPI } from '../services/api';
+import { useUserStore } from '../store/userStore';
 import { toast } from 'react-hot-toast';
 import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import Modal from './Modal';
 import Button from './ui/Button';
 
 export default function BankChangeConfirmation({ bankChangeInfo, onConfirmed, onDeclined, profile }) {
+    const { confirmBankChange, loading } = useUserStore();
     const [showModal, setShowModal] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         // Show modal if confirmation is needed
@@ -17,10 +17,9 @@ export default function BankChangeConfirmation({ bankChangeInfo, onConfirmed, on
     }, [bankChangeInfo]);
 
     const handleConfirm = async (confirmed) => {
-        setLoading(true);
-        try {
-            const res = await userAPI.confirmBankChange(confirmed);
-            
+        const res = await confirmBankChange(confirmed);
+        
+        if (res.success) {
             if (res.data.declined) {
                 toast.error('Bank account change request declined');
                 setShowModal(false);
@@ -34,10 +33,8 @@ export default function BankChangeConfirmation({ bankChangeInfo, onConfirmed, on
                 setShowModal(false);
                 if (onConfirmed) onConfirmed();
             }
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to process confirmation');
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(res.message);
         }
     };
 

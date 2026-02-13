@@ -168,6 +168,117 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
+
+    updateProfile: async (profileData) => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.updateProfile(profileData);
+            if (response.data.success) {
+                // Refresh profile after update
+                await get().fetchProfile(true);
+                return { success: true, data: response.data.user };
+            }
+            throw new Error(response.data.message || 'Update failed');
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            const message = error.response?.data?.message || 'Failed to update profile';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    uploadProfilePhoto: async (formData) => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.uploadProfilePhoto(formData);
+            if (response.data.success) {
+                await get().fetchProfile(true);
+                return { success: true, data: response.data };
+            }
+            throw new Error(response.data.message || 'Upload failed');
+        } catch (error) {
+            console.error('Failed to upload photo:', error);
+            const message = error.response?.data?.message || 'Failed to upload photo';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    deleteProfilePhoto: async () => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.deleteProfilePhoto();
+            if (response.data.success) {
+                await get().fetchProfile(true);
+                return { success: true };
+            }
+            throw new Error(response.data.message || 'Delete failed');
+        } catch (error) {
+            console.error('Failed to delete photo:', error);
+            const message = error.response?.data?.message || 'Failed to delete photo';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    setBankAccount: async (bankData) => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.setBankAccount(bankData);
+            // Refresh profile to get updated status and bank info
+            await get().fetchProfile(true);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error('Failed to set bank account:', error);
+            const message = error.response?.data?.message || 'Failed to update bank account';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    cancelBankChange: async () => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.cancelBankChange();
+            await get().fetchProfile(true);
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            console.error('Failed to cancel bank change:', error);
+            const message = error.response?.data?.message || 'Failed to cancel bank change';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    confirmBankChange: async (confirmed) => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.confirmBankChange(confirmed);
+            // Refresh profile to update status/history
+            await get().fetchProfile(true);
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error('Failed to confirm bank change:', error);
+            const message = error.response?.data?.message || 'Failed to process confirmation';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
+    changeLoginPassword: async (passwordData) => {
+        set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
+        try {
+            const response = await userAPI.changeLoginPassword(passwordData);
+            set(state => ({ loading: { ...state.loading, profile: false } }));
+            return { success: true, message: response.data.message };
+        } catch (error) {
+            console.error('Failed to change password:', error);
+            const message = error.response?.data?.message || 'Failed to change password';
+            set(state => ({ loading: { ...state.loading, profile: false }, error: message }));
+            return { success: false, message };
+        }
+    },
+
     // Invalidate specific cache fields
     invalidateCache: (fields = []) => {
         set(state => {

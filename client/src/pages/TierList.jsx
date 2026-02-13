@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { membershipAPI, rankUpgradeAPI } from '../services/api';
+import { useRankUpgradeStore } from '../store/rankUpgradeStore';
 import { useAuthStore } from '../store/authStore';
 import { toast } from 'react-hot-toast';
 import { ChevronLeft, Zap, CheckCircle, Crown, Lock, Star, AlertTriangle } from 'lucide-react';
@@ -12,23 +12,16 @@ import Button from '../components/ui/Button';
 export default function TierList() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const [tiers, setTiers] = useState([]);
+    const { tiers, fetchTiers, loading: storeLoading } = useRankUpgradeStore();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchTiers = async () => {
-            try {
-                const res = await membershipAPI.getTiers();
-                setTiers(res.data.tiers);
-            } catch (error) {
-                toast.error('Failed to fetch tier list');
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
+        const init = async () => {
+            await fetchTiers();
+            setLoading(false);
         };
-        fetchTiers();
-    }, []);
+        init();
+    }, [fetchTiers]);
 
     const isHigherLevel = (tierLevel) => {
         const levels = ['Intern', 'Rank 1', 'Rank 2', 'Rank 3', 'Rank 4', 'Rank 5', 'Rank 6', 'Rank 7', 'Rank 8', 'Rank 9', 'Rank 10'];

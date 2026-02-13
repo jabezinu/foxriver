@@ -2,30 +2,37 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Wallet, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { depositAPI, withdrawalAPI } from '../services/api';
+import { useDepositStore } from '../store/depositStore';
+import { useWithdrawalStore } from '../store/withdrawalStore';
 import { formatNumber } from '../utils/formatNumber';
 import Loading from '../components/Loading';
 import Button from '../components/ui/Button';
 
 export default function TransactionStatus() {
     const navigate = useNavigate();
+    const { 
+        deposits, 
+        fetchHistory: fetchDeposits, 
+        loading: depositLoading 
+    } = useDepositStore();
+    const { 
+        history: withdrawals, 
+        fetchHistory: fetchWithdrawals, 
+        loading: withdrawalLoading 
+    } = useWithdrawalStore();
+
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('deposits');
-    const [deposits, setDeposits] = useState([]);
-    const [withdrawals, setWithdrawals] = useState([]);
 
     const fetchTransactions = async (showRefreshIndicator = false) => {
         if (showRefreshIndicator) setRefreshing(true);
 
         try {
-            const [depositsRes, withdrawalsRes] = await Promise.all([
-                depositAPI.getUserDeposits(),
-                withdrawalAPI.getUserWithdrawals()
+            await Promise.all([
+                fetchDeposits(),
+                fetchWithdrawals()
             ]);
-
-            setDeposits(depositsRes.data.deposits || []);
-            setWithdrawals(withdrawalsRes.data.withdrawals || []);
         } catch (error) {
             toast.error('Failed to load transactions');
             console.error(error);

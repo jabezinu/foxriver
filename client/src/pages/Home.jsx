@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { userAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { formatNumber } from '../utils/formatNumber';
 import {
@@ -17,6 +16,7 @@ import LanguageSelector from '../components/LanguageSelector';
 import BankChangeConfirmation from '../components/BankChangeConfirmation';
 import TransactionNotifications from '../components/TransactionNotifications';
 import { useUserStore } from '../store/userStore';
+import { useNewsStore } from '../store/newsStore';
 import logo from '../assets/logo.png';
 
 const MenuItem = ({ item, navigate, isLarge = false }) => (
@@ -154,6 +154,7 @@ export default function Home() {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { wallet, fetchWallet, fetchProfile, syncData, loading: storeLoading } = useUserStore();
+    const { news, fetchNews } = useNewsStore();
 
     // Local loading state just for initial mount if we want to show a spinner
     // However, with the new store, we might want to just show the skeleton or cached data immediately.
@@ -167,7 +168,12 @@ export default function Home() {
 
     useEffect(() => {
         const init = async () => {
-            // Fetch profile once and extract both bank change info and invitation code
+            await Promise.all([
+                fetchProfile(),
+                fetchWallet(),
+                fetchNews()
+            ]);
+            
             const profileData = await fetchProfile();
             if (profileData?.bankChangeInfo) {
                 setBankChangeInfo(profileData.bankChangeInfo);
@@ -175,11 +181,10 @@ export default function Home() {
             if (profileData?.invitationCode) {
                 setInvitationCode(profileData.invitationCode);
             }
-            await fetchWallet();
             setIsInitialLoad(false);
         };
         init();
-    }, [fetchProfile, fetchWallet]);
+    }, [fetchProfile, fetchWallet, fetchNews]);
 
     const handleSync = async () => {
         setIsSyncing(true);
@@ -401,17 +406,35 @@ export default function Home() {
             {/* News / Updates */}
             <div className="px-5 mb-8">
                 <h3 className="font-bold text-white text-lg mb-4">{t('home.latestUpdates')}</h3>
-                <Card className="flex items-start gap-4 p-4 bg-zinc-900 border-zinc-800" hover onClick={() => navigate('/news')}>
-                    <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center shrink-0 text-primary-500 border border-primary-500/20">
-                        <Bell size={24} />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white text-sm mb-1">{t('home.systemUpgradeNotice')}</h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed">
-                            {t('home.systemUpgradeDesc')}
-                        </p>
-                    </div>
-                </Card>
+                {news && news.length > 0 ? (
+                    <Card 
+                        className="flex items-start gap-4 p-4 bg-zinc-900 border-zinc-800" 
+                        hover 
+                        onClick={() => navigate(`/news/${news[0]._id}`)}
+                    >
+                        <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center shrink-0 text-primary-500 border border-primary-500/20">
+                            <Bell size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <h4 className="font-bold text-white text-sm mb-1">{news[0].title}</h4>
+                            <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                                {news[0].content.replace(/<[^>]*>/g, '')}
+                            </p>
+                        </div>
+                    </Card>
+                ) : (
+                    <Card className="flex items-start gap-4 p-4 bg-zinc-900 border-zinc-800" hover onClick={() => navigate('/news')}>
+                        <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center shrink-0 text-primary-500 border border-primary-500/20">
+                            <Bell size={24} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-white text-sm mb-1">{t('home.systemUpgradeNotice')}</h4>
+                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                {t('home.systemUpgradeDesc')}
+                            </p>
+                        </div>
+                    </Card>
+                )}
             </div>
 
             {/* Bank Change Confirmation Modal */}

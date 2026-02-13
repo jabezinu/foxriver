@@ -2,29 +2,22 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, Calendar, DollarSign, Clock } from 'lucide-react';
 import Card from '../components/ui/Card';
-import { wealthAPI } from '../services/api';
+import { useWealthStore } from '../store/wealthStore';
 import { getServerUrl } from '../config/api.config';
 import logo from '../assets/logo.png';
 
 export default function MyInvestments() {
     const navigate = useNavigate();
-    const [investments, setInvestments] = useState([]);
+    const { myInvestments: investments, fetchMyInvestments, loading: storeLoading } = useWealthStore();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchInvestments();
-    }, []);
-
-    const fetchInvestments = async () => {
-        try {
-            const response = await wealthAPI.getMyInvestments();
-            setInvestments(response.data.data);
-        } catch (error) {
-            console.error('Error fetching investments:', error);
-        } finally {
+        const init = async () => {
+            await fetchMyInvestments();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchMyInvestments]);
 
     const getStatusColor = (status) => {
         switch (status) {

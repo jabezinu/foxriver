@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
-import { wealthAPI } from '../services/api';
+import { useWealthStore } from '../store/wealthStore';
+import { useUserStore } from '../store/userStore';
 import { useAuthStore } from '../store/authStore';
 import { getServerUrl } from '../config/api.config';
 import logo from '../assets/logo.png';
@@ -10,9 +11,16 @@ import logo from '../assets/logo.png';
 export default function WealthDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuthStore();
+    const { user: authUser } = useAuthStore();
+    const { wallet, fetchWallet } = useUserStore();
+    const { 
+        currentFund: fund, 
+        loading: storeLoading, 
+        fetchFundById, 
+        invest, 
+        loading: { investing } 
+    } = useWealthStore();
     
-    const [fund, setFund] = useState(null);
     const [loading, setLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [totalRevenue, setTotalRevenue] = useState(0);
@@ -21,11 +29,17 @@ export default function WealthDetail() {
         incomeWallet: 0,
         personalWallet: 0
     });
-    const [investing, setInvesting] = useState(false);
 
     useEffect(() => {
-        fetchFund();
-    }, [id]);
+        const init = async () => {
+            await Promise.all([
+                fetchFundById(id),
+                fetchWallet()
+            ]);
+            setLoading(false);
+        };
+        init();
+    }, [id, fetchFundById, fetchWallet]);
 
     useEffect(() => {
         if (amount && fund) {
@@ -35,18 +49,6 @@ export default function WealthDetail() {
         }
     }, [amount, fund]);
 
-    const fetchFund = async () => {
-        try {
-            const response = await wealthAPI.getFundById(id);
-            setFund(response.data.data);
-        } catch (error) {
-            console.error('Error fetching fund:', error);
-            alert('Error loading fund details');
-            navigate('/wealth');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const calculateRevenue = () => {
         const investAmount = parseFloat(amount) || 0;
@@ -78,7 +80,7 @@ export default function WealthDetail() {
             return;
         }
         
-        const totalAvailable = user.incomeWallet + user.personalWallet;
+        const totalAvailable = wallet.incomeWallet + wallet.personalWallet;
         if (investAmount > totalAvailable) {
             alert('Insufficient balance');
             return;
@@ -86,9 +88,9 @@ export default function WealthDetail() {
         
         // Auto-allocate from wallets
         let remaining = investAmount;
-        const fromIncome = Math.min(remaining, user.incomeWallet);
+        const fromIncome = Math.min(remaining, wallet.incomeWallet);
         remaining -= fromIncome;
-        const fromPersonal = Math.min(remaining, user.personalWallet);
+        const fromPersonal = Math.min(remaining, wallet.personalWallet);
         
         setFundingSource({
             incomeWallet: fromIncome,
@@ -99,42 +101,41 @@ export default function WealthDetail() {
     };
 
     const handleConfirmInvestment = async () => {
-
-        setInvesting(true);
         try {
-            await wealthAPI.invest({
+            const result = await invest({
                 wealthFundId: id,
                 amount: parseFloat(amount),
                 fundingSource
             });
             
+            if (!result.success) throw new Error(result.message);
+
             alert('Investment successful!');
+            await fetchWallet(true); // Sync wallet
             navigate('/wealth');
         } catch (error) {
             console.error('Error creating investment:', error);
-            alert(error.response?.data?.message || 'Error creating investment');
-        } finally {
-            setInvesting(false);
+            alert(error.message || 'Error creating investment');
         }
     };
 
-    const adjustFunding = (wallet, value) => {
+    const adjustFunding = (walletType, value) => {
         const investAmount = parseFloat(amount) || 0;
         let newValue = Math.max(0, parseFloat(value) || 0);
         
-        if (wallet === 'income') {
-            newValue = Math.min(newValue, user.incomeWallet);
+        if (walletType === 'income') {
+            newValue = Math.min(newValue, wallet.incomeWallet);
             const remaining = investAmount - newValue;
-            const personalAmount = Math.min(remaining, user.personalWallet);
+            const personalAmount = Math.min(remaining, wallet.personalWallet);
             
             setFundingSource({
                 incomeWallet: newValue,
                 personalWallet: personalAmount
             });
-        } else if (wallet === 'personal') {
-            newValue = Math.min(newValue, user.personalWallet);
+        } else if (walletType === 'personal') {
+            newValue = Math.min(newValue, wallet.personalWallet);
             const remaining = investAmount - newValue;
-            const incomeAmount = Math.min(remaining, user.incomeWallet);
+            const incomeAmount = Math.min(remaining, wallet.incomeWallet);
             
             setFundingSource({
                 incomeWallet: incomeAmount,
@@ -282,7 +283,7 @@ export default function WealthDetail() {
                                         Income Wallet
                                     </label>
                                     <span className="text-xs text-zinc-400 bg-zinc-800 px-3 py-1 rounded-full">
-                                        Available: {user.incomeWallet.toFixed(2)} ETB
+                                        Available: {wallet.incomeWallet.toFixed(2)} ETB
                                     </span>
                                 </div>
                                 <input
@@ -302,7 +303,7 @@ export default function WealthDetail() {
                                         Personal Wallet
                                     </label>
                                     <span className="text-xs text-zinc-400 bg-zinc-800 px-3 py-1 rounded-full">
-                                        Available: {user.personalWallet.toFixed(2)} ETB
+                                        Available: {wallet.personalWallet.toFixed(2)} ETB
                                     </span>
                                 </div>
                                 <input

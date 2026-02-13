@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { coursesAPI } from '../services/api';
+import { useCourseStore } from '../store/courseStore';
 import { toast } from 'react-hot-toast';
 import { HiFolder, HiVideoCamera, HiArrowLeft } from 'react-icons/hi';
 import Loading from '../components/Loading';
@@ -7,38 +7,35 @@ import ReactPlayer from 'react-player';
 import logo from '../assets/logo.png';
 
 export default function Courses() {
-    const [categories, setCategories] = useState([]);
+    const { 
+        categories, 
+        courses, 
+        loading: storeLoading, 
+        fetchCategories, 
+        fetchCoursesByCategory,
+        resetCourses
+    } = useCourseStore();
+
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [courses, setCourses] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [loadingCourses, setLoadingCourses] = useState(false);
+
+    const loadingCourses = storeLoading.courses;
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    const fetchCategories = async () => {
-        try {
-            const res = await coursesAPI.getCategories();
-            setCategories(res.data.categories);
-        } catch (error) {
-            toast.error('Failed to load categories');
-        } finally {
+        const init = async () => {
+            await fetchCategories();
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchCategories]);
+
 
     const handleCategoryClick = async (category) => {
         setSelectedCategory(category);
-        setLoadingCourses(true);
-        try {
-            const res = await coursesAPI.getCoursesByCategory(category._id);
-            setCourses(res.data.courses);
-        } catch (error) {
-            toast.error('Failed to load courses');
-        } finally {
-            setLoadingCourses(false);
+        const result = await fetchCoursesByCategory(category._id);
+        if (result.length === 0 && !storeLoading.courses) {
+            // Already handled error in store or just empty
         }
     };
 
@@ -47,7 +44,7 @@ export default function Courses() {
             setSelectedCourse(null);
         } else if (selectedCategory) {
             setSelectedCategory(null);
-            setCourses([]);
+            resetCourses();
         }
     };
 

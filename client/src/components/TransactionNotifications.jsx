@@ -1,34 +1,30 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, AlertCircle, Bell } from 'lucide-react';
-import { depositAPI, withdrawalAPI } from '../services/api';
+import { useDepositStore } from '../store/depositStore';
+import { useWithdrawalStore } from '../store/withdrawalStore';
 import { formatNumber } from '../utils/formatNumber';
 
 export default function TransactionNotifications() {
     const navigate = useNavigate();
+    const { deposits, fetchDeposits, loading: depositsLoading } = useDepositStore();
+    const { withdrawals, fetchWithdrawals, loading: withdrawalsLoading } = useWithdrawalStore();
     const [pendingTransactions, setPendingTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchPendingTransactions();
-    }, []);
-
-    const fetchPendingTransactions = async () => {
-        try {
-            const [depositsRes, withdrawalsRes] = await Promise.all([
-                depositAPI.getUserDeposits(),
-                withdrawalAPI.getUserWithdrawals()
+        const init = async () => {
+            await Promise.all([
+                fetchDeposits(),
+                fetchWithdrawals()
             ]);
-
-            const deposits = depositsRes.data.deposits || [];
-            const withdrawals = withdrawalsRes.data.withdrawals || [];
-
+            
             // Filter for pending/processing transactions
-            const pendingDeposits = deposits.filter(d => 
+            const pendingDeposits = (deposits || []).filter(d => 
                 ['pending', 'ft_submitted'].includes(d.status)
             ).map(d => ({ ...d, type: 'deposit' }));
 
-            const pendingWithdrawals = withdrawals.filter(w => 
+            const pendingWithdrawals = (withdrawals || []).filter(w => 
                 w.status === 'pending'
             ).map(w => ({ ...w, type: 'withdrawal' }));
 
@@ -37,12 +33,10 @@ export default function TransactionNotifications() {
                 .slice(0, 3); // Show only latest 3
 
             setPendingTransactions(allPending);
-        } catch (error) {
-            console.error('Failed to fetch pending transactions:', error);
-        } finally {
             setLoading(false);
-        }
-    };
+        };
+        init();
+    }, [fetchDeposits, fetchWithdrawals, deposits, withdrawals]);
 
     if (loading || pendingTransactions.length === 0) {
         return null;

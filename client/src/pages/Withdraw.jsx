@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Wallet, ShieldCheck, Eye, EyeOff, History, ExternalLink } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUserStore } from '../store/userStore';
+import { useWithdrawalStore } from '../store/withdrawalStore';
 import { useWallet } from '../contexts/WalletContext';
-import { withdrawalAPI } from '../services/api';
 import { formatNumber } from '../utils/formatNumber';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -15,19 +15,12 @@ export default function Withdraw() {
     const navigate = useNavigate();
     // Use store data
     const { wallet, profile, fetchWallet, fetchProfile } = useUserStore();
+    const { history, loading: loadingHistory, fetchHistory, createWithdrawal, submitting } = useWithdrawalStore();
     const { executeWithOptimisticUpdate } = useWallet();
 
     const [loading, setLoading] = useState(true);
-    // wallets state is replaced by store wallet
-
-    // We don't really need profile here based on the code shown (it was fetched but not obviously used in render, checked: line 36 sets it, line 16 defines it. line 36 is the only usage. It's not used in JSX. Wait, let me check JSX again. 
-    // I see no usage of `profile` in JSX of Withdraw.jsx. It seems unused. I'll remove it.)
-
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [walletType, setWalletType] = useState('income');
-    const [submitting, setSubmitting] = useState(false);
-    const [history, setHistory] = useState([]);
-    const [loadingHistory, setLoadingHistory] = useState(false);
 
     const amounts = [750, 1600, 4500, 10000, 18700, 31500, 53200];
 
@@ -104,26 +97,16 @@ export default function Withdraw() {
 
     useEffect(() => {
         const init = async () => {
-            await fetchWallet();
-            await fetchProfile(); // Also fetch profile to get restriction info
+            await Promise.all([
+                fetchWallet(),
+                fetchProfile(),
+                fetchHistory()
+            ]);
             setLoading(false);
         };
         
-        const fetchHistory = async () => {
-            setLoadingHistory(true);
-            try {
-                const res = await withdrawalAPI.getUserWithdrawals();
-                setHistory(res.data.withdrawals || []);
-            } catch (error) {
-                console.error('Failed to load withdrawal history', error);
-            } finally {
-                setLoadingHistory(false);
-            }
-        };
-        
         init();
-        fetchHistory();
-    }, [fetchWallet, fetchProfile]);
+    }, [fetchWallet, fetchProfile, fetchHistory]);
 
     // Derived values using store wallet
     const wallets = wallet;
@@ -143,7 +126,6 @@ export default function Withdraw() {
             return;
         }
 
-        setSubmitting(true);
         try {
             // Calculate optimistic update
             const deduction = walletType === 'income' 
@@ -152,10 +134,14 @@ export default function Withdraw() {
 
             // Execute with optimistic update
             await executeWithOptimisticUpdate(
-                () => withdrawalAPI.create({
-                    amount: selectedAmount,
-                    walletType
-                }),
+                async () => {
+                    const result = await createWithdrawal({
+                        amount: selectedAmount,
+                        walletType
+                    });
+                    if (!result.success) throw new Error(result.message);
+                    return result;
+                },
                 deduction,
                 { syncAfter: true, syncDelay: 1500 }
             );
@@ -164,9 +150,7 @@ export default function Withdraw() {
             // Navigate to transaction status instead of full reload
             setTimeout(() => navigate('/transaction-status'), 500);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Withdrawal failed');
-        } finally {
-            setSubmitting(false);
+            toast.error(error.message || 'Withdrawal failed');
         }
     };
 
