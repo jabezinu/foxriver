@@ -11,9 +11,9 @@ import Button from '../components/ui/Button';
 export default function TransactionStatus() {
     const navigate = useNavigate();
     const { 
-        deposits, 
+        history: deposits, 
         fetchHistory: fetchDeposits, 
-        loading: depositLoading 
+        loadingHistory: depositLoading 
     } = useDepositStore();
     const { 
         history: withdrawals, 

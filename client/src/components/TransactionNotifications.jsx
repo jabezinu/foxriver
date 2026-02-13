@@ -7,8 +7,8 @@ import { formatNumber } from '../utils/formatNumber';
 
 export default function TransactionNotifications() {
     const navigate = useNavigate();
-    const { deposits, fetchDeposits, loading: depositsLoading } = useDepositStore();
-    const { withdrawals, fetchWithdrawals, loading: withdrawalsLoading } = useWithdrawalStore();
+    const { history: deposits, fetchHistory: fetchDeposits, loadingHistory: depositsLoading } = useDepositStore();
+    const { history: withdrawals, fetchHistory: fetchWithdrawals, loading: withdrawalsLoading } = useWithdrawalStore();
     const [pendingTransactions, setPendingTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
