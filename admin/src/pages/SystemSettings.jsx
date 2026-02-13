@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { HiRefresh, HiShieldExclamation, HiLightningBolt } from 'react-icons/hi';
-import { adminSystemAPI } from '../services/api';
+import { useSystemStore } from '../store/systemStore';
 import PageHeader from '../components/shared/PageHeader';
 import SalaryPanel from '../components/SalaryPanel';
 import ControlTogglePanel from '../components/ControlTogglePanel';
@@ -10,89 +10,56 @@ import WalletAssignmentPanel from '../components/WalletAssignmentPanel';
 
 
 export default function SystemSettings() {
-    const [settings, setSettings] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { settings, loading, fetchSettings, updateSettings, processSalaries } = useSystemStore();
     const [updating, setUpdating] = useState(false);
     const [processingSalaries, setProcessingSalaries] = useState(false);
 
-    useEffect(() => { fetchSettings(); }, []);
-
-    const fetchSettings = async () => {
-        setLoading(true);
-        try {
-            const response = await adminSystemAPI.getSettings();
-            if (response.data.success) {
-                setSettings(response.data.settings || response.data.data);
-            } else { toast.error('Registry Access Error'); }
-        } catch (error) { toast.error('Matrix Connection Lost'); }
-        finally { setLoading(false); }
-    };
+    useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
     const toggleTasks = async () => {
         const newValue = !settings?.tasksDisabled;
-        
-        // Optimistic update
-        setSettings({ ...settings, tasksDisabled: newValue });
         setUpdating(true);
-        
-        try {
-            const response = await adminSystemAPI.updateSettings({ tasksDisabled: newValue });
-            if (response.data.success) {
-                setSettings(response.data.settings || response.data.data);
-                toast.success(`Protocol ${newValue ? 'Halted' : 'Resumed'}`);
-            }
-        } catch (error) {
-            // Revert on error
-            setSettings(settings);
-            toast.error('Command Failed');
-        } finally {
-            setUpdating(false);
+        const res = await updateSettings({ tasksDisabled: newValue });
+        if (res.success) {
+            toast.success(`Protocol ${newValue ? 'Halted' : 'Resumed'}`);
+        } else {
+            toast.error(res.message);
         }
+        setUpdating(false);
     };
 
     const toggleFrontend = async () => {
         const newValue = !settings?.frontendDisabled;
-        
-        // Optimistic update
-        setSettings({ ...settings, frontendDisabled: newValue });
         setUpdating(true);
-        
-        try {
-            const response = await adminSystemAPI.updateSettings({ frontendDisabled: newValue });
-            if (response.data.success) {
-                setSettings(response.data.settings || response.data.data);
-                toast.success(`Gateway ${newValue ? 'Severed' : 'Restored'}`);
-            }
-        } catch (error) {
-            // Revert on error
-            setSettings(settings);
-            toast.error('Command Failed');
-        } finally {
-            setUpdating(false);
+        const res = await updateSettings({ frontendDisabled: newValue });
+        if (res.success) {
+            toast.success(`Gateway ${newValue ? 'Severed' : 'Restored'}`);
+        } else {
+            toast.error(res.message);
         }
+        setUpdating(false);
     };
 
-    const updateSettings = async (data) => {
+    const handleUpdateSettings = async (data) => {
         setUpdating(true);
-        try {
-            const response = await adminSystemAPI.updateSettings(data);
-            if (response.data.success) {
-                setSettings(response.data.settings || response.data.data);
-                toast.success('Core Protocols Updated');
-            }
-        } catch (error) { toast.error('Uplink Failed'); }
-        finally { setUpdating(false); }
+        const res = await updateSettings(data);
+        if (res.success) {
+            toast.success('Core Protocols Updated');
+        } else {
+            toast.error(res.message);
+        }
+        setUpdating(false);
     };
 
-    const processSalaries = async () => {
+    const handleProcessSalaries = async () => {
         setProcessingSalaries(true);
-        try {
-            const response = await adminSystemAPI.processSalaries();
-            if (response.data.success) {
-                toast.success(`Disbursement Complete: ${response.data.totalPaid} ETB`);
-            } else { toast.error(response.data.message); }
-        } catch (error) { toast.error('Uplink Interrupted'); }
-        finally { setProcessingSalaries(false); }
+        const res = await processSalaries();
+        if (res.success) {
+            toast.success(`Disbursement Complete: ${res.data.totalPaid} ETB`);
+        } else {
+            toast.error(res.message);
+        }
+        setProcessingSalaries(false);
     };
 
     if (loading) {
@@ -145,14 +112,14 @@ export default function SystemSettings() {
                     />
                     <WalletAssignmentPanel
                         settings={settings}
-                        onUpdate={updateSettings}
+                        onUpdate={handleUpdateSettings}
                         updating={updating}
                     />
                 </div>
 
                 <div className="space-y-8">
                     <SalaryPanel
-                        onProcess={processSalaries}
+                        onProcess={handleProcessSalaries}
                         processing={processingSalaries}
                     />
                     <SystemInfoPanel settings={settings} />

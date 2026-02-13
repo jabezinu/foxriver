@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { adminSpinAPI, adminSlotTierAPI } from '../services/api';
+import { useAdminSpinStore } from '../store/spinStore';
+import { useAdminSlotTierStore } from '../store/slotTierStore';
 import PageHeader from '../components/shared/PageHeader';
 import SpinResults from '../components/SpinResults';
 import SlotTiers from '../components/SlotTiers';
@@ -8,17 +9,10 @@ import SlotTierModal from '../components/SlotTierModal';
 
 const SlotMachine = () => {
     const [activeTab, setActiveTab] = useState('results'); // 'results' or 'tiers'
+    const { spins, stats, pagination, loading: loadingSpins, fetchSpinResults } = useAdminSpinStore();
+    const { tiers, loading: loadingTiers, fetchTiers, createTier, updateTier, deleteTier, toggleTier } = useAdminSlotTierStore();
 
-    // Spin Results State
-    const [spins, setSpins] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [loadingSpins, setLoadingSpins] = useState(true);
-    const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 0 });
     const [filters, setFilters] = useState({ result: '', startDate: '', endDate: '' });
-
-    // Slot Tiers State
-    const [tiers, setTiers] = useState([]);
-    const [loadingTiers, setLoadingTiers] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingTier, setEditingTier] = useState(null);
     const [formData, setFormData] = useState({
@@ -27,71 +21,33 @@ const SlotMachine = () => {
 
     useEffect(() => {
         if (activeTab === 'results') {
-            fetchSpinResults();
+            fetchSpinResults({ page: pagination.page, limit: pagination.limit, ...filters });
         } else {
             fetchTiers();
         }
-    }, [activeTab, pagination.page, filters]);
+    }, [activeTab, pagination.page, filters, fetchSpinResults, fetchTiers]);
 
-    const fetchSpinResults = async () => {
-        setLoadingSpins(true);
-        try {
-            const params = { page: pagination.page, limit: pagination.limit, ...filters };
-            const response = await adminSpinAPI.getAllSpins(params);
-            setSpins(response.data.data.spins);
-            setStats(response.data.data.stats);
-            setPagination(prev => ({
-                ...prev,
-                total: response.data.data.pagination.total,
-                pages: response.data.data.pagination.pages
-            }));
-        } catch (error) {
-            toast.error('Failed to fetch slot machine data');
-        } finally {
-            setLoadingSpins(false);
-        }
-    };
-
-    const fetchTiers = async () => {
-        setLoadingTiers(true);
-        try {
-            const response = await adminSlotTierAPI.getAll();
-            if (response.data.success) setTiers(response.data.data);
-        } catch (error) {
-            toast.error('Error fetching tiers');
-        } finally {
-            setLoadingTiers(false);
-        }
-    };
 
     const handleTierSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const response = editingTier
-                ? await adminSlotTierAPI.update(editingTier.id || editingTier._id, formData)
-                : await adminSlotTierAPI.create(formData);
+        const res = editingTier
+            ? await updateTier(editingTier.id || editingTier._id, formData)
+            : await createTier(formData);
 
-            if (response.data.success) {
-                toast.success(editingTier ? 'Tier updated' : 'Tier created');
-                setShowModal(false);
-                fetchTiers();
-            } else {
-                toast.error(response.data.message || 'Operation failed');
-            }
-        } catch (error) {
-            toast.error('Error saving tier');
+        if (res.success) {
+            toast.success(editingTier ? 'Tier updated' : 'Tier created');
+            setShowModal(false);
+        } else {
+            toast.error(res.message);
         }
     };
 
-    const handleToggleTier = async (id) => {
-        try {
-            const response = await adminSlotTierAPI.toggle(id);
-            if (response.data.success) {
-                toast.success('Status updated');
-                fetchTiers();
-            }
-        } catch (error) {
-            toast.error('Error updating status');
+    const handleToggleTierAction = async (id) => {
+        const res = await toggleTier(id);
+        if (res.success) {
+            toast.success('Status updated');
+        } else {
+            toast.error(res.message);
         }
     };
 
@@ -144,18 +100,20 @@ const SlotMachine = () => {
                     stats={stats}
                     loading={loadingSpins}
                     pagination={pagination}
-                    setPagination={setPagination}
+                    setPagination={(newPagination) => fetchSpinResults({ ...filters, ...newPagination })}
                     filters={filters}
                     onFilterChange={(e) => {
                         const { name, value } = e.target;
-                        setFilters(prev => ({ ...prev, [name]: value }));
-                        setPagination(prev => ({ ...prev, page: 1 }));
+                        const newFilters = { ...filters, [name]: value };
+                        setFilters(newFilters);
+                        fetchSpinResults({ ...newFilters, page: 1, limit: pagination.limit });
                     }}
                     onClearFilters={() => {
-                        setFilters({ result: '', startDate: '', endDate: '' });
-                        setPagination(prev => ({ ...prev, page: 1 }));
+                        const clearedFilters = { result: '', startDate: '', endDate: '' };
+                        setFilters(clearedFilters);
+                        fetchSpinResults({ ...clearedFilters, page: 1, limit: pagination.limit });
                     }}
-                    onRefresh={fetchSpinResults}
+                    onRefresh={() => fetchSpinResults({ ...filters, ...pagination })}
                     onExport={exportToCSV}
                 />
             ) : (
@@ -177,14 +135,15 @@ const SlotMachine = () => {
                     }}
                     onDelete={async (id) => {
                         if (confirm('Delete this tier?')) {
-                            try {
-                                await adminSlotTierAPI.delete(id);
+                            const res = await deleteTier(id);
+                            if (res.success) {
                                 toast.success('Deleted');
-                                fetchTiers();
-                            } catch (e) { toast.error('Error'); }
+                            } else {
+                                toast.error(res.message);
+                            }
                         }
                     }}
-                    onToggle={handleToggleTier}
+                    onToggle={handleToggleTierAction}
                 />
             )}
 

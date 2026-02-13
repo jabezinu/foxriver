@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminWealthAPI } from '../services/api';
+import { useAdminWealthStore } from '../store/wealthStore';
 import { getServerUrl } from '../config/api.config';
 import { toast } from 'react-hot-toast';
 import { HiPlus, HiTrendingUp, HiUsers } from 'react-icons/hi';
@@ -11,10 +11,17 @@ import WealthFundsList from '../components/WealthFundsList';
 import InvestmentsList from '../components/InvestmentsList';
 
 export default function WealthFunds() {
+    const { 
+        funds, 
+        investments, 
+        loading, 
+        fetchFunds, 
+        fetchInvestments, 
+        createFund, 
+        updateFund, 
+        deleteFund 
+    } = useAdminWealthStore();
     const [activeTab, setActiveTab] = useState('funds'); // 'funds' or 'investments'
-    const [funds, setFunds] = useState([]);
-    const [investments, setInvestments] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const [editingFund, setEditingFund] = useState(null);
@@ -28,31 +35,7 @@ export default function WealthFunds() {
     useEffect(() => {
         if (activeTab === 'funds') fetchFunds();
         else fetchInvestments();
-    }, [activeTab]);
-
-    const fetchFunds = async () => {
-        setLoading(true);
-        try {
-            const response = await adminWealthAPI.getAllFunds();
-            setFunds(response.data.data);
-        } catch (error) {
-            toast.error('Failed to fetch funds');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchInvestments = async () => {
-        setLoading(true);
-        try {
-            const response = await adminWealthAPI.getAllInvestments();
-            setInvestments(response.data.data);
-        } catch (error) {
-            toast.error('Failed to fetch investments');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [activeTab, fetchFunds, fetchInvestments]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -64,37 +47,34 @@ export default function WealthFunds() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const data = new FormData();
-            Object.keys(formData).forEach(key => data.append(key, formData[key]));
-            if (selectedFile) data.append('image', selectedFile);
+        const data = new FormData();
+        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        if (selectedFile) data.append('image', selectedFile);
 
-            if (editingFund) {
-                await adminWealthAPI.updateFund(editingFund._id, data);
-                toast.success('Fund updated');
-            } else {
-                if (!selectedFile) return toast.error('Image required');
-                await adminWealthAPI.createFund(data);
-                toast.success('Fund created');
-            }
+        let res;
+        if (editingFund) {
+            res = await updateFund(editingFund._id, data);
+        } else {
+            if (!selectedFile) return toast.error('Image required');
+            res = await createFund(data);
+        }
 
-            fetchFunds();
+        if (res.success) {
+            toast.success(editingFund ? 'Fund updated' : 'Fund created');
             handleCloseModal();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error saving fund');
+        } else {
+            toast.error(res.message);
         }
     };
 
     const handleDelete = async () => {
-        try {
-            await adminWealthAPI.deleteFund(deleteId);
+        const res = await deleteFund(deleteId);
+        if (res.success) {
             toast.success('Fund deleted');
-            fetchFunds();
-        } catch (error) {
-            toast.error('Error deleting fund');
-        } finally {
-            setDeleteId(null);
+        } else {
+            toast.error(res.message);
         }
+        setDeleteId(null);
     };
 
     const handleCloseModal = () => {

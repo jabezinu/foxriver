@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { HiX, HiUsers, HiChevronDown, HiChevronRight, HiIdentification } from 'react-icons/hi';
-import { adminUserAPI } from '../services/api';
+import { useAdminUserStore } from '../store/userStore';
 import { toast } from 'react-hot-toast';
 import Loading from './Loading';
 import { getServerUrl } from '../config/api.config';
 import Badge from './shared/Badge';
 
 const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
-    const [loading, setLoading] = useState(false);
+    const { fetchUserReferenceTree, loading } = useAdminUserStore();
     const [treeData, setTreeData] = useState(null);
     const [expandedNodes, setExpandedNodes] = useState(new Set());
 
@@ -18,17 +18,12 @@ const ReferenceTreeModal = ({ isOpen, userId, onClose }) => {
     }, [isOpen, userId]);
 
     const fetchReferenceTree = async () => {
-        setLoading(true);
-        try {
-            const response = await adminUserAPI.getUserReferenceTree(userId);
-            setTreeData(response.data);
-            // Auto-expand first level
+        const res = await fetchUserReferenceTree(userId);
+        if (res.success) {
+            setTreeData(res.data);
             setExpandedNodes(new Set(['root']));
-        } catch (error) {
-            toast.error('Failed to load reference tree');
-            console.error(error);
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(res.message);
         }
     };
 

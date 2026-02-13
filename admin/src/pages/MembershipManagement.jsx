@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminMembershipAPI } from '../services/api';
+import { useAdminMembershipStore } from '../store/membershipStore';
 import Loading from '../components/Loading';
 import { toast } from 'react-hot-toast';
 import PageHeader from '../components/shared/PageHeader';
@@ -7,11 +7,19 @@ import RankProgressionPanel from '../components/RankProgressionPanel';
 import MembershipTierTable from '../components/MembershipTierTable';
 
 export default function MembershipManagement() {
-    const [tiers, setTiers] = useState([]);
-    const [loading, setLoading] = useState(true);
-
+    const { 
+        tiers, 
+        restrictedRange, 
+        loading, 
+        fetchTiers, 
+        fetchRestrictedRange, 
+        setRestrictedRange, 
+        clearRestrictedRange, 
+        updateTierPrice, 
+        toggleVisibility 
+    } = useAdminMembershipStore();
+    
     // Restriction state
-    const [restrictedRange, setRestrictedRange] = useState(null);
     const [restrictStart, setRestrictStart] = useState('');
     const [restrictEnd, setRestrictEnd] = useState('');
     const [restrictionLoading, setRestrictionLoading] = useState(false);
@@ -26,38 +34,17 @@ export default function MembershipManagement() {
     useEffect(() => {
         fetchTiers();
         fetchRestrictedRange();
-    }, []);
-
-    const fetchTiers = async () => {
-        try {
-            setLoading(true);
-            const res = await adminMembershipAPI.getAllTiers();
-            setTiers(res.data.tiers);
-        } catch (error) {
-            toast.error('Failed to fetch tiers');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchRestrictedRange = async () => {
-        try {
-            const res = await adminMembershipAPI.getRestrictedRange();
-            setRestrictedRange(res.data.restrictedRange);
-        } catch (error) { }
-    };
+    }, [fetchTiers, fetchRestrictedRange]);
 
     const handleToggleVisibility = async (tierId) => {
-        try {
-            setTogglingVisibility(prev => ({ ...prev, [tierId]: true }));
-            const res = await adminMembershipAPI.toggleVisibility(tierId);
-            toast.success(res.data.message);
-            fetchTiers();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to toggle visibility');
-        } finally {
-            setTogglingVisibility(prev => ({ ...prev, [tierId]: false }));
+        setTogglingVisibility(prev => ({ ...prev, [tierId]: true }));
+        const res = await toggleVisibility(tierId);
+        if (res.success) {
+            toast.success('Visibility toggled');
+        } else {
+            toast.error(res.message);
         }
+        setTogglingVisibility(prev => ({ ...prev, [tierId]: false }));
     };
 
     const handleSetRestriction = async () => {
@@ -67,31 +54,27 @@ export default function MembershipManagement() {
         if (start > end) return toast.error('Check range logic');
         if (end - start < 1) return toast.error('Protocol requires at least 2 ranks');
 
-        try {
-            setRestrictionLoading(true);
-            const res = await adminMembershipAPI.setRestrictedRange({ startRank: start, endRank: end });
-            toast.success(res.data.message);
-            fetchRestrictedRange();
+        setRestrictionLoading(true);
+        const res = await setRestrictedRange({ startRank: start, endRank: end });
+        if (res.success) {
+            toast.success('Restricted range updated');
             setRestrictStart(''); setRestrictEnd('');
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update protocol');
-        } finally {
-            setRestrictionLoading(false);
+        } else {
+            toast.error(res.message);
         }
+        setRestrictionLoading(false);
     };
 
     const handleClearRestriction = async () => {
         if (!confirm('Clear all rank progression protocols?')) return;
-        try {
-            setRestrictionLoading(true);
-            const res = await adminMembershipAPI.clearRestrictedRange();
-            toast.success(res.data.message);
-            fetchRestrictedRange();
-        } catch (error) {
-            toast.error('Failed to clear protocol');
-        } finally {
-            setRestrictionLoading(false);
+        setRestrictionLoading(true);
+        const res = await clearRestrictedRange();
+        if (res.success) {
+            toast.success('Range cleared');
+        } else {
+            toast.error(res.message);
         }
+        setRestrictionLoading(false);
     };
 
     const handleSavePrice = async (tier) => {
@@ -101,17 +84,15 @@ export default function MembershipManagement() {
             return;
         }
 
-        try {
-            setSavingPrices(prev => ({ ...prev, [tier.id]: true }));
-            const res = await adminMembershipAPI.updatePrice(tier.id, { price: newPrice });
+        setSavingPrices(prev => ({ ...prev, [tier.id]: true }));
+        const res = await updateTierPrice(tier.id, { price: newPrice });
+        if (res.success) {
             toast.success('Price normalized');
-            fetchTiers();
             setEditingPrices(prev => { const s = { ...prev }; delete s[tier.id]; return s; });
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to sync price');
-        } finally {
-            setSavingPrices(prev => ({ ...prev, [tier.id]: false }));
+        } else {
+            toast.error(res.message);
         }
+        setSavingPrices(prev => ({ ...prev, [tier.id]: false }));
     };
 
     if (loading) return <Loading />;

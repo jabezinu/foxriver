@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminReferralAPI } from '../services/api';
+import { useAdminReferralStore } from '../store/referralStore';
 import { toast } from 'react-hot-toast';
 import { HiSearch, HiAdjustments, HiChartBar } from 'react-icons/hi';
 import Loading from '../components/Loading';
@@ -9,46 +9,28 @@ import CommissionTable from '../components/CommissionTable';
 import ReferralSettingsForm from '../components/ReferralSettingsForm';
 
 export default function ReferralManagement() {
+    const { commissions, settings, loading, fetchData, updateSettings } = useAdminReferralStore();
     const [activeTab, setActiveTab] = useState('commissions');
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [commissions, setCommissions] = useState([]);
     const [search, setSearch] = useState('');
-    const [settings, setSettings] = useState({
-        commissionPercentA: 10, commissionPercentB: 5, commissionPercentC: 2,
-        upgradeCommissionPercentA: 10, upgradeCommissionPercentB: 5, upgradeCommissionPercentC: 2,
-        maxReferralsPerUser: 0,
-        salaryDirect15Threshold: 15, salaryDirect15Amount: 15000,
-        salaryDirect20Threshold: 20, salaryDirect20Amount: 20000,
-        salaryDirect10Threshold: 10, salaryDirect10Amount: 10000,
-        salaryNetwork40Threshold: 40, salaryNetwork40Amount: 48000
-    });
+    const [localSettings, setLocalSettings] = useState(settings);
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        setLocalSettings(settings);
+    }, [settings]);
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [commRes, setRes] = await Promise.all([
-                adminReferralAPI.getCommissions(),
-                adminReferralAPI.getSettings()
-            ]);
-            setCommissions(commRes.data.commissions);
-            setSettings(setRes.data.settings);
-        } catch (error) {
-            toast.error('Network Intelligence Offline');
-        } finally { setLoading(false); }
-    };
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     const handleSaveSettings = async (e) => {
         e.preventDefault();
         setSaving(true);
-        try {
-            await adminReferralAPI.updateSettings(settings);
+        const res = await updateSettings(localSettings);
+        if (res.success) {
             toast.success('System Parameters Synchronized');
-        } catch (error) {
-            toast.error('Protocol Update Failed');
-        } finally { setSaving(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setSaving(false);
     };
 
     const filteredCommissions = commissions.filter(c =>
@@ -103,8 +85,8 @@ export default function ReferralManagement() {
                 </div>
             ) : (
                 <ReferralSettingsForm
-                    settings={settings}
-                    onChange={setSettings}
+                    settings={localSettings}
+                    onChange={setLocalSettings}
                     onSave={handleSaveSettings}
                     saving={saving}
                 />

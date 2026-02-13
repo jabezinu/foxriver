@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminWithdrawalAPI } from '../services/api';
+import { useAdminWithdrawalStore } from '../store/withdrawalStore';
 import { toast } from 'react-hot-toast';
 import { HiDownload } from 'react-icons/hi';
 import ConfirmModal from '../components/ConfirmModal';
@@ -10,24 +10,18 @@ import ExportModal from '../components/ExportModal';
 import { exportToCSV } from '../utils/exportUtils';
 
 export default function WithdrawalRequests() {
-    const [withdrawals, setWithdrawals] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { withdrawals, loading, fetchWithdrawals, approveWithdrawal, rejectWithdrawal, undoWithdrawal } = useAdminWithdrawalStore();
     const [filterStatus, setFilterStatus] = useState('pending');
     const [approveId, setApproveId] = useState(null);
     const [rejectId, setRejectId] = useState(null);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
-    useEffect(() => { fetchWithdrawals(); }, [filterStatus]);
-
-    const fetchWithdrawals = async () => {
-        setLoading(true);
-        try {
-            const res = await adminWithdrawalAPI.getWithdrawals({ status: filterStatus });
-            setWithdrawals(res.data.withdrawals);
-        } catch (error) { toast.error('Signal Loss: Registry inaccessible'); }
-        finally { setLoading(false); }
+    const fetchWithdrawalsList = async (status = filterStatus) => {
+        await fetchWithdrawals({ status });
     };
+
+    useEffect(() => { fetchWithdrawalsList(); }, [filterStatus]);
 
     const fetchTotalCount = async () => {
         try {
@@ -128,29 +122,32 @@ export default function WithdrawalRequests() {
     };
 
     const confirmApprove = async () => {
-        try {
-            await adminWithdrawalAPI.approve(approveId, { notes: 'Transfer verified by prime core financial node' });
+        const res = await approveWithdrawal(approveId, { notes: 'Transfer verified by prime core financial node' });
+        if (res.success) {
             toast.success('Funds Disbursed');
-            fetchWithdrawals();
-        } catch (error) { toast.error('Transfer Denial'); }
-        finally { setApproveId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setApproveId(null);
     };
 
     const confirmReject = async (reason) => {
-        try {
-            await adminWithdrawalAPI.reject(rejectId, { notes: reason || 'Protocol non-compliance / Identity failure' });
+        const res = await rejectWithdrawal(rejectId, { notes: reason || 'Protocol non-compliance / Identity failure' });
+        if (res.success) {
             toast.success('Payout Invalidated');
-            fetchWithdrawals();
-        } catch (error) { toast.error('Command Rejection'); }
-        finally { setRejectId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setRejectId(null);
     };
 
     const handleUndo = async (id) => {
-        try {
-            await adminWithdrawalAPI.undo(id);
+        const res = await undoWithdrawal(id);
+        if (res.success) {
             toast.success('Payout Reset: Signal returned to pending matrix');
-            fetchWithdrawals();
-        } catch (error) { toast.error('Undo Protocol Failure'); }
+        } else {
+            toast.error(res.message);
+        }
     };
 
     return (

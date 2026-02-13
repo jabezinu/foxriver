@@ -55,19 +55,60 @@ export const useSystemStore = create((set, get) => ({
         }
     },
 
-    updateSettings: async (newSettings) => {
-        set({ loading: true });
+    fetchSettings: async (force = false) => {
+        const { lastSettingsFetch, loading, settings } = get();
+        const now = Date.now();
+        const CACHE_DURATION = 5 * 60 * 1000;
+
+        if (!force && settings && (now - lastSettingsFetch) < CACHE_DURATION) {
+            return settings;
+        }
+
+        set({ loading: true, error: null });
         try {
-            await adminReferralAPI.updateSettings(newSettings);
+            const response = await adminSystemAPI.getSettings();
+            const newSettings = response.data.settings || response.data.data;
             set({ 
                 settings: newSettings, 
                 loading: false,
-                lastSettingsFetch: Date.now() // Reset cache timer
+                lastSettingsFetch: now
             });
-            return true;
+            return newSettings;
         } catch (error) {
-            set({ error: error.message, loading: false });
-            return false;
+            const message = error.response?.data?.message || 'Failed to fetch settings';
+            set({ error: message, loading: false });
+            return null;
+        }
+    },
+
+    updateSettings: async (newSettings) => {
+        set({ loading: true, error: null });
+        try {
+            const response = await adminSystemAPI.updateSettings(newSettings);
+            const updated = response.data.settings || response.data.data || newSettings;
+            set({ 
+                settings: updated, 
+                loading: false,
+                lastSettingsFetch: Date.now()
+            });
+            return { success: true, settings: updated };
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to update settings';
+            set({ error: message, loading: false });
+            return { success: false, message };
+        }
+    },
+
+    processSalaries: async () => {
+        set({ loading: true, error: null });
+        try {
+            const response = await adminSystemAPI.processSalaries();
+            set({ loading: false });
+            return { success: true, data: response.data };
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to process salaries';
+            set({ error: message, loading: false });
+            return { success: false, message };
         }
     },
 

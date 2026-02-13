@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminCoursesAPI } from '../services/api';
+import { useAdminCoursesStore } from '../store/coursesStore';
 import { toast } from 'react-hot-toast';
 import { HiPlus, HiRefresh, HiFolder, HiVideoCamera } from 'react-icons/hi';
 import PageHeader from '../components/shared/PageHeader';
@@ -10,9 +10,19 @@ import ConfirmModal from '../components/ConfirmModal';
 import Loading from '../components/Loading';
 
 export default function Courses() {
-    const [categories, setCategories] = useState([]);
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { 
+        categories, 
+        courses, 
+        loading, 
+        fetchCategoryData, 
+        fetchCourseData, 
+        createCategory, 
+        updateCategory, 
+        deleteCategory, 
+        createCourse, 
+        updateCourse, 
+        deleteCourse 
+    } = useAdminCoursesStore();
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('categories');
 
@@ -26,53 +36,41 @@ export default function Courses() {
     const [showCourseForm, setShowCourseForm] = useState(false);
     const [deleteCourseId, setDeleteCourseId] = useState(null);
 
-    useEffect(() => { fetchData(); }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [categoriesRes, coursesRes] = await Promise.all([
-                adminCoursesAPI.getCategories(),
-                adminCoursesAPI.getCourses()
-            ]);
-            setCategories(categoriesRes.data.categories);
-            setCourses(coursesRes.data.courses);
-        } catch (error) { toast.error('Registry Sync Failed'); }
-        finally { setLoading(false); }
-    };
+    useEffect(() => {
+        fetchCategoryData();
+        fetchCourseData();
+    }, [fetchCategoryData, fetchCourseData]);
 
     const handleCategorySubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        try {
-            if (editingCategoryId) {
-                await adminCoursesAPI.updateCategory(editingCategoryId, categoryForm);
-                toast.success('Category Registry Updated');
-            } else {
-                await adminCoursesAPI.createCategory(categoryForm);
-                toast.success('New Category Node Initialized');
-            }
+        const res = editingCategoryId 
+            ? await updateCategory(editingCategoryId, categoryForm)
+            : await createCategory(categoryForm);
+
+        if (res.success) {
+            toast.success(editingCategoryId ? 'Category Registry Updated' : 'New Category Node Initialized');
             setShowCategoryForm(false);
-            fetchData();
-        } catch (error) { toast.error('Command Execution Aborted'); }
-        finally { setSubmitting(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setSubmitting(false);
     };
 
     const handleCourseSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        try {
-            if (editingCourseId) {
-                await adminCoursesAPI.updateCourse(editingCourseId, courseForm);
-                toast.success('Course Payload Re-synchronized');
-            } else {
-                await adminCoursesAPI.createCourse(courseForm);
-                toast.success('Course Protocol Deployed');
-            }
+        const res = editingCourseId 
+            ? await updateCourse(editingCourseId, courseForm)
+            : await createCourse(courseForm);
+
+        if (res.success) {
+            toast.success(editingCourseId ? 'Course Payload Re-synchronized' : 'Course Protocol Deployed');
             setShowCourseForm(false);
-            fetchData();
-        } catch (error) { toast.error('Transmission Blocked'); }
-        finally { setSubmitting(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setSubmitting(false);
     };
 
     if (loading) return <Loading />;
@@ -82,9 +80,12 @@ export default function Courses() {
             <ConfirmModal
                 isOpen={!!deleteCategoryId} onClose={() => setDeleteCategoryId(null)}
                 onConfirm={async () => {
-                    await adminCoursesAPI.deleteCategory(deleteCategoryId);
-                    toast.success('Category Purged');
-                    fetchData();
+                    const res = await deleteCategory(deleteCategoryId);
+                    if (res.success) {
+                        toast.success('Category Purged');
+                    } else {
+                        toast.error(res.message);
+                    }
                     setDeleteCategoryId(null);
                 }}
                 title="Decommission Category Node" message="This will permanently sever all courses associated with this classification. Purge proceed?" confirmText="Purge Node" isDangerous={true}
@@ -93,9 +94,12 @@ export default function Courses() {
             <ConfirmModal
                 isOpen={!!deleteCourseId} onClose={() => setDeleteCourseId(null)}
                 onConfirm={async () => {
-                    await adminCoursesAPI.deleteCourse(deleteCourseId);
-                    toast.success('Course Terminal Removed');
-                    fetchData();
+                    const res = await deleteCourse(deleteCourseId);
+                    if (res.success) {
+                        toast.success('Course Terminal Removed');
+                    } else {
+                        toast.error(res.message);
+                    }
                     setDeleteCourseId(null);
                 }}
                 title="Decomission Course Terminal" message="Are you certain you wish to terminate this visual education link?" confirmText="Sever Link" isDangerous={true}
@@ -105,7 +109,7 @@ export default function Courses() {
                 title="Academic Matrix Oversight"
                 subtitle="Manage classification nodes and visual education payloads deployed to network personnel."
                 extra={
-                    <button onClick={fetchData} className="admin-btn-secondary flex items-center gap-2">
+                    <button onClick={() => { fetchCategoryData(); fetchCourseData(); }} className="admin-btn-secondary flex items-center gap-2">
                         <HiRefresh /> Global Sync
                     </button>
                 }

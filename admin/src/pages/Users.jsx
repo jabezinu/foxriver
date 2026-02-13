@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminUserAPI } from '../services/api';
+import { useAdminUserStore } from '../store/userStore';
 import { HiSearch, HiIdentification, HiPencil, HiTrash, HiClipboardList, HiUsers } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import Loading from '../components/Loading';
@@ -17,11 +17,11 @@ import Badge from '../components/shared/Badge';
 import PageHeader from '../components/shared/PageHeader';
 
 export default function UserManagement() {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { users, loading, fetchUsers, updateUser, deleteUser, restrictAllUsers } = useAdminUserStore();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterLevel, setFilterLevel] = useState('');
+    const [filterLevel, setFilterLevel] = useState('all');
     const [deleteId, setDeleteId] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
     const [historyUser, setHistoryUser] = useState(null);
     const [referenceTreeUserId, setReferenceTreeUserId] = useState(null);
 
@@ -44,39 +44,35 @@ export default function UserManagement() {
 
     // Restrict All Modal State
     const [restrictModalOpen, setRestrictModalOpen] = useState(false);
-    const [restrictDate, setRestrictDate] = useState('');
-    const [isLiftRestriction, setIsLiftRestriction] = useState(false);
-    const [restrictedDays, setRestrictedDays] = useState([]);
-    const [restrictionType, setRestrictionType] = useState('date');
+    const [restrictPayload, setRestrictPayload] = useState({
+        type: 'restrict', // 'restrict' or 'lift'
+        reason: ''
+    });
 
     useEffect(() => {
-        fetchUsers(1);
+        fetchUserData();
     }, [filterLevel]);
 
-    const fetchUsers = async (page = currentPage) => {
-        setLoading(true);
-        try {
-            const res = await adminUserAPI.getAllUsers({
-                membershipLevel: filterLevel || undefined,
-                search: searchTerm || undefined,
-                page,
-                limit
-            });
-            setUsers(res.data.users);
+    const fetchUserData = async (page = currentPage) => {
+        const res = await fetchUsers({
+            membershipLevel: filterLevel === 'all' ? undefined : filterLevel,
+            search: searchTerm || undefined,
+            page,
+            limit
+        });
+        if (res.success) {
             setTotalPages(res.data.totalPages);
             setTotalUsers(res.data.totalUsers);
             setCurrentPage(res.data.currentPage);
-        } catch (error) {
+        } else {
             toast.error('Failed to load operative data');
-            console.error(error);
-        } finally {
-            setLoading(false);
+            console.error(res.message);
         }
     };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        fetchUsers(1);
+        fetchUserData(1);
     };
 
     const handleEdit = (user) => {
@@ -100,75 +96,48 @@ export default function UserManagement() {
     };
 
     const confirmDelete = async () => {
-        try {
-            await adminUserAPI.deleteUser(deleteId);
-            toast.success('User deleted successfully');
-            fetchUsers();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Delete failed');
-        } finally {
-            setDeleteId(null);
-        }
-    };
-
-    const handleSaveEdit = async (e) => {
-        e.preventDefault();
-        try {
-            await adminUserAPI.updateUser(editingUser.id, editForm);
-            toast.success('User updated successfully');
-            setEditingUser(null);
-            fetchUsers();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Update failed');
-        }
-    };
-
-    const handleRestrictAll = async (e) => {
-        e.preventDefault();
-        if (!isLiftRestriction && restrictionType === 'date' && !restrictDate) {
-            return toast.error('Please select a date');
-        }
-        if (!isLiftRestriction && restrictionType === 'days' && (!restrictedDays || restrictedDays.length === 0)) {
-            return toast.error('Please select at least one day');
-        }
-
-        let message = '';
-        if (isLiftRestriction) {
-            message = 'Are you sure you want to LIFT withdrawal restrictions for ALL users?';
-        } else if (restrictionType === 'date') {
-            message = 'Are you sure you want to restrict withdrawals for ALL users until this date?';
+        setSubmitting(true);
+        const res = await deleteUser(deleteId);
+        if (res.success) {
+            toast.success('Personnel Entry Purged');
+            fetchUserData();
         } else {
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const restrictedDayNames = (Array.isArray(restrictedDays) ? restrictedDays : []).map(day => dayNames[day]).join(', ');
-            message = `Are you sure you want to restrict withdrawals for ALL users on: ${restrictedDayNames}?`;
+            toast.error(res.message);
         }
+        setDeleteId(null);
+        setSubmitting(false);
+    };
 
-        if (!confirm(message)) return;
+    const handleEditUser = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        const res = await updateUser(editingUser.id, editForm);
+        if (res.success) {
+            toast.success('Registry Entry Updated');
+            setEditingUser(null);
+            fetchUserData();
+        } else {
+            toast.error(res.message);
+        }
+        setSubmitting(false);
+    };
 
-        try {
-            const payload = {};
-            if (isLiftRestriction) {
-                payload.date = null;
-                payload.restrictedDays = null;
-            } else if (restrictionType === 'date') {
-                payload.date = restrictDate;
-                payload.restrictedDays = null;
-            } else {
-                payload.date = null;
-                payload.restrictedDays = restrictedDays;
-            }
+    const confirmRestrictAll = async () => {
+        setSubmitting(true);
+        const payload = {
+            restricted: restrictPayload.type === 'restrict',
+            reason: restrictPayload.reason
+        };
 
-            await adminUserAPI.restrictAllUsers(payload);
-            toast.success(isLiftRestriction ? 'Restrictions lifted for all users' : 'Restriction applied to all users');
+        const res = await restrictAllUsers(payload);
+        if (res.success) {
+            toast.success(`Broad-Spectrum Protocol: All users ${payload.restricted ? 'Restricted' : 'Restored'}`);
             setRestrictModalOpen(false);
-            setRestrictDate('');
-            setRestrictedDays([]);
-            setIsLiftRestriction(false);
-            setRestrictionType('date');
-            fetchUsers();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Operation failed');
+            fetchUserData();
+        } else {
+            toast.error(res.message);
         }
+        setSubmitting(false);
     };
 
     return (

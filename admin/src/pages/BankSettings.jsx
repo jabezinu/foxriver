@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminBankAPI } from '../services/api';
+import { useAdminBankStore } from '../store/bankStore';
 import { toast } from 'react-hot-toast';
 import { HiPlus } from 'react-icons/hi';
 import Loading from '../components/Loading';
@@ -8,28 +8,26 @@ import BankCard from '../components/BankCard';
 import BankAccountModal from '../components/BankAccountModal';
 
 export default function BankSettings() {
-    const [banks, setBanks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { banks, loading, fetchBanks, createBank, updateBank, deleteBank } = useAdminBankStore();
+    const [submitting, setSubmitting] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingBank, setEditingBank] = useState(null);
+    const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         bankName: '', accountNumber: '', accountHolderName: '', serviceType: 'Bank', isActive: true
     });
 
-    useEffect(() => { fetchBanks(); }, []);
+    useEffect(() => { fetchBanks(); }, [fetchBanks]);
 
-    const fetchBanks = async () => {
-        setLoading(true);
-        try {
-            const res = await adminBankAPI.getAll();
-            setBanks(res.data.data);
-        } catch (error) { toast.error('Communication Link Failure'); }
-        finally { setLoading(false); }
+    const resetForm = () => {
+        setEditingId(null);
+        setFormData({
+            bankName: '', accountNumber: '', accountHolderName: '', serviceType: 'Bank', isActive: true
+        });
     };
 
     const handleOpenModal = (bank = null) => {
         if (bank) {
-            setEditingBank(bank);
+            setEditingId(bank.id);
             setFormData({
                 bankName: bank.bankName,
                 accountNumber: bank.accountNumber,
@@ -38,52 +36,50 @@ export default function BankSettings() {
                 isActive: bank.isActive
             });
         } else {
-            setEditingBank(null);
-            setFormData({
-                bankName: '', accountNumber: '', accountHolderName: '', serviceType: 'Bank', isActive: true
-            });
+            resetForm();
         }
         setIsModalOpen(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            if (editingBank) {
-                await adminBankAPI.update(editingBank.id, formData);
-                toast.success('Protocol Parameters Re-linked');
-            } else {
-                await adminBankAPI.create(formData);
-                toast.success('New Financial Node Deployed');
-            }
+        setSubmitting(true);
+        let res;
+        if (editingId) {
+            res = await updateBank(editingId, formData);
+        } else {
+            res = await createBank(formData);
+        }
+
+        if (res.success) {
+            toast.success(editingId ? 'Protocol Parameters Re-linked' : 'New Financial Node Deployed');
             setIsModalOpen(false);
-            fetchBanks();
-        } catch (error) { toast.error('Command Execution Failure'); }
+            resetForm();
+        } else {
+            toast.error(res.message || 'Command Execution Failure');
+        }
+        setSubmitting(false);
     };
 
     const handleDelete = async (id) => {
         if (window.confirm('Deactivate this financial node? It will be hidden from users but historical data will be preserved.')) {
-            try {
-                await adminBankAPI.delete(id);
+            const res = await deleteBank(id);
+            if (res.success) {
                 toast.success('Node Deactivated Successfully');
-                fetchBanks();
-            } catch (error) {
-                const errorMessage = error.response?.data?.message || 'Deactivation Failed';
-                toast.error(errorMessage);
+            } else {
+                toast.error(res.message);
             }
         }
     };
 
     const handleReactivate = async (id) => {
         if (window.confirm('Reactivate this financial node? It will become available for deposits again.')) {
-            try {
-                const bank = banks.find(b => b.id === id);
-                await adminBankAPI.update(id, { ...bank, isActive: true });
+            const bank = banks.find(b => b.id === id);
+            const res = await updateBank(id, { ...bank, isActive: true });
+            if (res.success) {
                 toast.success('Node Reactivated Successfully');
-                fetchBanks();
-            } catch (error) {
-                const errorMessage = error.response?.data?.message || 'Reactivation Failed';
-                toast.error(errorMessage);
+            } else {
+                toast.error(res.message);
             }
         }
     };

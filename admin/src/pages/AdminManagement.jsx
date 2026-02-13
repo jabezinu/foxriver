@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminManagementAPI } from '../services/api';
+import { useAdminManagementStore } from '../store/adminStore';
 import { HiPlus } from 'react-icons/hi';
 import { toast } from 'react-hot-toast';
 import ConfirmModal from '../components/ConfirmModal';
@@ -10,8 +10,7 @@ import AdminAccessModal from '../components/AdminAccessModal';
 
 export default function AdminManagement() {
     const { admin: currentAdmin } = useAdminAuthStore();
-    const [admins, setAdmins] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { admins, loading, fetchAdmins, createAdmin, updatePermissions, deleteAdmin } = useAdminManagementStore();
     const [editingAdmin, setEditingAdmin] = useState(null);
     const [deleteId, setDeleteId] = useState(null);
     const [isAddingAdmin, setIsAddingAdmin] = useState(false);
@@ -20,38 +19,7 @@ export default function AdminManagement() {
         phone: '', password: '', role: 'admin', permissions: []
     });
 
-    useEffect(() => { fetchAdmins(); }, []);
-
-    const fetchAdmins = async () => {
-        setLoading(true);
-        try {
-            const res = await adminManagementAPI.getAdmins();
-            const normalizedAdmins = res.data.admins.map(admin => {
-                let parsedPermissions = admin.permissions || [];
-                if (typeof parsedPermissions === 'string') {
-                    try {
-                        parsedPermissions = JSON.parse(parsedPermissions);
-                    } catch (e) {
-                        console.error('Failed to parse permissions for admin', admin.id, e);
-                        parsedPermissions = [];
-                    }
-                }
-                // Ensure it's an array
-                if (!Array.isArray(parsedPermissions)) parsedPermissions = [];
-
-                return {
-                    ...admin,
-                    permissions: parsedPermissions
-                };
-            });
-            setAdmins(normalizedAdmins);
-        } catch (error) {
-            console.error('Fetch admins error:', error);
-            toast.error('Registry Access Error');
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => { fetchAdmins(); }, [fetchAdmins]);
 
     const handleOpenEdit = (admin) => {
         setEditingAdmin(admin);
@@ -68,28 +36,32 @@ export default function AdminManagement() {
 
     const handleSyncPermissions = async (e) => {
         e.preventDefault();
-        try {
-            if (editingAdmin) {
-                await adminManagementAPI.updatePermissions(editingAdmin.id, {
-                    role: modalForm.role, permissions: modalForm.permissions
-                });
-                toast.success('Clearance Updated');
-            } else {
-                await adminManagementAPI.createAdmin(modalForm);
-                toast.success('Personnel Authorized');
-            }
+        let res;
+        if (editingAdmin) {
+            res = await updatePermissions(editingAdmin.id, {
+                role: modalForm.role, permissions: modalForm.permissions
+            });
+        } else {
+            res = await createAdmin(modalForm);
+        }
+
+        if (res.success) {
+            toast.success(editingAdmin ? 'Clearance Updated' : 'Personnel Authorized');
             setEditingAdmin(null);
             setIsAddingAdmin(false);
-            fetchAdmins();
-        } catch (error) { toast.error(error.response?.data?.message || 'Uplink Interference'); }
+        } else {
+            toast.error(res.message);
+        }
     };
 
     const confirmDelete = async () => {
-        try {
-            await adminManagementAPI.deleteAdmin(deleteId);
+        const res = await deleteAdmin(deleteId);
+        if (res.success) {
             toast.success('Access Revoked');
-            fetchAdmins();
-        } catch (error) { toast.error('Command Rejected'); } finally { setDeleteId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setDeleteId(null);
     };
 
     return (

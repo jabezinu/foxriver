@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { HiX, HiDownload, HiUpload } from 'react-icons/hi';
-import { adminUserAPI } from '../services/api';
+import { useAdminUserStore } from '../store/userStore';
 import Loading from './Loading';
 
 export default function UserHistoryModal({ isOpen, onClose, user }) {
     const [activeTab, setActiveTab] = useState('deposits');
     const [deposits, setDeposits] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { fetchUserHistory, loading } = useAdminUserStore();
 
     useEffect(() => {
         if (isOpen && user) {
@@ -16,18 +16,10 @@ export default function UserHistoryModal({ isOpen, onClose, user }) {
     }, [isOpen, user]);
 
     const fetchHistory = async () => {
-        setLoading(true);
-        try {
-            const [depositsRes, withdrawalsRes] = await Promise.all([
-                adminUserAPI.getUserDeposits(user.id),
-                adminUserAPI.getUserWithdrawals(user.id)
-            ]);
-            setDeposits(depositsRes.data.deposits);
-            setWithdrawals(withdrawalsRes.data.withdrawals);
-        } catch (error) {
-            console.error('Failed to fetch history:', error);
-        } finally {
-            setLoading(false);
+        const res = await fetchUserHistory(user.id);
+        if (res.success) {
+            setDeposits(res.data.deposits);
+            setWithdrawals(res.data.withdrawals);
         }
     };
 

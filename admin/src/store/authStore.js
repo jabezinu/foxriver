@@ -86,5 +86,22 @@ export const useAdminAuthStore = create((set) => ({
             set({ admin: null, token: null, isAuthenticated: false, isCheckingAuth: false });
         }
     },
+
+    updateProfile: async (data) => {
+        set({ loading: true, error: null });
+        try {
+            const res = await adminAuthAPI.updateProfile ? await adminAuthAPI.updateProfile(data) : await axios.put(API_ENDPOINTS.ADMIN.PROFILE, data);
+            // If phone or password changed, user might need to relogin but store can just update admin data
+            if (res.data.user) {
+                set({ admin: res.data.user });
+            }
+            set({ loading: false });
+            return { success: true };
+        } catch (error) {
+            const message = error.response?.data?.message || 'Profile Update Rejection';
+            set({ error: message, loading: false });
+            return { success: false, message };
+        }
+    },
 }));
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
-import { adminProfileAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useAdminAuthStore } from '../store/authStore';
 
@@ -12,7 +11,7 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
         confirmPassword: ''
     });
     const [submitting, setSubmitting] = useState(false);
-    const { logout } = useAdminAuthStore();
+    const { logout, updateProfile } = useAdminAuthStore();
 
     useEffect(() => {
         if (admin && isOpen) {
@@ -51,19 +50,19 @@ export default function AdminProfileModal({ isOpen, onClose, admin }) {
                 updateData.currentPassword = formData.currentPassword;
             }
 
-            await adminProfileAPI.updateProfile(updateData);
-            toast.success('Profile updated successfully');
+            const res = await updateProfile(updateData);
+            if (res.success) {
+                toast.success('Profile updated successfully');
+                onClose();
 
-            onClose();
-
-            if (formData.password || (admin.phone !== formData.phone)) {
-                toast.success('Credentials changed. Please login again.');
-                logout();
-                window.location.href = '/login';
+                if (formData.password || (admin.phone !== formData.phone)) {
+                    toast.success('Credentials changed. Please login again.');
+                    logout();
+                    window.location.href = '/login';
+                }
+            } else {
+                toast.error(res.message);
             }
-
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Update failed');
         } finally {
             setSubmitting(false);
         }

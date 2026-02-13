@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminDepositAPI } from '../services/api';
+import { useAdminDepositStore } from '../store/depositStore';
 import { toast } from 'react-hot-toast';
 import { HiDownload } from 'react-icons/hi';
 import ConfirmModal from '../components/ConfirmModal';
@@ -11,8 +11,7 @@ import ExportModal from '../components/ExportModal';
 import { exportToCSV } from '../utils/exportUtils';
 
 export default function DepositRequests() {
-    const [deposits, setDeposits] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { deposits, loading, fetchDeposits, approveDeposit, rejectDeposit, undoDeposit } = useAdminDepositStore();
     const [filterStatus, setFilterStatus] = useState('ft_submitted');
     const [approveId, setApproveId] = useState(null);
     const [rejectId, setRejectId] = useState(null);
@@ -20,15 +19,11 @@ export default function DepositRequests() {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
 
-    useEffect(() => { fetchDeposits(); }, [filterStatus]);
-
-    const fetchDeposits = async () => {
-        setLoading(true);
-        try {
-            const res = await adminDepositAPI.getDeposits({ status: filterStatus });
-            setDeposits(res.data.deposits);
-        } catch (error) { toast.error('Ledger Offline'); } finally { setLoading(false); }
+    const fetchDepositsList = async (status = filterStatus) => {
+        await fetchDeposits({ status });
     };
+
+    useEffect(() => { fetchDepositsList(); }, [filterStatus]);
 
     const fetchTotalCount = async () => {
         try {
@@ -123,27 +118,32 @@ export default function DepositRequests() {
     };
 
     const confirmApprove = async () => {
-        try {
-            await adminDepositAPI.approve(approveId, { notes: 'Authenticated by Prime core' });
+        const res = await approveDeposit(approveId, { notes: 'Authenticated by Prime core' });
+        if (res.success) {
             toast.success('Capital Synchronized');
-            fetchDeposits();
-        } catch (error) { toast.error('Protocol Rejection'); } finally { setApproveId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setApproveId(null);
     };
 
     const confirmReject = async (reason) => {
-        try {
-            await adminDepositAPI.reject(rejectId, { notes: reason || 'Invalid transmission source' });
+        const res = await rejectDeposit(rejectId, { notes: reason || 'Invalid transmission source' });
+        if (res.success) {
             toast.success('Intake Blocked');
-            fetchDeposits();
-        } catch (error) { toast.error('Command Failed'); } finally { setRejectId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setRejectId(null);
     };
 
     const handleUndo = async (id) => {
-        try {
-            await adminDepositAPI.undo(id);
+        const res = await undoDeposit(id);
+        if (res.success) {
             toast.success('Signal Reset: Transaction returned to intake pool');
-            fetchDeposits();
-        } catch (error) { toast.error('Undo Protocol Failed'); }
+        } else {
+            toast.error(res.message);
+        }
     };
 
     return (

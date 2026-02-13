@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminTaskAPI } from '../services/api';
+import { useAdminTaskStore } from '../store/taskStore';
 import { toast } from 'react-hot-toast';
 import { HiVideoCamera, HiLink } from 'react-icons/hi';
 import ConfirmModal from '../components/ConfirmModal';
@@ -9,11 +9,19 @@ import TaskPool from '../components/TaskPool';
 import PlaylistManager from '../components/PlaylistManager';
 
 export default function TaskManagement() {
+    const { 
+        tasks, 
+        playlists, 
+        videoCount, 
+        loading, 
+        fetchTaskData, 
+        uploadTask, 
+        deleteTask, 
+        addPlaylist, 
+        deletePlaylist, 
+        syncVideos 
+    } = useAdminTaskStore();
     const [activeTab, setActiveTab] = useState('manual');
-    const [tasks, setTasks] = useState([]);
-    const [playlists, setPlaylists] = useState([]);
-    const [videoCount, setVideoCount] = useState(0);
-    const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [deleteTaskId, setDeleteTaskId] = useState(null);
@@ -26,75 +34,63 @@ export default function TaskManagement() {
 
     useEffect(() => { fetchData(); }, []);
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            // Fetch POOL videos instead of active tasks
-            const [tasksRes, playlistsRes] = await Promise.all([adminTaskAPI.getPool(), adminTaskAPI.getPlaylists()]);
-            // Backend returns { videos: [...] } for getPool, need to check
-            // My backend implementation for getPoolVideos returns { success: true, count: ..., videos: [...] }
-            // API.js getPool calls /pool
-            setTasks(tasksRes.data.videos || []);
-            setPlaylists(playlistsRes.data.playlists);
-            setVideoCount(playlistsRes.data.videoCount);
-        } catch (error) {
-            toast.error('Matrix Uplink Failed');
-            console.error(error);
-        } finally { setLoading(false); }
-    };
+    useEffect(() => { fetchTaskData(); }, [fetchTaskData]);
 
     const handleUpload = async (e) => {
         e.preventDefault();
         setUploading(true);
-        try {
-            await adminTaskAPI.upload({ youtubeUrl, title: taskTitle });
+        const res = await uploadTask({ youtubeUrl, title: taskTitle });
+        if (res.success) {
             toast.success('Protocol Active');
             setYoutubeUrl(''); setTaskTitle('');
-            const res = await adminTaskAPI.getPool(); // Refresh POOL
-            setTasks(res.data.videos || []);
-        } catch (error) { toast.error('Uplink Failed'); } finally { setUploading(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setUploading(false);
     };
 
     const confirmDeleteTask = async () => {
-        try {
-            await adminTaskAPI.delete(deleteTaskId);
+        const res = await deleteTask(deleteTaskId);
+        if (res.success) {
             toast.success('Unit Terminated');
-            const res = await adminTaskAPI.getPool(); // Refresh POOL
-            setTasks(res.data.videos || []);
-        } catch (error) { toast.error('Termination Failed'); } finally { setDeleteTaskId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setDeleteTaskId(null);
     };
 
     const handleAddPlaylist = async (e) => {
         e.preventDefault();
         setUploading(true);
-        try {
-            await adminTaskAPI.addPlaylist({ url: playlistUrl });
+        const res = await addPlaylist({ url: playlistUrl });
+        if (res.success) {
             toast.success('Harvester Linked');
             setPlaylistUrl('');
-            const res = await adminTaskAPI.getPlaylists();
-            setPlaylists(res.data.playlists);
-            setVideoCount(res.data.videoCount);
-        } catch (error) { toast.error('Link Failed'); } finally { setUploading(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setUploading(false);
     };
 
     const confirmDeletePlaylist = async () => {
-        try {
-            await adminTaskAPI.deletePlaylist(deletePlaylistId);
+        const res = await deletePlaylist(deletePlaylistId);
+        if (res.success) {
             toast.success('Node Severed');
-            const res = await adminTaskAPI.getPlaylists();
-            setPlaylists(res.data.playlists);
-            setVideoCount(res.data.videoCount);
-        } catch (error) { toast.error('Operation Failed'); } finally { setDeletePlaylistId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setDeletePlaylistId(null);
     };
 
     const handleSync = async () => {
         setSyncing(true);
-        try {
-            const res = await adminTaskAPI.syncVideos();
+        const res = await syncVideos();
+        if (res.success) {
             toast.success('Harvest Complete');
-            const playlistsRes = await adminTaskAPI.getPlaylists();
-            setVideoCount(playlistsRes.data.videoCount);
-        } catch (error) { toast.error('Sync Lost'); } finally { setSyncing(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setSyncing(false);
     };
 
     const getYoutubeId = (url) => {

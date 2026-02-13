@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminNewsAPI } from '../services/api';
+import { useAdminNewsStore } from '../store/newsStore';
 import { toast } from 'react-hot-toast';
 import { HiPlus, HiRefresh } from 'react-icons/hi';
 import PageHeader from '../components/shared/PageHeader';
@@ -9,57 +9,47 @@ import ConfirmModal from '../components/ConfirmModal';
 import Loading from '../components/Loading';
 
 export default function News() {
-    const [news, setNews] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { news, loading, fetchNews, createNews, updateNews, deleteNews } = useAdminNewsStore();
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '', showAsPopup: false, targetRanks: [] });
     const [editingId, setEditingId] = useState(null);
     const [deleteId, setDeleteId] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
-    useEffect(() => { fetchNews(); }, []);
-
-    const fetchNews = async () => {
-        setLoading(true);
-        try {
-            const res = await adminNewsAPI.getAll();
-            setNews(res.data.news);
-        } catch (error) { toast.error('Signal Loss: Intelligence pool inaccessible'); }
-        finally { setLoading(false); }
-    };
+    useEffect(() => { fetchNews(); }, [fetchNews]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        try {
-            const data = {
-                title: formData.title,
-                content: formData.content,
-                showAsPopup: formData.showAsPopup,
-                targetRanks: formData.targetRanks || []
-            };
+        const data = {
+            title: formData.title,
+            content: formData.content,
+            showAsPopup: formData.showAsPopup,
+            targetRanks: formData.targetRanks || []
+        };
 
-            if (editingId) {
-                await adminNewsAPI.update(editingId, data);
-                toast.success('Briefing Synchronized');
-            } else {
-                await adminNewsAPI.create(data);
-                toast.success('Global Broadcast Initiated');
-            }
+        const res = editingId 
+            ? await updateNews(editingId, data)
+            : await createNews(data);
+
+        if (res.success) {
+            toast.success(editingId ? 'Briefing Synchronized' : 'Global Broadcast Initiated');
             setShowModal(false);
             resetForm();
-            fetchNews();
-        } catch (error) { toast.error('Release Failure'); }
-        finally { setSubmitting(false); }
+        } else {
+            toast.error(res.message);
+        }
+        setSubmitting(false);
     };
 
     const confirmDelete = async () => {
-        try {
-            await adminNewsAPI.delete(deleteId);
+        const res = await deleteNews(deleteId);
+        if (res.success) {
             toast.success('Briefing Terminated');
-            fetchNews();
-        } catch (error) { toast.error('Command Rejected'); }
-        finally { setDeleteId(null); }
+        } else {
+            toast.error(res.message);
+        }
+        setDeleteId(null);
     };
 
     const handleEdit = (newsItem) => {

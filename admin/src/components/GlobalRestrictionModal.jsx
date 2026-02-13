@@ -1,27 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { HiX } from 'react-icons/hi';
-import { adminUserAPI } from '../services/api';
+import { useAdminUserStore } from '../store/userStore';
 
 export default function GlobalRestrictionModal({ isOpen, onClose, onSave, date, setDate, lift, setLift, restrictedDays, setRestrictedDays, restrictionType, setRestrictionType }) {
     const [currentRestrictions, setCurrentRestrictions] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const { fetchCurrentRestrictions, loading } = useAdminUserStore();
 
     // Fetch current global restrictions when modal opens
     useEffect(() => {
         if (isOpen) {
-            fetchCurrentRestrictions();
+            fetchCurrentRestrictionsData();
         }
     }, [isOpen]);
 
-    const fetchCurrentRestrictions = async () => {
-        setLoading(true);
-        try {
-            const res = await adminUserAPI.getCurrentRestrictions();
-            setCurrentRestrictions(res.data.restrictions);
-        } catch (error) {
-            console.error('Failed to fetch current restrictions:', error);
-        } finally {
-            setLoading(false);
+    const fetchCurrentRestrictionsData = async () => {
+        const res = await fetchCurrentRestrictions();
+        if (res.success) {
+            setCurrentRestrictions(res.data);
         }
     };
 
