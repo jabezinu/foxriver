@@ -123,18 +123,18 @@ export default function Settings() {
         {
             label: 'Bank Account',
             icon: Landmark,
-            desc: profile.membershipLevel === 'Intern'
+            desc: profile?.membershipLevel === 'Intern'
                 ? 'Upgrade to Rank 1 required'
-                : (profile.bankAccount?.isSet ? `${profile.bankAccount.bank} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked'),
+                : (profile?.bankAccount?.isSet ? `${profile.bankAccount.bank} (...${profile.bankAccount.accountNumber.slice(-4)})` : 'Not linked'),
             action: () => {
-                if (profile.membershipLevel === 'Intern') {
+                if (profile?.membershipLevel === 'Intern') {
                     toast.error('Please upgrade to Rank 1 or higher to set up bank account');
                 } else {
                     setModalType('bank');
                 }
             },
             color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
-            disabled: profile.membershipLevel === 'Intern'
+            disabled: profile?.membershipLevel === 'Intern'
         },
         {
             label: 'Change Password',
@@ -161,7 +161,7 @@ export default function Settings() {
             <div className="max-w-md mx-auto px-4 py-6">
                 {/* User Card */}
                 <div className="bg-zinc-900 rounded-2xl p-5 shadow-lg mb-8 flex items-center gap-4 border border-zinc-800">
-                    {profile.profilePhoto ? (
+                    {profile?.profilePhoto ? (
                         <img
                             src={profile.profilePhoto.startsWith('http') ? profile.profilePhoto : `${getServerUrl()}${profile.profilePhoto}`}
                             alt="Profile"
@@ -169,14 +169,14 @@ export default function Settings() {
                         />
                     ) : (
                         <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-violet-600 rounded-full flex items-center justify-center text-white text-xl font-black border-2 border-zinc-700">
-                            {profile.name ? profile.name.charAt(0).toUpperCase() : <User size={28} />}
+                            {profile?.name ? profile.name.charAt(0).toUpperCase() : <User size={28} />}
                         </div>
                     )}
                     <div>
-                        <p className="font-bold text-white text-lg">{profile.name || 'User'}</p>
-                        <p className="text-sm text-zinc-400">{profile.phone}</p>
+                        <p className="font-bold text-white text-lg">{profile?.name || 'User'}</p>
+                        <p className="text-sm text-zinc-400">{profile?.phone}</p>
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary-500/10 text-primary-500 text-xs font-bold uppercase tracking-wide border border-primary-500/20 mt-1">
-                            <span>Level {profile.membershipLevel}</span>
+                            <span>Level {profile?.membershipLevel}</span>
                         </div>
                     </div>
                 </div>
@@ -216,14 +216,14 @@ export default function Settings() {
             {/* Bank Modal */}
             <Modal isOpen={modalType === 'bank'} onClose={() => setModalType(null)} title="Bank Details">
                 <div className="space-y-4">
-                    {profile.bankChangeStatus === 'pending' && (
+                    {profile?.bankChangeStatus === 'pending' && (
                         <div className="bg-violet-500/10 p-4 rounded-xl border border-violet-500/20 mb-2">
                             <p className="text-violet-500 font-bold text-xs uppercase tracking-wide mb-1">
                                 Change Pending
                             </p>
                             <p className="text-violet-200/80 text-xs leading-relaxed mb-2">
-                                Confirmations: {profile.bankChangeConfirmations?.length || 0} of 3<br />
-                                Requested: {new Date(profile.bankChangeRequestDate).toLocaleDateString()}
+                                Confirmations: {profile?.bankChangeConfirmations?.length || 0} of 3<br />
+                                Requested: {new Date(profile?.bankChangeRequestDate).toLocaleDateString()}
                             </p>
                             <Button
                                 onClick={handleCancelBankChange}
@@ -236,7 +236,7 @@ export default function Settings() {
                         </div>
                     )}
 
-                    {profile.bankChangeStatus === 'declined' && (
+                    {profile?.bankChangeStatus === 'declined' && (
                         <div className="bg-red-500/10 p-4 rounded-xl border border-red-500/20 mb-2">
                             <p className="text-red-500 font-bold text-xs uppercase tracking-wide mb-1">
                                 Request Declined
@@ -255,7 +255,7 @@ export default function Settings() {
                         </div>
                     )}
 
-                    {profile.bankAccount?.isSet && profile.bankChangeStatus !== 'pending' && profile.bankChangeStatus !== 'declined' && (
+                    {profile?.bankAccount?.isSet && profile?.bankChangeStatus !== 'pending' && profile?.bankChangeStatus !== 'declined' && (
                         <p className="text-xs text-blue-400 bg-blue-500/10 p-3 rounded-xl font-medium mb-2 border border-blue-500/20">
                             Changes to bank details require confirmation once per day for 3 consecutive days.
                         </p>
@@ -266,34 +266,34 @@ export default function Settings() {
                         placeholder="e.g. CBE, Dashen"
                         value={formData.bankName}
                         onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-                        disabled={profile.bankChangeStatus === 'pending'}
+                        disabled={profile?.bankChangeStatus === 'pending'}
                     />
                     <Input
                         label="Account Number"
                         placeholder="1000..."
                         value={formData.accountNumber}
                         onChange={e => setFormData({ ...formData, accountNumber: e.target.value })}
-                        disabled={profile.bankChangeStatus === 'pending'}
+                        disabled={profile?.bankChangeStatus === 'pending'}
                     />
                     <Input
                         label="Account Holder Name"
                         placeholder="Full Name"
                         value={formData.accountName}
                         onChange={e => setFormData({ ...formData, accountName: e.target.value })}
-                        disabled={profile.bankChangeStatus === 'pending'}
+                        disabled={profile?.bankChangeStatus === 'pending'}
                     />
                     <Input
                         label="Phone Number"
                         placeholder="09..."
                         value={formData.bankPhone}
                         onChange={e => setFormData({ ...formData, bankPhone: e.target.value })}
-                        disabled={profile.bankChangeStatus === 'pending'}
+                        disabled={profile?.bankChangeStatus === 'pending'}
                     />
 
-                    {profile.bankChangeStatus !== 'pending' && (
+                    {profile?.bankChangeStatus !== 'pending' && (
                         <div className="pt-2">
                             <Button onClick={handleUpdateBank} fullWidth className="shadow-glow">
-                                {profile.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
+                                {profile?.bankAccount?.isSet ? 'Request Change' : 'Save Account'}
                             </Button>
                         </div>
                     )}
