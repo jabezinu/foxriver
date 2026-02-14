@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { userAPI, taskAPI, wealthAPI } from '../services/api';
+import { userAPI } from '../services/api';
 
 export const useUserStore = create((set, get) => ({
     wallet: { incomeWallet: 0, personalWallet: 0 },
@@ -80,94 +80,15 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
-    // Tasks State
-    tasks: [],
-    dailyStats: { dailyIncome: 0, perVideoIncome: 0 },
-    internRestriction: null,
-    isSunday: false,
-    earningsStats: null,
-    lastTasksFetch: 0,
-
-    // Wealth Funds State
-    wealthFunds: [],
-    lastWealthFundsFetch: 0,
-
-    fetchTasks: async (force = false) => {
-        const { lastTasksFetch, loading, isStale, tasks } = get();
-        // Since tasks change daily or on completion, maybe 5 mins cache is okay, 
-        // but completion invalidates it locally or we should force refresh on completion.
-        // We will keep standard 5 min cache, but 'force' will be used on 'Sync'.
-        if (!force && (loading.tasks || !isStale(lastTasksFetch))) {
-            return tasks;
-        }
-
-        set(state => ({ loading: { ...state.loading, tasks: true }, error: null }));
-
-        try {
-            // We need taskAPI here. It wasn't imported. I need to update imports.
-            // But wait, existing code imports userAPI. I need to check if taskAPI is exported from '../services/api'. 
-            // It was used in Task.jsx.
-
-            const response = await taskAPI.getDailyTasks();
-
-            const data = response.data;
-
-            set(state => ({
-                tasks: data.tasks,
-                dailyStats: {
-                    dailyIncome: data.dailyIncome,
-                    perVideoIncome: data.perVideoIncome
-                },
-                internRestriction: data.internRestriction,
-                isSunday: data.isSunday || false,
-                earningsStats: data.earningsStats || null,
-                lastTasksFetch: Date.now(),
-                loading: { ...state.loading, tasks: false }
-            }));
-            return data.tasks;
-        } catch (error) {
-            console.error('Failed to fetch tasks:', error);
-            set(state => ({
-                loading: { ...state.loading, tasks: false },
-                error: 'Failed to fetch tasks'
-            }));
-            return tasks;
-        }
-    },
-
-    // Sync all user data at once
+    // Sync wallet and profile data
     syncData: async () => {
-        const { fetchWallet, fetchProfile, fetchTasks } = get();
+        const { fetchWallet, fetchProfile } = get();
         await Promise.all([
             fetchWallet(true),
-            fetchProfile(true),
-            fetchTasks(true)
+            fetchProfile(true)
         ]);
         return true;
     },
-
-    fetchWealthFunds: async (force = false) => {
-        const { lastWealthFundsFetch, isStale, wealthFunds } = get();
-        // Cache wealth funds for 10 minutes
-        if (!force && !isStale(lastWealthFundsFetch, 10 * 60 * 1000)) {
-            return wealthFunds;
-        }
-
-        try {
-            const response = await wealthAPI.getFunds();
-            const funds = response.data.data || [];
-
-            set({
-                wealthFunds: funds,
-                lastWealthFundsFetch: Date.now()
-            });
-            return funds;
-        } catch (error) {
-            console.error('Failed to fetch wealth funds:', error);
-            return wealthFunds;
-        }
-    },
-
 
     updateProfile: async (profileData) => {
         set(state => ({ loading: { ...state.loading, profile: true }, error: null }));
@@ -289,9 +210,6 @@ export const useUserStore = create((set, get) => ({
             if (fields.length === 0 || fields.includes('wallet')) {
                 updates.lastWalletFetch = 0;
             }
-            if (fields.length === 0 || fields.includes('tasks')) {
-                updates.lastTasksFetch = 0;
-            }
             return updates;
         });
     },
@@ -301,17 +219,9 @@ export const useUserStore = create((set, get) => ({
         set({
             wallet: { incomeWallet: 0, personalWallet: 0 },
             profile: null,
-            tasks: [],
-            wealthFunds: [],
-            dailyStats: { dailyIncome: 0, perVideoIncome: 0 },
-            internRestriction: null,
-            isSunday: false,
-            earningsStats: null,
             lastWalletFetch: 0,
             lastProfileFetch: 0,
-            lastTasksFetch: 0,
-            lastWealthFundsFetch: 0,
-            loading: { wallet: false, profile: false, tasks: false },
+            loading: { wallet: false, profile: false },
             error: null
         });
     }

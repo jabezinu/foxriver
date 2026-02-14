@@ -8,10 +8,6 @@ export const useAuthStore = create((set) => ({
     loading: false,
     isInitializing: true,
     error: null,
-    shouldShowNewsPopup: false,
-    latestNews: null,
-    newsQueue: [], // Array of all news to show
-    currentNewsIndex: 0, // Track which news is currently being shown
 
     login: async (credentials) => {
         set({ loading: true, error: null });
@@ -66,11 +62,7 @@ export const useAuthStore = create((set) => ({
             user: null, 
             token: null, 
             isAuthenticated: false, 
-            isInitializing: false,
-            shouldShowNewsPopup: false,
-            latestNews: null,
-            newsQueue: [],
-            currentNewsIndex: 0
+            isInitializing: false
         });
         // Force refresh on logout to clear session/cache
         const timestamp = new Date().getTime();
@@ -115,51 +107,5 @@ export const useAuthStore = create((set) => ({
 
     updateUser: (userData) => {
         set((state) => ({ user: { ...state.user, ...userData } }));
-    },
-
-    setNewsQueue: (newsArray) => {
-        if (newsArray && newsArray.length > 0) {
-            set({ 
-                newsQueue: newsArray, 
-                currentNewsIndex: 0,
-                latestNews: newsArray[0],
-                shouldShowNewsPopup: true
-            });
-        } else {
-            set({ 
-                newsQueue: [], 
-                currentNewsIndex: 0,
-                latestNews: null,
-                shouldShowNewsPopup: false
-            });
-        }
-    },
-
-    showNextNews: () => {
-        set((state) => {
-            const nextIndex = state.currentNewsIndex + 1;
-            if (nextIndex < state.newsQueue.length) {
-                return {
-                    currentNewsIndex: nextIndex,
-                    latestNews: state.newsQueue[nextIndex]
-                };
-            } else {
-                // No more news to show
-                return {
-                    shouldShowNewsPopup: false,
-                    latestNews: null,
-                    newsQueue: [],
-                    currentNewsIndex: 0
-                };
-            }
-        });
-    },
-
-    setLatestNews: (news) => {
-        set({ latestNews: news });
-    },
-
-    hideNewsPopup: () => {
-        set({ shouldShowNewsPopup: false, newsQueue: [], currentNewsIndex: 0, latestNews: null });
     },
 }));

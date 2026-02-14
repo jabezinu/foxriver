@@ -60,8 +60,17 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const { verifyToken, isAuthenticated, shouldShowNewsPopup, latestNews, setNewsQueue, hideNewsPopup, showNextNews, newsQueue, currentNewsIndex } = useAuthStore();
-  const { fetchPopupNews } = useNewsStore();
+  const { verifyToken, isAuthenticated } = useAuthStore();
+  const { 
+    fetchPopupNews,
+    shouldShowNewsPopup,
+    latestNews,
+    setNewsQueue,
+    hideNewsPopup,
+    showNextNews,
+    newsQueue,
+    currentNewsIndex 
+  } = useNewsStore();
   const { settings, fetchSettings, loading: settingsLoading } = useSystemStore();
   const [isReady, setIsReady] = useState(false);
 
