@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import BottomNav from './BottomNav';
+import PageLoader from '../components/PageLoader';
 
 export default function MainLayout() {
     const location = useLocation();
@@ -10,7 +12,9 @@ export default function MainLayout() {
     return (
         <div className="app-container flex flex-col">
             <main className="flex-1 pb-24 relative overflow-y-auto overflow-x-hidden scrollbar-hide">
-                <Outlet />
+                <Suspense fallback={<PageLoader />}>
+                    <Outlet />
+                </Suspense>
             </main>
 
             {showBottomNav && <BottomNav />}

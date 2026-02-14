@@ -34,16 +34,7 @@ import NewsPopup from './components/NewsPopup';
 // Layout
 import MainLayout from './layout/MainLayout';
 
-// Loading component
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-zinc-950">
-    <img 
-      src={logo} 
-      alt="Loading" 
-      className="w-72 h-72 object-contain animate-pulse"
-    />
-  </div>
-);
+import PageLoader from './components/PageLoader';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -147,8 +138,8 @@ function App() {
     <WalletProvider>
         <BrowserRouter
           future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
+            v7_relativeSplatPath: true,
+            v7_startTransition: false,
           }}
         >
         <Toaster
