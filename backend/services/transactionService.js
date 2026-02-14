@@ -130,8 +130,8 @@ class TransactionService {
             throw new AppError('Withdrawal not found', 404);
         }
 
-        if (withdrawal.status === 'approved') {
-            throw new AppError('Withdrawal already approved', 400);
+        if (withdrawal.status !== 'pending') {
+            throw new AppError(`Cannot approve withdrawal in ${withdrawal.status} status`, 400);
         }
 
         const user = await User.findByPk(withdrawal.user);
@@ -162,12 +162,8 @@ class TransactionService {
             throw new AppError('Withdrawal not found', 404);
         }
 
-        if (withdrawal.status === 'rejected') {
-            throw new AppError('Withdrawal already rejected', 400);
-        }
-
-        if (withdrawal.status === 'approved') {
-            throw new AppError('Cannot reject an approved withdrawal. Use undo instead.', 400);
+        if (withdrawal.status !== 'pending') {
+            throw new AppError(`Cannot reject withdrawal in ${withdrawal.status} status. It must be pending.`, 400);
         }
 
         const user = await User.findByPk(withdrawal.user);
@@ -273,10 +269,10 @@ class TransactionService {
             const walletField = withdrawal.walletType === 'income' || withdrawal.walletType === 'tasks' ? 'incomeWallet' : 'personalWallet';
 
             if (withdrawal.status === 'approved') {
-                // Amount was deducted on creation and never refunded
-                // Refund it to restore to pending state (where amount should be deducted)
-                user[walletField] = parseFloat(user[walletField]) + parseFloat(withdrawal.amount);
-                await user.save({ transaction: t });
+                // If it was approved, balance was already deducted on creation.
+                // We are moving back to pending, where balance should still be deducted.
+                // SO WE DO NOTHING - no refund, no deduction.
+                logger.debug('Undoing approved withdrawal: keeping balance deducted', { withdrawalId });
             } else if (withdrawal.status === 'rejected') {
                 // Amount was refunded on rejection
                 // Deduct it again to restore to pending state (where amount should be deducted)
@@ -285,6 +281,7 @@ class TransactionService {
                 }
                 user[walletField] = parseFloat(user[walletField]) - parseFloat(withdrawal.amount);
                 await user.save({ transaction: t });
+                logger.info('Undoing rejected withdrawal: re-deducting balance', { withdrawalId, amount: withdrawal.amount });
             }
 
             // Reset withdrawal status
