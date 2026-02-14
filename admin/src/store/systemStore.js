@@ -4,52 +4,30 @@ import { adminSystemAPI, adminReferralAPI, adminMembershipAPI } from '../service
 export const useSystemStore = create((set, get) => ({
     settings: null,
     categories: [],
-    tiers: [],
     loading: false,
     error: null,
     lastSettingsFetch: 0,
-    lastTiersFetch: 0,
 
     fetchInitialData: async (force = false) => {
-        const { lastSettingsFetch, lastTiersFetch, settings, tiers } = get();
+        const { lastSettingsFetch, settings } = get();
         const now = Date.now();
         const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
         
         // Check if data is still fresh
         const settingsStale = (now - lastSettingsFetch) > CACHE_DURATION;
-        const tiersStale = (now - lastTiersFetch) > CACHE_DURATION;
         
-        if (!force && settings && tiers && !settingsStale && !tiersStale) {
+        if (!force && settings && !settingsStale) {
             return; // Use cached data
         }
         
         set({ loading: true });
         try {
-            const promises = [];
-            
-            if (force || !settings || settingsStale) {
-                promises.push(adminReferralAPI.getSettings());
-            }
-            if (force || !tiers || tiersStale) {
-                promises.push(adminMembershipAPI.getAllTiers());
-            }
-            
-            const results = await Promise.all(promises);
-            
-            const updates = { loading: false };
-            let resultIndex = 0;
-            
-            if (force || !settings || settingsStale) {
-                updates.settings = results[resultIndex].data.settings;
-                updates.lastSettingsFetch = now;
-                resultIndex++;
-            }
-            if (force || !tiers || tiersStale) {
-                updates.tiers = results[resultIndex].data.tiers;
-                updates.lastTiersFetch = now;
-            }
-            
-            set(updates);
+            const response = await adminReferralAPI.getSettings();
+            set({ 
+                settings: response.data.settings,
+                lastSettingsFetch: now,
+                loading: false 
+            });
         } catch (error) {
             set({ error: error.message, loading: false });
         }
@@ -115,5 +93,5 @@ export const useSystemStore = create((set, get) => ({
     setCategories: (categories) => set({ categories }),
     
     // Invalidate cache to force refresh
-    invalidateCache: () => set({ lastSettingsFetch: 0, lastTiersFetch: 0 })
+    invalidateCache: () => set({ lastSettingsFetch: 0 })
 }));
