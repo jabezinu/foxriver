@@ -86,6 +86,8 @@ export default function BankSettings() {
 
     if (loading) return <Loading />;
 
+    const editingBank = (banks || []).find(b => b.id === editingId);
+
     return (
         <div className="animate-fadeIn space-y-8">
             <PageHeader
@@ -99,7 +101,7 @@ export default function BankSettings() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {banks.map((bank) => (
+                {(banks || []).map((bank) => (
                     <BankCard
                         key={bank.id}
                         bank={bank}
@@ -110,7 +112,7 @@ export default function BankSettings() {
                 ))}
             </div>
 
-            {banks.length === 0 && (
+            {(banks || []).length === 0 && (
                 <div className="py-24 text-center border-2 border-dashed border-gray-100 rounded-3xl flex flex-col items-center justify-center text-gray-300">
                     <p className="font-black uppercase tracking-[0.3em] text-[10px] mb-4">No active financial nodes in local matrix</p>
                     <button onClick={() => handleOpenModal()} className="text-indigo-600 font-black text-xs uppercase hover:underline">

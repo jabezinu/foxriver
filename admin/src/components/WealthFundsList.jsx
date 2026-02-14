@@ -3,7 +3,7 @@ import { HiPencil, HiTrash, HiCalendar, HiTrendingUp, HiCurrencyDollar } from 'r
 import Badge from './shared/Badge';
 import Card from './shared/Card';
 
-export default function WealthFundsList({ funds, onEdit, onDelete, renderImageUrl }) {
+export default function WealthFundsList({ funds = [], onEdit, onDelete, renderImageUrl }) {
     if (funds.length === 0) {
         return (
             <div className="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400">

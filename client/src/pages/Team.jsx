@@ -43,20 +43,14 @@ export default function Team() {
 
     useEffect(() => {
         const init = async () => {
-            await fetchTeamData();
+            await Promise.all([
+                fetchTeamData(),
+                fetchSettings()
+            ]);
             setLoading(false);
         };
         init();
-    }, [fetchTeamData]);
-
-    // The user's provided change for useEffect, assuming it replaces the existing one
-    useEffect(() => {
-        fetchProfile();
-        fetchCommissions();
-        fetchSalary();
-        fetchDownline();
-        fetchSettings();
-    }, [fetchProfile, fetchCommissions, fetchSalary, fetchDownline, fetchSettings]);
+    }, [fetchTeamData, fetchSettings]);
 
     const handleRefresh = async () => {
         setLoading(true);

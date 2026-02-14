@@ -44,10 +44,10 @@ export default function UserManagement() {
 
     // Restrict All Modal State
     const [restrictModalOpen, setRestrictModalOpen] = useState(false);
-    const [restrictPayload, setRestrictPayload] = useState({
-        type: 'restrict', // 'restrict' or 'lift'
-        reason: ''
-    });
+    const [restrictDate, setRestrictDate] = useState('');
+    const [isLiftRestriction, setIsLiftRestriction] = useState(false);
+    const [restrictedDays, setRestrictedDays] = useState([]);
+    const [restrictionType, setRestrictionType] = useState('date');
 
     useEffect(() => {
         fetchUserData();
@@ -122,16 +122,25 @@ export default function UserManagement() {
         setSubmitting(false);
     };
 
-    const confirmRestrictAll = async () => {
+    const handleRestrictAll = async (e) => {
+        e.preventDefault();
         setSubmitting(true);
-        const payload = {
-            restricted: restrictPayload.type === 'restrict',
-            reason: restrictPayload.reason
-        };
+        
+        let payload = {};
+        
+        if (isLiftRestriction) {
+            payload = { date: null, restrictedDays: [] };
+        } else {
+            if (restrictionType === 'date') {
+                payload = { date: restrictDate, restrictedDays: [] };
+            } else {
+                payload = { date: null, restrictedDays: restrictedDays };
+            }
+        }
 
         const res = await restrictAllUsers(payload);
         if (res.success) {
-            toast.success(`Broad-Spectrum Protocol: All users ${payload.restricted ? 'Restricted' : 'Restored'}`);
+            toast.success(res.data.message || 'Global Restriction Updated');
             setRestrictModalOpen(false);
             fetchUserData();
         } else {
@@ -163,7 +172,7 @@ export default function UserManagement() {
                 form={editForm}
                 onChange={setEditForm}
                 onClose={() => setEditingUser(null)}
-                onSave={handleSaveEdit}
+                onSave={handleEditUser}
             />
 
             <ReferenceTreeModal

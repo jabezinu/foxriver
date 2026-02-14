@@ -20,7 +20,7 @@ exports.authLimiter = rateLimit({
 // Rate limiter for general API endpoints
 exports.apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
-    max: 1000, // 1000 requests per minute for high traffic
+    max: 5000, // Increased limit for dev/admin usage
     message: {
         success: false,
         message: 'Too many requests. Please slow down.'

@@ -32,7 +32,6 @@ export default function TaskManagement() {
     const [taskTitle, setTaskTitle] = useState('');
     const [playlistUrl, setPlaylistUrl] = useState('');
 
-    useEffect(() => { fetchData(); }, []);
 
     useEffect(() => { fetchTaskData(); }, [fetchTaskData]);
 

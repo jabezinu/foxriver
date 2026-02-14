@@ -46,7 +46,7 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const { verifyToken } = useAdminAuthStore();
+  const verifyToken = useAdminAuthStore(state => state.verifyToken);
 
   useEffect(() => {
     verifyToken();
