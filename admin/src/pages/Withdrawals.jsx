@@ -8,6 +8,7 @@ import PageHeader from '../components/shared/PageHeader';
 import WithdrawalItem from '../components/WithdrawalItem';
 import ExportModal from '../components/ExportModal';
 import { exportToCSV } from '../utils/exportUtils';
+import { adminWithdrawalAPI } from '../services/api';
 
 export default function WithdrawalRequests() {
     const { withdrawals, loading, fetchWithdrawals, approveWithdrawal, rejectWithdrawal, undoWithdrawal } = useAdminWithdrawalStore();

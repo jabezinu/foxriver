@@ -9,6 +9,7 @@ import DepositItem from '../components/DepositItem';
 import ScreenshotModal from '../components/ScreenshotModal';
 import ExportModal from '../components/ExportModal';
 import { exportToCSV } from '../utils/exportUtils';
+import { adminDepositAPI } from '../services/api';
 
 export default function DepositRequests() {
     const { deposits, loading, fetchDeposits, approveDeposit, rejectDeposit, undoDeposit } = useAdminDepositStore();
